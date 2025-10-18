@@ -193,12 +193,12 @@ Phase 3: Enhancement (Weeks 9-12)
 
 | Component     | Status            | Notes                                                              |
 | ------------- | ----------------- | ------------------------------------------------------------------ |
-| Tests         | ✅ Stable         | Jest 29 with custom environment; 210 specs passing                 |
-| Coverage      | ✅ Branch 81%     | 92% statements / 81% branches / 94% functions                      |
+| Tests         | ✅ Stable         | Jest 29 with custom environment; 263 specs passing                 |
+| Coverage      | ✅ Branch 91%     | 96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines |
 | Build         | ✅ Dual output    | `yarn build` emits `lib/cjs` + `lib/esm` with d.ts                 |
-| Dependencies  | ⚠️ Review pending | Runtime deps unchanged; audit queued                               |
+| Dependencies  | ✅ Audited        | `yarn npm audit` clean; dependency decisions refreshed             |
 | Documentation | 🔄 Updating       | Quick start & Phase 1 checklist refreshed                          |
-| PWA Ready     | ❌ Not optimized  | IndexedDB adapter + bundle size work outstanding                   |
+| PWA Ready     | ⚠️ In progress   | IndexedDB adapter, offline queueing demo, and Playwright automation landed; bundle trimming ongoing |
 | CI/CD         | ✅ Running        | GitHub Actions (`.github/workflows/ci.yml`) covers lint/test/build |
 
 **Immediate Focus**: Complete dependency audit and begin PWA/browser integration work before shipping a beta.

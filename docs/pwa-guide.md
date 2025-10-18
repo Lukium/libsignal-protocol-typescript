@@ -125,7 +125,7 @@ Launch the demo locally with `yarn example:pwa-vite` after running `yarn build`.
 ## 4. Offline Support
 
 - Cache the library bundle and supporting assets using Workbox or manual `caches.open`.
-- Queue outbound messages in IndexedDB when offline; flush once connectivity returns.
+- Queue outbound messages in IndexedDB when offline; flush once connectivity returns (see `examples/pwa-vite/src/main.ts` for a reference implementation).
 - Use Background Sync (`sync` event) to retry failed uploads.
 
 ## 5. Bundle Size Considerations

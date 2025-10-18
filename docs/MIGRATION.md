@@ -1,8 +1,8 @@
-# Migration Guide (v0.0.16 → Phase 1)
+# Migration Guide (v0.0.16 → Phase 2 beta)
 
-_Last updated: 2025-10-17_
+_Last updated: 2025-10-19_
 
-This guide helps consumers of `@privacyresearch/libsignal-protocol-typescript@0.0.16` migrate to the modernized Phase 1 release.
+This guide helps consumers of `@privacyresearch/libsignal-protocol-typescript@0.0.16` adopt the modernization work delivered across Phase 1 and Phase 2.
 
 ## 1. Installation & Build Targets
 
@@ -15,6 +15,7 @@ This guide helps consumers of `@privacyresearch/libsignal-protocol-typescript@0.
 - **TypeScript**: Upgraded to 5.9.x with `strict` mode enabled across the library. No consumer-facing type changes were introduced, but stricter typing may surface gaps in your own ambient declarations.
 - **ESLint & Prettier**: Flat-config ESLint 9 with Prettier integration. If you extend the project’s config, switch to the new `eslint.config.js` format.
 - **Jest**: Remains on 29.x with a custom environment (`src/__test-utils__/custom-jest-environment.js`). Consumers running the test suite should keep `maxWorkers=1` until upstream stability issues are resolved.
+- **Build validation**: `yarn smoke:build` now verifies the dual CJS/ESM outputs and subpath exports after `yarn build`.
 
 ## 3. API Surface
 
@@ -34,11 +35,29 @@ No public APIs were intentionally removed in Phase 1. Notable clarifications:
 2. **Audit bundler configs** – update path aliases if you referenced `lib/` directly; rely on the package exports instead.
 3. **Re-run tests** – execute your integration tests against the upgraded build to validate serialization, storage, and crypto pathways.
 
-## 6. Future Work (Phase 2+)
+## 6. Phase 2 Enhancements
 
-- PQXDH support, browser storage adapters, and regenerated protobuf definitions are planned. Track `docs/limitations.md` for progress and adjust your roadmap accordingly.
+- **Browser-first tooling**
+  - First-party IndexedDB adapter (`examples/storage-adapters/indexeddb-adapter.ts`) with accompanying tests.
+  - Vite PWA demo (`examples/pwa-vite`) showcasing Service Worker messaging, offline queueing, and Playwright automation (`yarn test:e2e`).
+  - Offline-aware main thread logic automatically queues outbound messages until connectivity and sessions return.
+- **Examples & CLI**
+  - `yarn example:basic` runs the end-to-end demo against the built artifacts, doubling as a packaging smoke test.
+- **Packaging**
+  - Optional entry points documented in `docs/build-and-testing.md`; `yarn smoke:build` asserts the exports map is in sync with the build outputs.
+  - Bundle size target of ≤110 KB gzipped confirmed for Phase 2.
+- **Documentation**
+  - PWA guide expanded with offline queue references.
+  - Dependency decisions updated with an msrcrypto audit and WASM migration plan for Phase 3.
 
-## 7. Public API Snapshot
+## 7. Future Work (Phase 3+)
+
+- PQXDH support and WASM Curve25519 evaluation.
+- Enhanced telemetry/logging hooks and structured error surface.
+- Bundle trimming below 100 KB gzipped and broader browser coverage.
+- Migration recipes for custom storage backends and advanced examples (React/Vue).
+
+## 8. Public API Snapshot
 
 | Export | Status | Notes |
 | ------ | ------ | ----- |

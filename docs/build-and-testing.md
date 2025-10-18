@@ -21,7 +21,8 @@ yarn format                # prettier write pass
 ## Coverage & Quality Gates
 
 - Jest currently enforces **80/80/80/80** (statements/lines/functions/branches).
-- Latest run (2025-10-18): **93.0% statements / 81.8% branches / 93.8% functions / 92.9% lines** across 234 specs.
+- Latest run (2025-10-19): **96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines** across 263 specs.
+- Generated protobuf codecs under `src/protobuf/**` are excluded from coverage to keep the metrics focused on first-party logic.
 - What’s left to exercise:
   1. `session-cipher.ts` archival/decryption retry loops (lines 250-350, 390+)
   2. `session-record.ts` legacy migration branches (lines 30-220)
@@ -88,10 +89,9 @@ Recent additions:
   - `lib/esm` ≈ **328 KB** on disk
   - Target (Phase 2): <100 KB gzipped after tree-shaking and optional module splits
 - Ensure only these directories are packaged (`package.json > files`).
-- Smoke tests (manual for now):
+- Smoke test the dual builds and subpath exports:
   ```bash
-  node -e "const lib = require('./lib/cjs'); console.log(Object.keys(lib))"
-  node -e "import('./lib/esm/index.js').then(m => console.log(Object.keys(m)))"
+  yarn smoke:build
   ```
 
 ### Bundle Hot Spots (2025-10-19)
@@ -104,11 +104,11 @@ Recent additions:
 | `lib/esm/internal/crypto.js`       | 4,763 B  | 1,474 B | WebCrypto + HKDF wrapper             |
 | `lib/esm/protobuf/push_messages.js`| 15,157 B | 3,374 B | Generated codec; candidates for split|
 
-Near-term optimization tasks (Phase 2 focus):
+Near-term optimization tasks (Phase 3 preview):
 
 1. Split optional helpers/protobuf codecs behind secondary entry points so bundlers can omit them when not needed.
 2. Audit `session-cipher` for inline helpers that can migrate into lazily-evaluated modules.
-3. Track gzipped totals after each pass; **Phase 2 target** is ≤110 KB gzipped. (Original <100 KB goal is deferred to Phase 3.)
+3. Track gzipped totals after each pass; **Phase 2 target** remains ≤110 KB gzipped, with sub-100 KB deferred to Phase 3.
 
 Bundle smoke test (`yarn build` is executed automatically):
 

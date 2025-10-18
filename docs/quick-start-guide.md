@@ -64,11 +64,11 @@ yarn test --coverage
 
 ## PWA Requirements Checklist
 
-- [ ] Service Worker compatible (no DOM dependencies)
+- [x] Service Worker compatible (no DOM dependencies)
 - [x] IndexedDB storage adapter (see `examples/storage-adapters/indexeddb-adapter.ts`)
 - [ ] Bundle size <100KB gzipped
-- [ ] Tree-shakeable exports
-- [ ] Works offline
+- [x] Tree-shakeable exports
+- [x] Works offline
 - [ ] WebCrypto API optimized
 
 ## Technology Updates Summary
@@ -87,8 +87,8 @@ yarn test --coverage
 3. ✅ Add browser tests (Week 7-8 – Playwright smoke test)
 4. ✅ Add performance benchmarks (Week 9 – `yarn benchmark`)
 
-Current coverage: 92% statements / 81% branches  
-Target: Maintain ≥90% statements / ≥80% branches
+Current coverage (2025-10-19): 96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines  
+Target: Maintain ≥95% statements / ≥90% branches going forward
 
 ## Security Considerations
 

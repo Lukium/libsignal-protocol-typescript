@@ -1,8 +1,8 @@
 # Current Limitations
 
-_Last reviewed: 2025-10-17_
+_Last reviewed: 2025-10-19_
 
-This document captures the major gaps and caveats that apply to `@privacyresearch/libsignal-protocol-typescript` during Phase 1 of the modernization project.
+This document captures the major gaps and caveats that apply to `@privacyresearch/libsignal-protocol-typescript` during Phase 2 of the modernization project.
 
 ## Known Issues
 
@@ -14,7 +14,7 @@ This document captures the major gaps and caveats that apply to `@privacyresearc
 ## Missing Features
 
 - **PQXDH Support**: Post-quantum X3DH (PQXDH) is not implemented. Upgrading requires ML-KEM (Kyber) primitives that do not yet exist in a browser-safe TypeScript form.
-- **IndexedDB/Service Worker Adapters**: No first-party storage adapter exists for PWAs. Phase 2 will add IndexedDB-backed session stores and guidance for Service Worker usage.
+- **PWA Toolkit Gaps**: First-party IndexedDB and Service Worker adapters now ship with tests and documentation, but quota management helpers and broader guidance remain on the roadmap.
 - **Automated Browser Matrix**: CI currently runs only on Node 18/20. Browser integration tests and bundle-size regression tracking are part of the Phase 2 roadmap.
 
 ## Browser Compatibility Notes

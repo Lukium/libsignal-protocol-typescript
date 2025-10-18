@@ -92,49 +92,49 @@
 ### Testing
 
 - [ ] Integration tests cover multi-device flows
-- [ ] Branch coverage ≥85%
+- [x] Branch coverage ≥85% *(2025-10-18: 96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines)*
 - [ ] Browser automation smoke tests passing
 - [ ] No open critical test issues
 
 ### Build System
 
-- [ ] Bundles ≤110 KB gzipped (Phase 2)
-- [ ] Optional entry points documented and tested
-- [ ] Dual builds validated in Node + browser harnesses
-- [ ] Release scripts automated (`yarn release:beta`)
+- [x] Bundles ≤110 KB gzipped (Phase 2)
+- [x] Optional entry points documented and tested
+- [x] Dual builds validated in Node + browser harnesses
+- [x] Release scripts automated (`yarn release:beta`)
 
 ### Code Quality
 
-- [ ] TypeDoc/typedoc-style API docs generated
+- [x] TypeDoc/typedoc-style API docs generated
 - [x] Benchmarks tracked in repo
 - [ ] Error handling audited (structured errors, no raw strings)
 - [ ] Logging hooks optional and disabled by default
 
 ### Dependencies
 
-- [ ] Protobuf bundle regenerated
-- [ ] `msrcrypto` usage audited; plan for WASM spike documented
-- [ ] No high/critical vulnerabilities in `yarn npm audit`
-- [ ] Dependency decisions updated (`docs/dependencies.md`)
+- [x] Protobuf bundle regenerated
+- [x] `msrcrypto` usage audited; plan for WASM spike documented
+- [x] No high/critical vulnerabilities in `yarn npm audit`
+- [x] Dependency decisions updated (`docs/dependencies.md`)
 
 ### Documentation
 
-- [ ] API reference published
-- [ ] PWA guide updated with IndexedDB adapter usage
-- [ ] Examples README refreshed with scripts
-- [ ] Migration guide includes Phase 2 changes
+- [x] API reference published
+- [x] PWA guide updated with IndexedDB adapter usage
+- [x] Examples README refreshed with scripts
+- [x] Migration guide includes Phase 2 changes
 
 ### Examples & PWA
 
-- [ ] Basic messaging example runnable via script
-- [ ] IndexedDB adapter example tested and documented
-- [ ] PWA example handles offline/online transitions
-- [ ] Storage adapters include README usage instructions
+- [x] Basic messaging example runnable via script
+- [x] IndexedDB adapter example tested and documented
+- [x] PWA example handles offline/online transitions
+- [x] Storage adapters include README usage instructions
 
 ### Release Readiness
 
-- [ ] `CHANGELOG.md` started with Phase 2 entries
-- [ ] `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` published
+- [x] `CHANGELOG.md` started with Phase 2 entries
+- [x] `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` published
 - [ ] Beta release published to npm (tagged `next`)
 - [ ] Post-release checklist drafted for Phase 3 handoff
 
