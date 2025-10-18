@@ -29,7 +29,7 @@
   - File: `examples/storage-adapters/indexeddb-adapter.ts`
   - Implement full `SignalProtocolStore` against IndexedDB
   - Write Jest tests using `fake-indexeddb`
-- [ ] **PWA example application**
+- [x] **PWA example application**
   - Populate `examples/pwa-integration` with runnable assets
   - Demonstrate push handling, offline queueing, and background sync
 - [ ] **Service Worker compatibility**
