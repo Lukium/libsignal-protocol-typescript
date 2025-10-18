@@ -18,21 +18,26 @@ This command clears `docs/api/` and regenerates the static HTML output.
 
 ## Publish to GitHub Pages
 
-### Option A – Publish from `main/docs`
+## Automated Publishing (Recommended)
 
-1. Run `yarn docs:api` locally to generate the HTML.
-2. Copy the contents of `docs/api/` (the generated files) into `docs/api-site/` or another tracked directory.
-3. Commit the static files (e.g., `docs/api-site/**`) and push to `main`.
-4. In **Settings → Pages**, choose “Deploy from a branch : main /docs” (or the directory you created).
-5. GitHub Pages will publish the site at `https://<user>.github.io/<repo>/api-site/`.
+This repository includes `.github/workflows/publish-docs.yml`. On every push to `master`, the action:
 
-### Option B – Publish via `gh-pages` (GitHub Actions)
+1. Installs dependencies (`yarn install --immutable`).
+2. Runs `yarn docs:api` to regenerate TypeDoc output.
+3. Deploys the contents of `docs/api/` to the `gh-pages` branch using `peaceiris/actions-gh-pages`.
 
-1. Install `gh-pages` or use a GitHub Action to publish the generated output to the `gh-pages` branch.
-2. The HTML must live at the repository root of `gh-pages` (e.g., top-level `index.html`).
-3. Configure Pages to serve from the `gh-pages` branch.
+After the workflow runs, GitHub Pages can be enabled via **Settings → Pages** by selecting `gh-pages / root`. The site will be available at `https://<user>.github.io/<repo>/`.
 
-(Public repositories can use GitHub Pages for free; private repositories require a paid plan.)
+Public repositories can use GitHub Pages for free; private repositories require a paid plan.
+
+### Manual Publishing (Optional)
+
+If you prefer a manual flow:
+
+1. Run `yarn docs:api` locally.
+2. Copy the generated files in `docs/api/` to a temporary directory.
+3. Commit them to a branch (`gh-pages`) at the repository root (`index.html`, `assets/`, etc.).
+4. Push the branch and configure Pages to use it.
 
 ## Automation options
 

@@ -67,7 +67,7 @@ Recent additions:
 - Use `yarn release:beta` before publishing. It runs `lint`, `test`, `bundle:size`, and `build` in sequence.
 - `prepublishOnly` is wired to the same command, so `npm publish --tag next` will fail fast on size or test regressions.
 - Update `CHANGELOG.md` when cutting releases and include relevant changes/versions.
-- Publish the generated TypeDoc site via GitHub Pages (see `docs/api-publishing.md`) so the API reference is always accessible.
+- GitHub Pages deployment is automated: see `.github/workflows/publish-docs.yml` and `docs/api-publishing.md` for details.
 
 ## Build Artifacts
 
