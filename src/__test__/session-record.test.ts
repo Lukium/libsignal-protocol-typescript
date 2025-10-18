@@ -144,6 +144,29 @@ describe('SessionRecord', () => {
         expect(util.arrayBufferToString(restored.pubKey)).toBe(util.arrayBufferToString(baseKey));
         expect(util.arrayBufferToString(restored.privKey)).toBe(util.arrayBufferToString(otherKey));
     });
+
+    test('haveOpenSession returns false when registrationId missing', () => {
+        const record = new SessionRecord();
+        const session = createSession({ registrationId: undefined });
+        record.updateSessionState(session);
+        expect(record.haveOpenSession()).toBe(false);
+    });
+
+    test('getSessionByRemoteEphemeralKey returns open session when chain missing', () => {
+        const record = new SessionRecord();
+        const session = createSession();
+        record.updateSessionState(session);
+        const fallbackKey = toAB(new Array(32).fill(9));
+        expect(record.getSessionByRemoteEphemeralKey(fallbackKey)).toBe(session);
+    });
+
+    test('deleteAllSessions clears existing sessions', () => {
+        const record = new SessionRecord();
+        record.updateSessionState(createSession());
+        record.deleteAllSessions();
+        expect(record.haveOpenSession()).toBe(false);
+        expect(record.getSessions()).toHaveLength(0);
+    });
 });
 
 describe('SessionRecord edge cases', () => {
@@ -165,5 +188,37 @@ describe('SessionRecord edge cases', () => {
     test('getSessionByBaseKey returns undefined for empty key', () => {
         const record = new SessionRecord();
         expect(record.getSessionByBaseKey(new ArrayBuffer(0))).toBeUndefined();
+    });
+
+    test('getOpenSession throws when duplicate open sessions detected', () => {
+        const record = new SessionRecord();
+        record.updateSessionState(createSession());
+        record.updateSessionState(
+            createSession({
+                indexInfo: {
+                    baseKey: otherKey,
+                    baseKeyType: BaseKeyType.THEIRS,
+                    remoteIdentityKey: baseKey,
+                    closed: -1,
+                },
+            })
+        );
+        expect(() => record.getOpenSession()).toThrow('Datastore inconsistensy: multiple open sessions');
+    });
+
+    test('removeOldChains throws when old ratchet index invalid', () => {
+        const record = new SessionRecord();
+        const session = createSession();
+        for (let i = 0; i < 11; i += 1) {
+            const keyBytes = i === 0 ? new Uint8Array(0) : new Uint8Array(32).fill(i + 1);
+            const key = util.uint8ArrayToArrayBuffer(keyBytes);
+            session.oldRatchetList.push({ ephemeralKey: key, added: i });
+            session.chains[util.arrayBufferToString(key)] = {
+                chainType: ChainType.RECEIVING,
+                chainKey: { counter: 0, key },
+                messageKeys: {},
+            };
+        }
+        expect(() => record.removeOldChains(session)).toThrow('invalid index for chain');
     });
 });

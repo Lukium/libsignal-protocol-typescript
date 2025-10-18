@@ -1,8 +1,9 @@
 import { SessionCipher } from '../session-cipher';
+import { SessionBuilder } from '../session-builder';
 import { SessionRecord } from '../session-record';
 import { ChainType, SessionType, BaseKeyType, Chain } from '../session-types';
 import { StorageType, KeyPairType } from '../types';
-import { WhisperMessage } from '../protobuf/wire';
+import { PreKeyWhisperMessage, WhisperMessage } from '../protobuf/wire';
 import * as base64 from 'base64-js';
 
 const createBuffer = (fill: number, length: number): ArrayBuffer => {
@@ -230,6 +231,84 @@ describe('SessionCipher error handling', () => {
         const payload = new Uint8Array([0x34]); // min version 4 triggers incompatibility
         await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow(
             'Incompatible version number on PreKeyWhisperMessage'
+        );
+    });
+
+    test('decryptPreKeyWhisperMessage rejects when registrationId missing', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const decoded = PreKeyWhisperMessage.create({
+            baseKey: new Uint8Array(32).fill(1),
+            identityKey: new Uint8Array(32).fill(2),
+            message: new Uint8Array([0x01, 0x02]),
+        });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        delete (decoded as any).registrationId;
+        const decodeSpy = jest.spyOn(PreKeyWhisperMessage, 'decode').mockReturnValue(decoded);
+        const payload = new Uint8Array([0x33]);
+        await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow('No registrationId');
+        decodeSpy.mockRestore();
+    });
+
+    test('decryptPreKeyWhisperMessage rejects when builder leaves required fields missing', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        (cipher as any).getRecord = jest.fn().mockResolvedValue(new SessionRecord());
+        const spy = jest.spyOn(SessionBuilder.prototype, 'processV3').mockImplementation(async (_record, message) => {
+            message.baseKey = undefined;
+            return undefined;
+        });
+        const encoded = PreKeyWhisperMessage.encode(
+            PreKeyWhisperMessage.create({
+                registrationId: 9,
+                baseKey: new Uint8Array(32).fill(3),
+                identityKey: new Uint8Array(32).fill(4),
+                message: new Uint8Array([0x05]),
+            })
+        ).finish();
+        const bytes = new Uint8Array(1 + encoded.length);
+        bytes[0] = 0x33;
+        bytes.set(encoded, 1);
+        await expect(cipher.decryptPreKeyWhisperMessage(bytes.buffer)).rejects.toThrow(
+            'PreKeySignalMessage missing required fields'
+        );
+        spy.mockRestore();
+    });
+
+    test('decryptWithSessionList retries after non-counter failure', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const { session: first } = createRecordWithSession();
+        const { session: second } = createRecordWithSession({
+            indexInfo: {
+                ...createRecordWithSession().session.indexInfo,
+                baseKey: createBuffer(7, 32),
+                baseKeyType: BaseKeyType.OURS,
+            },
+        });
+        const spy = jest.spyOn(
+            SessionCipher.prototype as unknown as {
+                doDecryptWhisperMessage: (...args: unknown[]) => Promise<ArrayBuffer>;
+            },
+            'doDecryptWhisperMessage'
+        );
+        spy.mockImplementationOnce(() => Promise.reject(new Error('transient')));
+        spy.mockImplementationOnce(() => Promise.resolve(new ArrayBuffer(0)));
+        const result = await (cipher as any).decryptWithSessionList(new ArrayBuffer(0), [first, second], []);
+        expect(result.session).toEqual(second);
+        expect(spy).toHaveBeenCalledTimes(2);
+        spy.mockRestore();
+    });
+
+    test('maybeStepRatchet rejects missing remote key', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const { session } = createRecordWithSession({
+            currentRatchet: {
+                rootKey: createBuffer(1, 32),
+                lastRemoteEphemeralKey: createBuffer(2, 32),
+                previousCounter: 0,
+                ephemeralKeyPair: createKeyPair(),
+            },
+        });
+        await expect((cipher as any).maybeStepRatchet(session, undefined, 0)).rejects.toThrow(
+            'Signal message missing ratchet key'
         );
     });
 });
