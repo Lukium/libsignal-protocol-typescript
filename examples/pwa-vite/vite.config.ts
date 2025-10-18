@@ -2,6 +2,8 @@ import { defineConfig } from 'vite';
 import path from 'node:path';
 
 const repoRoot = path.resolve(__dirname, '..', '..');
+const libEsmDir = path.resolve(repoRoot, 'lib/esm');
+const libEsmDirPosix = libEsmDir.split(path.sep).join('/');
 
 export default defineConfig({
     root: __dirname,
@@ -23,11 +25,20 @@ export default defineConfig({
         },
     },
     resolve: {
-        alias: {
-            '@example/indexeddb-adapter': path.resolve(__dirname, '../storage-adapters/indexeddb-adapter.ts'),
-            '@privacyresearch/libsignal-protocol-typescript': path.resolve(repoRoot, 'src'),
-            '@privacyresearch/libsignal-protocol-typescript/index': path.resolve(repoRoot, 'src/index.ts'),
-        },
+        alias: [
+            {
+                find: '@example/indexeddb-adapter',
+                replacement: path.resolve(__dirname, '../storage-adapters/indexeddb-adapter.ts'),
+            },
+            {
+                find: /^@privacyresearch\/libsignal-protocol-typescript$/,
+                replacement: path.join(libEsmDir, 'index.js'),
+            },
+            {
+                find: /^@privacyresearch\/libsignal-protocol-typescript\/(.*)$/,
+                replacement: `${libEsmDirPosix}/$1.js`,
+            },
+        ],
     },
     server: {
         fs: {

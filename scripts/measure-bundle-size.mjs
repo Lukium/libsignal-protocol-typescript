@@ -1,4 +1,4 @@
-import { rmSync, readdirSync, readFileSync, statSync } from 'node:fs';
+import { rmSync, readdirSync, readFileSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { gzipSync } from 'node:zlib';
 import { spawnSync } from 'node:child_process';
@@ -11,13 +11,22 @@ try {
     console.error('Failed to clean dist directory', err);
 }
 
-const build = spawnSync('yarn', ['build:pwa-vite'], {
+const buildLib = spawnSync('yarn', ['build'], {
     stdio: 'inherit',
     shell: false,
 });
 
-if (build.status !== 0) {
-    process.exit(build.status ?? 1);
+if (buildLib.status !== 0) {
+    process.exit(buildLib.status ?? 1);
+}
+
+const buildDemo = spawnSync('yarn', ['build:pwa-vite'], {
+    stdio: 'inherit',
+    shell: false,
+});
+
+if (buildDemo.status !== 0) {
+    process.exit(buildDemo.status ?? 1);
 }
 
 function collectFiles(dir, predicate) {

@@ -7,6 +7,7 @@ plaintext back to all connected clients, and showcases the IndexedDB-backed stor
 ## Quickstart
 
 ```bash
+yarn build            # ensure lib/esm is up to date
 yarn dev:pwa-vite     # launches Vite (http://127.0.0.1:5173 by default)
 ```
 
@@ -17,6 +18,7 @@ after the worker decrypts them.
 ## Build & Preview
 
 ```bash
+yarn build            # refresh lib/esm before deriving production output
 yarn preview:pwa-vite   # builds + serves the production bundle on port 5174
 ```
 

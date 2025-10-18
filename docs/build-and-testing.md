@@ -96,7 +96,7 @@ Near-term optimization tasks:
 2. Audit `session-cipher` for inline helpers that can migrate into lazily-evaluated modules.
 3. Track gzipped totals after each pass until the primary worker bundle drops below the 100 KB goal.
 
-Bundle smoke test:
+Bundle smoke test (`yarn build` is executed automatically):
 
 ```bash
 yarn bundle:size
