@@ -22,7 +22,7 @@
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
-    "prepublishOnly": "yarn run lint",
+    "prepublishOnly": "yarn release:beta",
     "preversion": "yarn run lint && yarn test",
     "version": "yarn run format && git add -A src",
     "postversion": "git push && git push --tags",
@@ -31,7 +31,8 @@
     "preview:pwa-vite": "yarn build:pwa-vite && vite preview --config examples/pwa-vite/vite.config.ts --host 127.0.0.1 --port 5174",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "docs:api": "typedoc --options typedoc.json",
-    "bundle:size": "node scripts/measure-bundle-size.mjs"
+    "bundle:size": "node scripts/measure-bundle-size.mjs",
+    "release:beta": "yarn lint && yarn test && yarn bundle:size && yarn build"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

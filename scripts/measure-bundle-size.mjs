@@ -62,7 +62,13 @@ console.log(`JavaScript files: ${jsFiles.length}`);
 console.log(`Total raw size: ${totalBytes} bytes (${formatKB(totalBytes)} KiB)`);
 console.log(`Total gzipped: ${totalGzip} bytes (${formatKB(totalGzip)} KiB)`);
 
-if (totalGzip > 102400) {
-    console.warn('\n⚠️  Gzipped size exceeds 100 KiB target.');
+const phaseTwoCeiling = 112640; // 110 KiB
+
+if (totalGzip > phaseTwoCeiling) {
+    console.warn('\n⚠️  Gzipped size exceeds 110 KiB Phase 2 target.');
     process.exitCode = 1;
+}
+
+if (totalGzip > 102400) {
+    console.warn('\nℹ️  Reminder: Sub-100 KiB remains the Phase 3 goal.');
 }

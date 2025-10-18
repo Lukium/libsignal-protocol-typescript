@@ -51,7 +51,7 @@
 - [ ] **Dual build validation**
   - Add smoke tests executing built artifacts (`node` + `browser` env via `esbuild`)
   - Confirm `.d.ts` maps reference correct sources
-- [ ] **Release tooling**
+- [x] **Release tooling**
   - Draft `CHANGELOG.md`
   - Prepare npm `prepublishOnly` script to run lint/test/build/size check
 

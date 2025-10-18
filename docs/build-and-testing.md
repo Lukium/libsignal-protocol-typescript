@@ -62,6 +62,12 @@ Recent additions:
 - Output: `docs/api/` (ignored in git; regenerate instead of editing by hand)
 - Warnings: TypeDoc expects TS ≤5.7; current build emits benign version warnings until we align dependencies.
 
+## Release Workflow
+
+- Use `yarn release:beta` before publishing. It runs `lint`, `test`, `bundle:size`, and `build` in sequence.
+- `prepublishOnly` is wired to the same command, so `npm publish --tag next` will fail fast on size or test regressions.
+- Update `CHANGELOG.md` when cutting releases and include relevant changes/versions.
+
 ## Build Artifacts
 
 - `yarn build` produces:

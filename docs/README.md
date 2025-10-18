@@ -64,6 +64,7 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 - Build artifact layout (CJS + ESM)
 - Outstanding QA and packaging tasks
 - Browser automation + API documentation commands
+- Release workflow (`yarn release:beta`) and bundle-size guard rails
 
 **Share this** with anyone wiring the library into CI or release tooling.
 
