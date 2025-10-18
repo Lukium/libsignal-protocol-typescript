@@ -127,7 +127,7 @@
 
 ### Day 5: CI/CD Setup
 
-- [ ] **Create GitHub Actions workflow**
+- [x] **Create GitHub Actions workflow**
   - File: `.github/workflows/ci.yml`
 
   ```yaml
@@ -140,75 +140,36 @@
       branches: [master, main]
 
   jobs:
-    test:
-      name: Test on Node.js ${{ matrix.node-version }}
+    quality:
       runs-on: ubuntu-latest
       strategy:
         matrix:
-          node-version: [18.x, 20.x, 22.x]
-
+          node-version: [18.x, 20.x]
       steps:
         - uses: actions/checkout@v4
-
-        - name: Use Node.js ${{ matrix.node-version }}
-          uses: actions/setup-node@v4
+        - uses: actions/setup-node@v4
           with:
             node-version: ${{ matrix.node-version }}
-            cache: 'yarn'
-
-        - name: Install dependencies
-          run: yarn install --immutable
-
-        - name: Run linter
-          run: yarn lint
-
-        - name: Run type check
-          run: yarn typecheck
-
-        - name: Run tests
-          run: yarn test:coverage
-
-        - name: Build
-          run: yarn build
-
-        - name: Upload coverage to Codecov
-          uses: codecov/codecov-action@v4
+            cache: yarn
+            cache-dependency-path: .yarn/install-state.gz
+        - run: yarn install --immutable
+        - run: yarn lint
+        - run: yarn typecheck
+        - run: yarn test --coverage
+        - run: yarn build
+        - name: Upload coverage artifact
           if: matrix.node-version == '20.x'
+          uses: actions/upload-artifact@v4
           with:
-            file: ./coverage/lcov.info
-            fail_ci_if_error: false
-
-    build:
-      name: Build and check size
-      runs-on: ubuntu-latest
-
-      steps:
-        - uses: actions/checkout@v4
-
-        - name: Use Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: 20.x
-            cache: 'yarn'
-
-        - name: Install dependencies
-          run: yarn install --immutable
-
-        - name: Build
-          run: yarn build
-
-        - name: Check bundle size
-          run: |
-            echo "ESM build size:"
-            du -sh lib/esm/
-            echo "CJS build size:"
-            du -sh lib/cjs/
+            name: coverage-lcov
+            path: coverage/lcov.info
+            if-no-files-found: ignore
   ```
 
 - [ ] **Test CI workflow locally (optional)**
   ```bash
   # Install act: https://github.com/nektos/act
-  act -j test
+  act -j quality
   ```
 
 - [ ] **Create PR template**

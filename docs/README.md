@@ -103,14 +103,15 @@ Phase 3: Enhancement (Weeks 9-12)
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| Tests | ✅ Stable | Jest 29 with custom environment; 187 specs passing |
+| Tests | ✅ Stable | Jest 29 with custom environment; 210 specs passing |
 | Coverage | ✅ Branch 81% | 92% statements / 81% branches / 94% functions |
 | Build | ✅ Dual output | `yarn build` emits `lib/cjs` + `lib/esm` with d.ts |
 | Dependencies | ⚠️ Review pending | Runtime deps unchanged; audit queued |
 | Documentation | 🔄 Updating | Quick start & Phase 1 checklist refreshed |
 | PWA Ready | ❌ Not optimized | IndexedDB adapter + bundle size work outstanding |
+| CI/CD | ✅ Running | GitHub Actions (`.github/workflows/ci.yml`) covers lint/test/build |
 
-**Immediate Focus**: Close branch coverage gaps and finalize dependency audit before shipping a beta.
+**Immediate Focus**: Complete dependency audit and begin PWA/browser integration work before shipping a beta.
 
 ## Key Files to Understand
 
@@ -132,7 +133,7 @@ Phase 3: Enhancement (Weeks 9-12)
 ### Phase 1 (Foundation)
 - ✅ All tests passing with coverage reporting
 - ✅ Modern build system (ESM + CJS) with strict TS config
-- 🔄 CI/CD operational (workflow drafted; enable post-Yarn decision)
+- ✅ CI/CD operational (GitHub Actions on push/PR)
 - 🔄 Dependencies updated (security audit pending)
 
 ### Phase 2 (Modernization)

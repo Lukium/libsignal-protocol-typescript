@@ -38,6 +38,13 @@ yarn format                # prettier write pass
   node -e "import('./lib/esm/index.js').then(m => console.log(Object.keys(m)))"
   ```
 
+## Continuous Integration
+- Workflow: `.github/workflows/ci.yml`
+- Matrix: Node.js 18.x and 20.x
+- Steps: `yarn install --immutable` → `yarn lint` → `yarn typecheck` → `yarn test --coverage` → `yarn build`
+- Artifact: `coverage/lcov.info` uploaded from the Node 20 run for downstream reporting
+- Caveat: Jest still runs with `maxWorkers: 1` due to upstream worker crash; keep this config until the Jest issue is resolved.
+
 ## Outstanding Work
 - Decide on Yarn Berry permanence; confirm lockfile stability.
 - Wire GitHub Actions once branch coverage ≥80%.

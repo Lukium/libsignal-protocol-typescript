@@ -28,28 +28,17 @@ yarn test --coverage
 - Confirm Yarn Berry adoption (`.yarnrc.yml`, `.yarn/`) or roll back to Yarn Classic.
 - Add `exports` map and smoke tests for CJS/ESM bundles.
 
-### 3. Set Up CI/CD (Day 4-5)
-Create `.github/workflows/test.yml`:
-```yaml
-name: Test
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-node@v3
-      - run: yarn install
-      - run: yarn build
-      - run: yarn test --coverage
-```
+### 3. Monitor CI/CD (Day 4-5)
+- Workflow: `.github/workflows/ci.yml`
+- Validates lint → typecheck → tests (coverage) → build on Node 18 & 20
+- Coverage artifact (`coverage/lcov.info`) uploaded from the 20.x run
 
 ## Key Goals by Phase
 
 ### Phase 1 Goals
 - ✅ All tests passing (Jest 29, ts-jest, custom env)
 - ✅ Modern build system (ESM + CJS)
-- 🔄 CI/CD running (workflow drafted; enable once Yarn decision locked)
+- ✅ CI/CD running (GitHub Actions on push/PR)
 - 🔄 Dependencies audited and updated (crypto deps pending review)
 
 ### Phase 2 Goals
