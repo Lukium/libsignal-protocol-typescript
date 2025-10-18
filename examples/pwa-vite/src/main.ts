@@ -16,6 +16,8 @@ const remoteAddress = new SignalProtocolAddress('worker', 1);
 
 let activeWorker: ServiceWorker | null = null;
 let sessionCipher: SessionCipher | undefined;
+const pendingPayloads: string[] = [];
+let flushingQueue = false;
 
 async function setup(): Promise<void> {
     if (!logElement || !sendButton) {
@@ -46,18 +48,21 @@ async function setup(): Promise<void> {
         address: remoteAddress.toString(),
     });
 
+    window.addEventListener('online', () => {
+        log('Connection restored – flushing queued messages.');
+        void flushPendingMessages();
+    });
+
+    window.addEventListener('offline', () => {
+        log('Offline detected. New messages will be queued until connectivity returns.');
+    });
+
     sendButton.addEventListener('click', async () => {
         if (!sessionCipher || !activeWorker) {
             return;
         }
         const payload = `Hello from main @ ${new Date().toISOString()}`;
-        const ciphertext = await sessionCipher.encrypt(encoder.encode(payload).buffer);
-        activeWorker.postMessage({
-            type: 'CIPHERTEXT',
-            message: ciphertext,
-            encoding: 'binary',
-        });
-        log(`Sent encrypted payload (${ciphertext.type === 3 ? 'PreKeyWhisper' : 'Whisper'} message)`);
+        await enqueueMessage(payload);
     });
 }
 
@@ -127,9 +132,55 @@ async function handlePreKeyBundle(
     if (sendButton) {
         sendButton.disabled = false;
     }
+    await flushPendingMessages();
 }
 
 setup().catch((err) => {
     console.error(err);
     log(`Fatal error: ${(err as Error).message}`);
 });
+
+async function enqueueMessage(payload: string): Promise<void> {
+    pendingPayloads.push(payload);
+    if (!navigator.onLine) {
+        log('Offline – queued payload for delivery once connectivity returns.');
+    }
+    if (!sessionCipher) {
+        log('Session not ready yet – message queued.');
+    }
+    await flushPendingMessages();
+}
+
+async function flushPendingMessages(): Promise<void> {
+    if (flushingQueue) {
+        return;
+    }
+    if (!sessionCipher || !activeWorker || !navigator.onLine) {
+        return;
+    }
+    flushingQueue = true;
+    try {
+        while (pendingPayloads.length > 0 && sessionCipher && activeWorker && navigator.onLine) {
+            const payload = pendingPayloads[0];
+            if (!payload) {
+                pendingPayloads.shift();
+                continue;
+            }
+            const ciphertext = await sessionCipher.encrypt(encoder.encode(payload).buffer);
+            activeWorker.postMessage({
+                type: 'CIPHERTEXT',
+                message: ciphertext,
+                encoding: 'binary',
+            });
+            pendingPayloads.shift();
+            log(
+                `Sent encrypted payload (${ciphertext.type === 3 ? 'PreKeyWhisper' : 'Whisper'})` +
+                    (pendingPayloads.length ? ` – ${pendingPayloads.length} queued` : '')
+            );
+        }
+    } catch (error) {
+        log(`Failed to flush queue: ${(error as Error).message}`);
+    } finally {
+        flushingQueue = false;
+    }
+}

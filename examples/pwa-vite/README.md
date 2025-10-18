@@ -50,6 +50,8 @@ The IndexedDB adapter is reused from `examples/storage-adapters/indexeddb-adapte
 - The worker persists keys/sessions to IndexedDB so reloads keep the negotiated state.
 - Messages sent before the worker is active are queued; the example waits for `navigator.serviceWorker.ready` to avoid
   racy postMessage calls.
+- Offline transitions are handled in the main thread—messages queued while offline are flushed automatically when
+  connectivity and the session return.
 - The shim in `src/shims/msrcrypto-empty.ts` guards against accidental fallback usage—if WebCrypto is missing, the
   worker fails loudly so the issue is caught during development.
 - End-to-end verification runs under Playwright (`yarn test:e2e`), which loads this demo via `yarn preview:pwa-vite` and

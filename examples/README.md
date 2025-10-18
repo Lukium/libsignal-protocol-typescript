@@ -10,6 +10,7 @@ This directory will contain runnable samples that demonstrate how to integrate t
 examples/
 ├── basic-messaging/
 │   ├── index.ts        # End-to-end send/receive example (exported `demo` helper)
+│   ├── demo.mjs       # CLI harness (uses built artifacts)
 │   └── README.md
 ├── pwa-integration/
 │   ├── index.html      # Minimal PWA bootstrap (planned refresh)
@@ -24,9 +25,10 @@ examples/
     └── README.md
 ```
 
-Each subdirectory includes a README with setup notes. Invoke examples with `ts-node`, by importing helpers in your own scripts, or via package scripts:
+Each subdirectory includes a README with setup notes. Invoke examples by importing the helpers directly or via the package scripts:
 
 ```bash
+yarn example:basic     # runs the CLI demo (requires yarn build first)
 yarn example:pwa-vite   # builds + runs the Vite demo with live reload
 ```
 
