@@ -54,6 +54,14 @@ Recent additions:
 - Execute suite: `yarn test:e2e`
 - Validates that the Service Worker negotiates a session, decrypts worker responses, and posts results back to the main thread.
 
+## API Documentation
+
+- Tooling: [TypeDoc](https://typedoc.org/) (HTML output)
+- Config: `typedoc.json`
+- Generate locally: `yarn docs:api`
+- Output: `docs/api/` (ignored in git; regenerate instead of editing by hand)
+- Warnings: TypeDoc expects TS ≤5.7; current build emits benign version warnings until we align dependencies.
+
 ## Build Artifacts
 
 - `yarn build` produces:

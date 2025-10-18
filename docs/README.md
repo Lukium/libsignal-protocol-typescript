@@ -63,6 +63,7 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 - Coverage expectations and current metrics
 - Build artifact layout (CJS + ESM)
 - Outstanding QA and packaging tasks
+- Browser automation + API documentation commands
 
 **Share this** with anyone wiring the library into CI or release tooling.
 
