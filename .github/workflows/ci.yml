@@ -30,19 +30,19 @@ jobs:
         run: corepack prepare yarn@4.5.3 --activate
 
       - name: Install dependencies
-        run: yarn install --immutable
+        run: corepack yarn install --immutable
 
       - name: Lint
-        run: yarn lint
+        run: corepack yarn lint
 
       - name: Type check
-        run: yarn typecheck
+        run: corepack yarn typecheck
 
       - name: Test with coverage
-        run: yarn test --coverage
+        run: corepack yarn test --coverage
 
       - name: Build bundles
-        run: yarn build
+        run: corepack yarn build
 
       - name: Upload coverage artifact
         if: matrix.node-version == '20.x'
