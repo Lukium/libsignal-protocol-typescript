@@ -68,8 +68,8 @@ function getEncodedChunk(hash: Uint8Array, offset: number): string {
     return s
 }
 
-function shortToArrayBuffer(number) {
-    return new Uint16Array([number]).buffer
+function shortToArrayBuffer(value: number): ArrayBuffer {
+    return new Uint16Array([value]).buffer
 }
 
 function concatArrayBuffers(bufs: ArrayBuffer[]): ArrayBuffer {

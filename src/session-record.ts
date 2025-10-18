@@ -238,7 +238,7 @@ export class SessionRecord implements RecordType {
             if (!idx) {
                 throw new Error(`invalid index for chain`)
             }
-            delete session[idx]
+            delete session.chains[idx]
             session.oldRatchetList.splice(index, 1)
         }
     }
@@ -315,7 +315,8 @@ export function chainStringToArrayBuffer(c: Chain<string>): Chain<ArrayBuffer> {
     const { key, counter } = chainKey
     const newMessageKeys: { [k: number]: ArrayBuffer } = {}
     for (const k of Object.keys(messageKeys)) {
-        newMessageKeys[k] = toAB(messageKeys[k])
+        const numericKey = Number(k)
+        newMessageKeys[numericKey] = toAB(messageKeys[numericKey])
     }
     return {
         chainType,
@@ -332,7 +333,8 @@ export function chainArrayBufferToString(c: Chain<ArrayBuffer>): Chain<string> {
     const { key, counter } = chainKey
     const newMessageKeys: { [k: number]: string } = {}
     for (const k of Object.keys(messageKeys)) {
-        newMessageKeys[k] = abToS(messageKeys[k])
+        const numericKey = Number(k)
+        newMessageKeys[numericKey] = abToS(messageKeys[numericKey])
     }
     return {
         chainType,

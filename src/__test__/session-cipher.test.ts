@@ -20,7 +20,10 @@ import {
 } from '@privacyresearch/libsignal-protocol-protobuf-ts'
 import { BaseKeyType } from '../session-types'
 
-const tv = TestVectors()
+type TestStep = [direction: 'receiveMessage' | 'sendMessage', data: Record<string, any>]
+type VectorSuite = { name: string; vectors: TestStep[] }
+
+const tv = TestVectors() as VectorSuite[]
 
 const store = new SignalProtocolStore()
 const registrationId = 1337
@@ -296,9 +299,8 @@ async function doSendStep(
     }
 }
 
-function getDescription(step: { [k: string]: any }): string {
-    const direction = step[0]
-    const data = step[1]
+function getDescription(step: TestStep): string {
+    const [direction, data] = step
     if (direction === 'receiveMessage') {
         if (data.expectTerminateSession) {
             return 'receive end session message'
@@ -319,7 +321,7 @@ function getDescription(step: { [k: string]: any }): string {
     return ''
 }
 
-tv.forEach(function (test) {
+tv.forEach(function (test: VectorSuite) {
     describe(test.name, () => {
         const privKeyQueue: ArrayBuffer[] = []
         const origCreateKeyPair = Internal.crypto.createKeyPair.bind(Internal.crypto)
@@ -356,7 +358,7 @@ tv.forEach(function (test) {
 
         const store = new SignalProtocolStore()
         const address = SignalProtocolAddress.fromString('SNOWDEN.1')
-        test.vectors.forEach(function (step) {
+        test.vectors.forEach(function (step: TestStep) {
             it(getDescription(step), async () => {
                 let doStep: (
                     store: SignalProtocolStore,

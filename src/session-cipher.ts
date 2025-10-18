@@ -246,7 +246,7 @@ export class SessionCipher {
                     }`
                 )
             }
-            const plaintext = await this.doDecryptWhisperMessage(preKeyProto.message, session)
+            const plaintext = await this.doDecryptWhisperMessage(uint8ArrayToArrayBuffer(preKeyProto.message), session)
             record.updateSessionState(session)
             await this.storage.storeSession(address, record.serialize())
             if (preKeyId !== undefined && preKeyId !== null) {

@@ -5,29 +5,30 @@
 'use strict'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const NodeEnvironment = require('jest-environment-node')
+const { TestEnvironment } = require('jest-environment-node')
 
 class XMLHttpRequest {}
 
-class MyEnvironment extends NodeEnvironment {
-  constructor(config) {
-    super(
-      Object.assign({}, config, {
-        globals: Object.assign({}, config.globals, {
-          Uint32Array: Uint32Array,
-          Uint16Array: Uint16Array,
-          Uint8Array: Uint8Array,
-          ArrayBuffer: ArrayBuffer,
-          window: {},
-          XMLHttpRequest: XMLHttpRequest,
-        }),
-      })
-    )
+class MyEnvironment extends TestEnvironment {
+  constructor(config, context) {
+    super(config, context)
+
+    // Add required globals for the test environment
+    this.global.Uint32Array = Uint32Array
+    this.global.Uint16Array = Uint16Array
+    this.global.Uint8Array = Uint8Array
+    this.global.ArrayBuffer = ArrayBuffer
+    this.global.window = {}
+    this.global.XMLHttpRequest = XMLHttpRequest
   }
 
-  async setup() {}
+  async setup() {
+    await super.setup()
+  }
 
-  async teardown() {}
+  async teardown() {
+    await super.teardown()
+  }
 }
 
 module.exports = MyEnvironment

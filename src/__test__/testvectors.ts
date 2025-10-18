@@ -400,7 +400,6 @@ export function TestVectors(): Array<Record<string, any>> {
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
         const v = EndSessionTestVectorsBobCopy()
-        const orig = EndSessionTestVectorsBob
 
         // Swap message 2 and 4, moving 2 after the new session
         const tmp = v[3][1]
@@ -413,7 +412,6 @@ export function TestVectors(): Array<Record<string, any>> {
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
         const v = EndSessionTestVectorsBobCopy()
-        const orig = EndSessionTestVectorsBob
 
         // Swap message 3 and 4, starting a new session before closing the last
         const tmp = v[3][1]
@@ -426,7 +424,6 @@ export function TestVectors(): Array<Record<string, any>> {
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
         const v = EndSessionTestVectorsBobCopy()
-        const orig = EndSessionTestVectorsBob
 
         // Swap message 3 and 4, starting a new session before closing the last
         let tmp = v[3][1]

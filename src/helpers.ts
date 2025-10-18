@@ -27,7 +27,8 @@ export function binaryStringToArrayBuffer(str: string): ArrayBuffer {
         if (charCode > 0xff) throw RangeError('illegal char code: ' + charCode)
         bb[i++] = charCode
     }
-    return Uint8Array.from(bb).buffer
+    const arr = Uint8Array.from(bb)
+    return arr.buffer.slice(arr.byteOffset, arr.byteLength + arr.byteOffset) as ArrayBuffer
 }
 
 export function isEqual(a: ArrayBuffer | undefined, b: ArrayBuffer | undefined): boolean {
@@ -45,5 +46,5 @@ export function isEqual(a: ArrayBuffer | undefined, b: ArrayBuffer | undefined):
 }
 
 export function uint8ArrayToArrayBuffer(arr: Uint8Array): ArrayBuffer {
-    return arr.buffer.slice(arr.byteOffset, arr.byteLength + arr.byteOffset)
+    return arr.buffer.slice(arr.byteOffset, arr.byteLength + arr.byteOffset) as ArrayBuffer
 }

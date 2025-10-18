@@ -27,6 +27,21 @@ describe('SignalProtocolAddress', function () {
             expect(address.toString()).toBe(serialized)
         })
     })
+    describe('equals', () => {
+        test('returns true for matching address', () => {
+            const address = new SignalProtocolAddress(name, deviceId)
+            const other = new SignalProtocolAddress(name, deviceId)
+            expect(address.equals(other)).toBe(true)
+        })
+
+        test('returns false for mismatched address', () => {
+            const address = new SignalProtocolAddress(name, deviceId)
+            const differentName = new SignalProtocolAddress('other', deviceId)
+            const differentDevice = new SignalProtocolAddress(name, deviceId + 1)
+            expect(address.equals(differentName)).toBe(false)
+            expect(address.equals(differentDevice)).toBe(false)
+        })
+    })
     describe('fromString', function () {
         test('throws on a bad inputs', () => {
             const bads = ['', null, {}]

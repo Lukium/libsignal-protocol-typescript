@@ -159,8 +159,8 @@ export class SessionBuilder {
         message: PreKeyWhisperMessage
     ): Promise<SessionType> => {
         const IKb = await this.storage.getIdentityKeyPair()
-        const IKa = message.identityKey
-        const EKa = message.baseKey
+        const IKa = uint8ArrayToArrayBuffer(message.identityKey)
+        const EKa = uint8ArrayToArrayBuffer(message.baseKey)
 
         if (!IKb) {
             throw new Error(`No identity key. Cannot initiate session.`)
@@ -270,7 +270,7 @@ export class SessionBuilder {
             this.storage.loadSignedPreKey(message.signedPreKeyId),
         ])
 
-        if (record.getSessionByBaseKey(message.baseKey)) {
+        if (record.getSessionByBaseKey(uint8ArrayToArrayBuffer(message.baseKey))) {
             return
         }
 
