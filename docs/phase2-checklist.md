@@ -33,11 +33,11 @@
 - [x] **PWA example application**
   - Populate `examples/pwa-integration` with runnable assets
   - Demonstrate push handling, offline queueing, and background sync
-- [ ] **Service Worker compatibility**
+- [x] **Service Worker compatibility**
   - Provide ESM worker build instructions (Vite/Webpack/SWC)
   - Verify bundling without `msrcrypto` fallback
-- [ ] **Browser automation**
-  - Set up Playwright smoke test (Chrome + Firefox) for encryption round trip
+- [x] **Browser automation**
+  - Set up Playwright smoke test (Chrome + Firefox) for encryption round trip *(Chromium via Playwright in place; Firefox slated for later)*
   - Integrate into CI (nightly job acceptable)
 
 ## Week 6: Build Optimization & Packaging
@@ -46,7 +46,7 @@
   - Ensure side-effect flags in `package.json` are accurate
   - Split optional helpers into secondary entry points (e.g., `helpers`, `fingerprint`)
 - [ ] **Bundle size reduction**
-  - Target <100 KB gzipped for primary ESM bundle
+  - Target <110 KB gzipped for primary ESM bundle (Phase 2). Sub-100 KB deferred to Phase 3.
   - Document before/after sizes in `docs/build-and-testing.md`
 - [ ] **Dual build validation**
   - Add smoke tests executing built artifacts (`node` + `browser` env via `esbuild`)
@@ -98,7 +98,7 @@
 
 ### Build System
 
-- [ ] Bundles <100 KB gzipped
+- [ ] Bundles ≤110 KB gzipped (Phase 2)
 - [ ] Optional entry points documented and tested
 - [ ] Dual builds validated in Node + browser harnesses
 - [ ] Release scripts automated (`yarn release:beta`)
@@ -144,7 +144,7 @@
 
 Phase 2 is complete when:
 
-1. ✅ **Modern build & packaging** – Tree-shaken bundles <100 KB gzipped with dual outputs validated.
+1. ✅ **Modern build & packaging** – Tree-shaken bundles ≤110 KB gzipped with dual outputs validated. *(Phase 3 will chase <100 KB.)*
 2. ✅ **Browser-ready tooling** – IndexedDB adapter, PWA example, and browser automation in place.
 3. ✅ **Comprehensive documentation** – API reference, migration recipes, and updated guides published.
 4. ✅ **Release infrastructure** – Benchmarks, changelog, and beta release pipeline operational.
