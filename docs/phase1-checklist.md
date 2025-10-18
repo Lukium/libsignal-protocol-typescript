@@ -156,8 +156,8 @@
         - uses: actions/setup-node@v4
           with:
             node-version: ${{ matrix.node-version }}
-            cache: yarn
-            cache-dependency-path: .yarn/install-state.gz
+        - run: corepack enable
+        - run: corepack prepare yarn@4.5.2 --activate
         - run: yarn install --immutable
         - run: yarn lint
         - run: yarn typecheck

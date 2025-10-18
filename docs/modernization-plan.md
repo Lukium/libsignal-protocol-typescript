@@ -12,7 +12,8 @@ This document outlines the comprehensive modernization plan for the forked `libs
 
 - ✅ Jest environment repaired; 210 specs passing with 92% statement / 81% branch coverage (threshold restored to 80%).
 - ✅ Dual CJS/ESM build emitting declarations and source maps through Yarn Berry scripts.
-- 🔄 Dependency audit and CI enablement scheduled next (maxWorkers pinned pending Jest worker fix).
+- ✅ CI/CD live on GitHub Actions (Node 18 & 20: lint → typecheck → test → build, coverage artifact uploaded; Jest still pinned to maxWorkers=1).
+- 🔄 Dependency audit scheduled next.
 - ❌ PWA storage adapters, bundle-size reduction, and PQXDH support remain future milestones.
 
 ### Key Findings
