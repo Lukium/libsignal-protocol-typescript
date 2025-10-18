@@ -26,14 +26,14 @@ Latest versions captured with `yarn npm info <package> --fields version`.
 
 | Package | Current Version | Decision | Notes |
 | ------- | --------------- | -------- | ----- |
-| `typescript` | ^5.8.3 | ✅ Keep | Matches the modern TS toolchain used across configs; no breaking changes anticipated. |
+| `typescript` | 5.9.3 | ✅ Updated | Bumped from 5.8.x to 5.9.3; strict config unchanged and compiler passes all builds/tests. |
 | `ts-jest` | ^29.4.5 | ✅ Keep | Required for running TypeScript tests in Jest; aligns with Jest 29. |
 | `jest` | ^29.7.0 | ✅ Keep | Latest 29.x release; Jest 30 introduces configuration changes we will evaluate after Phase 1. |
 | `@types/jest` | ^29.5.14 | ⚠️ Defer update | 30.x typings require Jest 30; will upgrade alongside the runtime in Phase 2. |
 | `@typescript-eslint/eslint-plugin` / `parser` | ^8.46.1 | ✅ Keep | Latest 8.x channel with support for TypeScript 5.8; no linting regressions observed. |
 | `eslint` | ^9.38.0 | ✅ Keep | Flat-config ready and compatible with our existing lint rules. |
-| `eslint-config-prettier` / `eslint-plugin-prettier` | ^10.1.8 / ^5.2.1 | ⚠️ Defer plugin bump | Config is current; plugin has a 5.5.x release that we will adopt after verifying compatibility with ESLint 9. |
-| `prettier` | ^3.6.2 | ✅ Keep | Required for formatting; matches project expectations. |
+| `eslint-config-prettier` / `eslint-plugin-prettier` | ^10.1.8 / 5.5.4 | ✅ Updated plugin | Adopted 5.5.4 to match ESLint 9; no compatibility issues observed. |
+| `prettier` | ^3.6.2 | ✅ Keep | Latest available release on npm; no 3.7.x tag published despite changelog reference. |
 | `husky` | ^9.1.7 | ✅ Keep | Powers local Git hooks (pre-commit, commit-msg) to enforce linting and commit conventions. |
 | `lint-staged` | ^16.2.4 | ✅ Keep | Runs targeted lint/format commands on staged files; keeps pre-commit fast. |
 | `@commitlint/cli` / `@commitlint/config-conventional` | ^20.1.0 / ^20.0.0 | ✅ Keep | Enforces Conventional Commits via the `commit-msg` hook. |
@@ -45,10 +45,10 @@ Version data captured via `yarn npm info <package> --fields version` on 2025-10-
 
 | Package | Current | Latest | Plan |
 | ------- | ------- | ------ | ---- |
-| `typescript` | ^5.8.3 | 5.9.3 | Schedule upgrade after strict-mode audit (Phase 2). |
+| `typescript` | 5.9.3 | 5.9.3 | Up-to-date (monitor for 5.10.x preview releases). |
 | `jest` | ^29.7.0 | 30.2.0 | Major release; migrate alongside @types/jest and ts-jest updates in Phase 2. |
 | `@types/jest` | ^29.5.14 | 30.0.0 | Blocked on Jest 30 migration. |
-| `eslint-plugin-prettier` | ^5.2.1 | 5.5.4 | Test upgrade after confirming compatibility with ESLint 9 flat config. |
+| `eslint-plugin-prettier` | 5.5.4 | 5.5.4 | Up-to-date; re-check on next minor. |
 | `@types/base64-js` | ^1.3.2 | 1.5.0 | Update with next TypeScript minor when type tightening is validated. |
 
 ## Next Actions

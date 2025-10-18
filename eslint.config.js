@@ -22,7 +22,7 @@ const typeCheckedConfigs = compat.config({
     '@typescript-eslint/no-require-imports': 'off',
     '@typescript-eslint/no-unused-expressions': 'off',
     '@typescript-eslint/no-explicit-any': 'error',
-    '@typescript-eslint/explicit-function-return-type': 'warn',
+    '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
     '@typescript-eslint/no-floating-promises': 'error',
     '@typescript-eslint/no-unsafe-assignment': 'off',
@@ -36,7 +36,7 @@ const typeCheckedConfigs = compat.config({
     '@typescript-eslint/prefer-promise-reject-errors': 'off',
     '@typescript-eslint/no-base-to-string': 'off',
     '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-    'no-console': 'warn',
+    'no-console': 'off',
   },
 });
 

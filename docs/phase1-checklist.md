@@ -229,7 +229,7 @@
   yarn npm info <package> --fields version
   ```
 
-- [ ] **Update dev dependencies** (test each update)
+- [x] **Update dev dependencies** (test each update)
 
   ```bash
   # Update safely
