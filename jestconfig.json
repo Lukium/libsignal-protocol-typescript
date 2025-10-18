@@ -1,12 +1,29 @@
 {
-
   "roots": [
     "<rootDir>/src"
   ],
   "transform": {
-    "^.+\\.tsx?$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
   },
-  "testRegex": "(src/__test__/.*\\.test\\..*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+  "testRegex": "(src/__test__/.*\\.test\\.ts|(\\.|/)(test|spec))\\.ts$",
   "moduleFileExtensions": ["ts", "tsx", "js", "jsx", "json", "node"],
-  "testEnvironment": "./src/__test-utils__/custom-jest-environment.js"
+  "testEnvironment": "./src/__test-utils__/custom-jest-environment.js",
+  "maxWorkers": 1,
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/__test__/**",
+    "!src/__test-utils__/**"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "coverageThreshold": {
+    "global": {
+      "branches": 80,
+      "functions": 80,
+      "lines": 80,
+      "statements": 80
+    }
+  }
 }
