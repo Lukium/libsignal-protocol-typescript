@@ -21,7 +21,7 @@ yarn format                # prettier write pass
 ## Coverage & Quality Gates
 
 - Jest currently enforces **80/80/80/80** (statements/lines/functions/branches).
-- Latest run (2025-10-18): **92.1% statements / 80.6% branches / 94.0% functions / 92.0% lines** across 223 specs.
+- Latest run (2025-10-18): **93.0% statements / 81.8% branches / 93.8% functions / 92.9% lines** across 234 specs.
 - What’s left to exercise:
   1. `session-cipher.ts` archival/decryption retry loops (lines 250-350, 390+)
   2. `session-record.ts` legacy migration branches (lines 30-220)
