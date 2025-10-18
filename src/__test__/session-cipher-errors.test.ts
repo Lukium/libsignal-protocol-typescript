@@ -2,7 +2,7 @@ import { SessionCipher } from '../session-cipher';
 import { SessionRecord } from '../session-record';
 import { ChainType, SessionType, BaseKeyType, Chain } from '../session-types';
 import { StorageType, KeyPairType } from '../types';
-import { WhisperMessage } from '@privacyresearch/libsignal-protocol-protobuf-ts';
+import { WhisperMessage } from '../protobuf/wire';
 import * as base64 from 'base64-js';
 
 const createBuffer = (fill: number, length: number): ArrayBuffer => {
@@ -109,7 +109,7 @@ describe('SessionCipher error handling', () => {
 
     test('prepareChain rejects when there is no open session', async () => {
         const cipher = new SessionCipher(createStorage(), address);
-        const msg = WhisperMessage.fromJSON({});
+        const msg = WhisperMessage.create();
         await expect((cipher as any).prepareChain(address, new SessionRecord(), msg)).rejects.toThrow(
             `No session to encrypt message for ${address}`
         );
@@ -124,7 +124,7 @@ describe('SessionCipher error handling', () => {
                 previousCounter: 0,
             },
         });
-        const msg = WhisperMessage.fromJSON({});
+        const msg = WhisperMessage.create();
         await expect((cipher as any).prepareChain(address, record, msg)).rejects.toThrow(
             'ratchet missing ephemeralKeyPair'
         );
@@ -144,9 +144,9 @@ describe('SessionCipher error handling', () => {
             },
             { type: ChainType.RECEIVING }
         );
-        const msg = WhisperMessage.fromJSON({});
+        const msg = WhisperMessage.create();
         if (chainKey) {
-            msg.ephemeralKey = new Uint8Array(eph.pubKey);
+            msg.ratchetKey = new Uint8Array(eph.pubKey);
         }
         await expect((cipher as any).prepareChain(address, record, msg)).rejects.toThrow(
             'Tried to encrypt on a receiving chain'
@@ -187,6 +187,35 @@ describe('SessionCipher error handling', () => {
         await expect((cipher as any).fillMessageKeys(chain as Chain<ArrayBuffer>, 1)).rejects.toThrow(
             'chain key is missing'
         );
+    });
+
+    test('calculateRatchet rejects when ephemeral key is missing', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const { session } = createRecordWithSession({
+            currentRatchet: {
+                rootKey: createBuffer(1, 32),
+                lastRemoteEphemeralKey: createBuffer(2, 32),
+                previousCounter: 0,
+                ephemeralKeyPair: undefined,
+            },
+        });
+
+        await expect((cipher as any).calculateRatchet(session, createBuffer(3, 32), true)).rejects.toThrow(
+            'currentRatchet has no ephemeral key'
+        );
+    });
+
+    test('decryptWithSessionList rejects when list is empty', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        await expect((cipher as any).decryptWithSessionList(new ArrayBuffer(0), [], [])).rejects.toBeUndefined();
+    });
+
+    test('decryptWithSessionList rejects when popped session missing', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const errors = [new Error('first failure')];
+        await expect(
+            (cipher as any).decryptWithSessionList(new ArrayBuffer(0), [undefined as any], errors)
+        ).rejects.toBe(errors[0]);
     });
 
     test('decryptPreKeyWhisperMessage rejects unsupported encodings', async () => {

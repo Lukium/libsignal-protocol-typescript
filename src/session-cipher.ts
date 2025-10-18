@@ -1,7 +1,7 @@
 import { StorageType, Direction } from './types';
 import { Chain, ChainType, SessionType } from './session-types';
 import { SignalProtocolAddress } from './signal-protocol-address';
-import { PreKeyWhisperMessage, WhisperMessage } from '@privacyresearch/libsignal-protocol-protobuf-ts';
+import { PreKeyWhisperMessage, WhisperMessage } from './protobuf/wire';
 import * as base64 from 'base64-js';
 import * as util from './helpers';
 import * as Internal from './internal';
@@ -54,7 +54,7 @@ export class SessionCipher {
         }
 
         const address = this.remoteAddress.toString();
-        const msg = WhisperMessage.fromJSON({});
+        const msg = WhisperMessage.create();
         const [ourIdentityKey, myRegistrationId, record] = await this.loadKeysAndRecord(address);
         if (!record) {
             throw new Error('No record for ' + address);
@@ -109,7 +109,7 @@ export class SessionCipher {
         await this.storage.storeSession(address, record.serialize());
 
         if (session.pendingPreKey !== undefined) {
-            const preKeyMsg = PreKeyWhisperMessage.fromJSON({});
+            const preKeyMsg = PreKeyWhisperMessage.create();
             preKeyMsg.identityKey = new Uint8Array(ourIdentityKey.pubKey);
 
             // TODO: for some test vectors there is no registration id. Why?
@@ -156,8 +156,8 @@ export class SessionCipher {
             throw new Error(`ratchet missing ephemeralKeyPair`);
         }
 
-        msg.ephemeralKey = new Uint8Array(session.currentRatchet.ephemeralKeyPair.pubKey);
-        const searchKey = base64.fromByteArray(msg.ephemeralKey);
+        msg.ratchetKey = new Uint8Array(session.currentRatchet.ephemeralKeyPair.pubKey);
+        const searchKey = base64.fromByteArray(msg.ratchetKey);
 
         const chain = session.chains[searchKey];
         if (chain?.chainType === ChainType.RECEIVING) {
@@ -257,6 +257,9 @@ export class SessionCipher {
 
             // isTrustedIdentity is called within processV3, no need to call it here
             const preKeyId = await builder.processV3(record, preKeyProto);
+            if (!preKeyProto.baseKey || !preKeyProto.identityKey || !preKeyProto.message) {
+                throw new Error('PreKeySignalMessage missing required fields');
+            }
             const session = record.getSessionByBaseKey(uint8ArrayToArrayBuffer(preKeyProto.baseKey));
             if (!session) {
                 throw new Error(
@@ -365,7 +368,7 @@ export class SessionCipher {
         const mac = messageBytes.slice(messageBytes.byteLength - 8, messageBytes.byteLength);
 
         const message = WhisperMessage.decode(new Uint8Array(messageProto));
-        const remoteEphemeralKey = uint8ArrayToArrayBuffer(message.ephemeralKey);
+        const remoteRatchetKey = message.ratchetKey ? uint8ArrayToArrayBuffer(message.ratchetKey) : undefined;
 
         if (session === undefined) {
             return Promise.reject(
@@ -376,14 +379,21 @@ export class SessionCipher {
             //  console.log('decrypting message for closed session')
         }
 
-        await this.maybeStepRatchet(session, remoteEphemeralKey, message.previousCounter);
+        await this.maybeStepRatchet(session, remoteRatchetKey, message.previousCounter);
 
-        const chain = session.chains[base64.fromByteArray(message.ephemeralKey)];
+        if (!message.ratchetKey) {
+            throw new Error('SignalMessage missing ratchet key');
+        }
+        const chain = session.chains[base64.fromByteArray(message.ratchetKey)];
         if (!chain) {
-            console.warn(`no chain found for key`, { key: base64.fromByteArray(message.ephemeralKey), session });
+            console.warn(`no chain found for key`, { key: base64.fromByteArray(message.ratchetKey), session });
         }
         if (chain?.chainType === ChainType.SENDING) {
             throw new Error('Tried to decrypt on a sending chain');
+        }
+
+        if (message.counter === undefined) {
+            throw new Error('SignalMessage missing counter');
         }
 
         await this.fillMessageKeys(chain, message.counter);
@@ -410,6 +420,10 @@ export class SessionCipher {
 
         await Internal.verifyMAC(macInput.buffer, keys[1], mac, 8);
 
+        if (!message.ciphertext) {
+            throw new Error('SignalMessage missing ciphertext');
+        }
+
         const plaintext = await Internal.crypto.decrypt(
             keys[0],
             uint8ArrayToArrayBuffer(message.ciphertext),
@@ -420,7 +434,14 @@ export class SessionCipher {
         return plaintext;
     }
 
-    async maybeStepRatchet(session: SessionType, remoteKey: ArrayBuffer, previousCounter: number): Promise<void> {
+    async maybeStepRatchet(
+        session: SessionType,
+        remoteKey: ArrayBuffer | undefined,
+        previousCounter: number | undefined
+    ): Promise<void> {
+        if (!remoteKey) {
+            throw new Error('Signal message missing ratchet key');
+        }
         const remoteKeyString = base64.fromByteArray(new Uint8Array(remoteKey));
         if (session.chains[remoteKeyString] !== undefined) {
             return Promise.resolve();
@@ -432,7 +453,8 @@ export class SessionCipher {
         }
         const previousRatchet = session.chains[base64.fromByteArray(new Uint8Array(ratchet.lastRemoteEphemeralKey))];
         if (previousRatchet !== undefined) {
-            await this.fillMessageKeys(previousRatchet, previousCounter).then(function () {
+            const counter = previousCounter ?? previousRatchet.chainKey.counter;
+            await this.fillMessageKeys(previousRatchet, counter).then(() => {
                 delete previousRatchet.chainKey.key;
                 session.oldRatchetList[session.oldRatchetList.length] = {
                     added: Date.now(),

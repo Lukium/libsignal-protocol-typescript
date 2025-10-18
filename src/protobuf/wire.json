@@ -1,0 +1,124 @@
+{
+  "nested": {
+    "signal": {
+      "nested": {
+        "proto": {
+          "nested": {
+            "wire": {
+              "nested": {
+                "SignalMessage": {
+                  "edition": "proto2",
+                  "fields": {
+                    "ratchetKey": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "counter": {
+                      "type": "uint32",
+                      "id": 2
+                    },
+                    "previousCounter": {
+                      "type": "uint32",
+                      "id": 3
+                    },
+                    "ciphertext": {
+                      "type": "bytes",
+                      "id": 4
+                    },
+                    "pqRatchet": {
+                      "type": "bytes",
+                      "id": 5
+                    }
+                  }
+                },
+                "PreKeySignalMessage": {
+                  "edition": "proto2",
+                  "fields": {
+                    "registrationId": {
+                      "type": "uint32",
+                      "id": 5
+                    },
+                    "preKeyId": {
+                      "type": "uint32",
+                      "id": 1
+                    },
+                    "signedPreKeyId": {
+                      "type": "uint32",
+                      "id": 6
+                    },
+                    "kyberPreKeyId": {
+                      "type": "uint32",
+                      "id": 7
+                    },
+                    "kyberCiphertext": {
+                      "type": "bytes",
+                      "id": 8
+                    },
+                    "baseKey": {
+                      "type": "bytes",
+                      "id": 2
+                    },
+                    "identityKey": {
+                      "type": "bytes",
+                      "id": 3
+                    },
+                    "message": {
+                      "type": "bytes",
+                      "id": 4
+                    }
+                  }
+                },
+                "SenderKeyMessage": {
+                  "edition": "proto2",
+                  "fields": {
+                    "distributionUuid": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "chainId": {
+                      "type": "uint32",
+                      "id": 2
+                    },
+                    "iteration": {
+                      "type": "uint32",
+                      "id": 3
+                    },
+                    "ciphertext": {
+                      "type": "bytes",
+                      "id": 4
+                    }
+                  }
+                },
+                "SenderKeyDistributionMessage": {
+                  "edition": "proto2",
+                  "fields": {
+                    "distributionUuid": {
+                      "type": "bytes",
+                      "id": 1
+                    },
+                    "chainId": {
+                      "type": "uint32",
+                      "id": 2
+                    },
+                    "iteration": {
+                      "type": "uint32",
+                      "id": 3
+                    },
+                    "chainKey": {
+                      "type": "bytes",
+                      "id": 4
+                    },
+                    "signingKey": {
+                      "type": "bytes",
+                      "id": 5
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

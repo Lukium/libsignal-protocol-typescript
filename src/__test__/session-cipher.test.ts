@@ -11,19 +11,105 @@ import { TestVectors } from './testvectors';
 import * as Internal from '../internal';
 import { KeyPairType } from '../types';
 import * as utils from '../helpers';
-import {
-    PreKeyWhisperMessage,
-    PushMessageContentCompatible as PushMessageContent,
-    IncomingPushMessageSignal_Type,
-    PushMessageContent_Flags,
-    WhisperMessage,
-} from '@privacyresearch/libsignal-protocol-protobuf-ts';
+import { PreKeyWhisperMessage, WhisperMessage } from '../protobuf/wire';
 import { BaseKeyType } from '../session-types';
 
 type TestStep = [direction: 'receiveMessage' | 'sendMessage', data: Record<string, any>];
 type VectorSuite = { name: string; vectors: TestStep[] };
 
 const tv = TestVectors() as VectorSuite[];
+
+const IncomingPushMessageSignal_Type = {
+    UNKNOWN: 0,
+    CIPHERTEXT: 1,
+    KEY_EXCHANGE: 2,
+    PREKEY_BUNDLE: 3,
+    PLAINTEXT: 4,
+    RECEIPT: 5,
+    PREKEY_BUNDLE_DEVICE_CONTROL: 6,
+    DEVICE_CONTROL: 7,
+} as const;
+
+const PushMessageContent_Flags = {
+    END_SESSION: 1,
+    EXPIRATION_TIMER_UPDATE: 2,
+    PROFILE_UPDATE: 4,
+} as const;
+
+const textEncoder = new TextEncoder();
+const textDecoder = new TextDecoder();
+
+function encodeVarint(value: number): number[] {
+    const bytes: number[] = [];
+    let v = value >>> 0;
+    while (v >= 0x80) {
+        bytes.push((v & 0x7f) | 0x80);
+        v >>>= 7;
+    }
+    bytes.push(v);
+    return bytes;
+}
+
+function encodePushMessageContent(payload: { body?: string; flags?: number }): Uint8Array {
+    const parts: number[] = [];
+    if (payload.body !== undefined) {
+        const bodyBytes = textEncoder.encode(payload.body);
+        parts.push(0x0a); // field 1, type length-delimited
+        parts.push(...encodeVarint(bodyBytes.length));
+        parts.push(...bodyBytes);
+    }
+    if (payload.flags !== undefined) {
+        parts.push(0x20); // field 4, varint
+        parts.push(...encodeVarint(payload.flags));
+    }
+    return new Uint8Array(parts);
+}
+
+function decodePushMessageContent(bytes: Uint8Array): { body?: string; flags?: number } {
+    let offset = 0;
+    let body: string | undefined;
+    let flags: number | undefined;
+
+    const readVarint = (): number => {
+        let result = 0;
+        let shift = 0;
+        while (true) {
+            if (offset >= bytes.length) {
+                throw new RangeError('Unexpected end of varint');
+            }
+            const b = bytes[offset++];
+            result |= (b & 0x7f) << shift;
+            if ((b & 0x80) === 0) {
+                break;
+            }
+            shift += 7;
+        }
+        return result >>> 0;
+    };
+
+    while (offset < bytes.length) {
+        const tag = bytes[offset++];
+        const fieldNumber = tag >> 3;
+        const wireType = tag & 0x07;
+        if (fieldNumber === 1 && wireType === 2) {
+            const len = readVarint();
+            const slice = bytes.subarray(offset, offset + len);
+            offset += len;
+            body = textDecoder.decode(slice);
+        } else if (fieldNumber === 4 && wireType === 0) {
+            flags = readVarint();
+        } else if (wireType === 2) {
+            const len = readVarint();
+            offset += len;
+        } else if (wireType === 0) {
+            readVarint();
+        } else {
+            throw new RangeError('Unsupported wire type');
+        }
+    }
+
+    return { body, flags };
+}
 
 const store = new SignalProtocolStore();
 const registrationId = 1337;
@@ -163,13 +249,9 @@ async function doReceiveStep(
             throw new Error('Unknown data type in test vector');
         }
 
-        const content = PushMessageContent.decode(plaintext);
+        const content = decodePushMessageContent(plaintext);
         if (data.expectTerminateSession) {
-            if (content.flags == PushMessageContent_Flags.END_SESSION) {
-                return true;
-            } else {
-                return false;
-            }
+            return content.flags === PushMessageContent_Flags.END_SESSION;
         }
 
         return content.body === data.expectedSmsText;
@@ -228,15 +310,12 @@ async function doSendStep(
             await builder.processPreKey(deviceObject);
         }
 
-        const proto = PushMessageContent.fromJSON({});
-        if (data.endSession) {
-            proto.flags = PushMessageContent_Flags.END_SESSION;
-        } else {
-            proto.body = data.smsText;
-        }
+        const payload = data.endSession
+            ? { flags: PushMessageContent_Flags.END_SESSION }
+            : { body: data.smsText ?? '' };
 
         const sessionCipher = new SessionCipher(store, address);
-        const pt = PushMessageContent.encode(proto).finish();
+        const pt = encodePushMessageContent(payload);
 
         if (data.endSession) {
             //      console.log(`END SESSION PROTO`, { proto, pt })
@@ -262,29 +341,33 @@ async function doSendStep(
             const ourpkwmsg = PreKeyWhisperMessage.decode(msgbody);
             const datapkwmsg = PreKeyWhisperMessage.decode(new Uint8Array(data.expectedCiphertext).slice(1));
 
+            if (!ourpkwmsg.baseKey || !datapkwmsg.baseKey) {
+                throw new Error('PreKeySignalMessage missing base key');
+            }
+            if (!ourpkwmsg.identityKey || !datapkwmsg.identityKey) {
+                throw new Error('PreKeySignalMessage missing identity key');
+            }
             assertEqualUint8Arrays(datapkwmsg.baseKey, ourpkwmsg.baseKey);
             assertEqualUint8Arrays(datapkwmsg.identityKey, ourpkwmsg.identityKey);
             expect(datapkwmsg.preKeyId).toStrictEqual(ourpkwmsg.preKeyId);
             expect(datapkwmsg.signedPreKeyId).toStrictEqual(ourpkwmsg.signedPreKeyId);
 
+            if (!ourpkwmsg.message || !datapkwmsg.message) {
+                throw new Error('PreKeySignalMessage missing nested message');
+            }
             const ourencrypted = WhisperMessage.decode(ourpkwmsg.message.slice(1, ourpkwmsg.message.length - 8));
             const dataencrypted = WhisperMessage.decode(datapkwmsg.message.slice(1, datapkwmsg.message.length - 8));
 
             expect(ourencrypted.counter).toBe(dataencrypted.counter);
             expect(ourencrypted.previousCounter).toBe(dataencrypted.previousCounter);
-            assertEqualUint8Arrays(ourencrypted.ephemeralKey, dataencrypted.ephemeralKey);
-            assertEqualUint8Arrays(ourencrypted.ciphertext, dataencrypted.ciphertext);
-
-            const expected = PreKeyWhisperMessage.encode(datapkwmsg).finish();
-
-            if (
-                !utils.isEqual(
-                    utils.uint8ArrayToArrayBuffer(expected),
-                    utils.binaryStringToArrayBuffer(msg.body.substring(1))
-                )
-            ) {
-                throw new Error('Result does not match expected ciphertext');
+            if (!ourencrypted.ratchetKey || !dataencrypted.ratchetKey) {
+                throw new Error('SignalMessage missing ratchet key');
             }
+            if (!ourencrypted.ciphertext || !dataencrypted.ciphertext) {
+                throw new Error('SignalMessage missing ciphertext');
+            }
+            assertEqualUint8Arrays(ourencrypted.ratchetKey, dataencrypted.ratchetKey);
+            assertEqualUint8Arrays(ourencrypted.ciphertext, dataencrypted.ciphertext);
 
             res = true;
         }

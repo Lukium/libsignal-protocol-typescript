@@ -30,7 +30,7 @@ export class Curve {
         pubKey = validatePubKeyFormat(pubKey);
         validatePrivKey(privKey);
 
-        if (pubKey === undefined || pubKey.byteLength != 32) {
+        if (pubKey.byteLength != 32) {
             throw new Error('Invalid public key');
         }
 
@@ -50,7 +50,7 @@ export class Curve {
     Ed25519Verify(pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer): boolean {
         pubKey = validatePubKeyFormat(pubKey);
 
-        if (pubKey === undefined || pubKey.byteLength != 32) {
+        if (pubKey.byteLength != 32) {
             throw new Error('Invalid public key');
         }
 
@@ -86,7 +86,7 @@ export class AsyncCurve {
         pubKey = validatePubKeyFormat(pubKey);
         validatePrivKey(privKey);
 
-        if (pubKey === undefined || pubKey.byteLength != 32) {
+        if (pubKey.byteLength != 32) {
             throw new Error('Invalid public key');
         }
 
@@ -106,7 +106,7 @@ export class AsyncCurve {
     async Ed25519Verify(pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer): Promise<boolean> {
         pubKey = validatePubKeyFormat(pubKey);
 
-        if (pubKey === undefined || pubKey.byteLength != 32) {
+        if (pubKey.byteLength != 32) {
             throw new Error('Invalid public key');
         }
 

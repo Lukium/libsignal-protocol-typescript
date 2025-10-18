@@ -3,7 +3,7 @@ import { SignalProtocolAddress } from '../signal-protocol-address';
 import { StorageType, KeyPairType } from '../types';
 import { SessionType, BaseKeyType } from '../session-types';
 import { SessionRecord } from '../session-record';
-import { PreKeyWhisperMessage } from '@privacyresearch/libsignal-protocol-protobuf-ts';
+import { PreKeyWhisperMessage } from '../protobuf/wire';
 
 const createBuffer = (fill: number, length: number): ArrayBuffer => {
     const bytes = new Uint8Array(length);

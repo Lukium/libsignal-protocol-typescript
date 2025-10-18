@@ -4,7 +4,7 @@ import { DeviceType, SessionType, BaseKeyType, ChainType } from './session-types
 import * as Internal from './internal';
 import * as base64 from 'base64-js';
 import { SessionRecord } from './session-record';
-import { PreKeyWhisperMessage } from '@privacyresearch/libsignal-protocol-protobuf-ts';
+import { PreKeyWhisperMessage } from './protobuf/wire';
 import { SessionLock } from './session-lock';
 import { uint8ArrayToArrayBuffer } from './helpers';
 
@@ -182,6 +182,9 @@ export class SessionBuilder {
         message: PreKeyWhisperMessage
     ): Promise<SessionType> => {
         const IKb = await this.storage.getIdentityKeyPair();
+        if (!message.identityKey || !message.baseKey) {
+            throw new Error('PreKeySignalMessage missing identity or base key');
+        }
         const IKa = uint8ArrayToArrayBuffer(message.identityKey);
         const EKa = uint8ArrayToArrayBuffer(message.baseKey);
 
@@ -293,6 +296,10 @@ export class SessionBuilder {
      * Processes a received pre-key message (version 3) and updates session state.
      */
     async processV3(record: SessionRecord, message: PreKeyWhisperMessage): Promise<number | void> {
+        if (!message.identityKey || !message.baseKey) {
+            throw new Error('PreKeySignalMessage missing identity or base key');
+        }
+
         const trusted = this.storage.isTrustedIdentity(
             this.remoteAddress.name,
             uint8ArrayToArrayBuffer(message.identityKey),
@@ -303,8 +310,8 @@ export class SessionBuilder {
             throw new Error(`Unknown identity key: ${uint8ArrayToArrayBuffer(message.identityKey)}`);
         }
         const [preKeyPair, signedPreKeyPair] = await Promise.all([
-            this.storage.loadPreKey(message.preKeyId),
-            this.storage.loadSignedPreKey(message.signedPreKeyId),
+            this.storage.loadPreKey(message.preKeyId ?? 0),
+            this.storage.loadSignedPreKey(message.signedPreKeyId ?? 0),
         ]);
 
         if (record.getSessionByBaseKey(uint8ArrayToArrayBuffer(message.baseKey))) {

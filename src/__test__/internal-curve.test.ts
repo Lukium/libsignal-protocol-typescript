@@ -39,6 +39,18 @@ describe('Internal Curve wrapper', () => {
         return curve;
     };
 
+    const buildAsyncCurve = (overrides: Partial<AsyncCurveType> = {}): Internal.AsyncCurve => {
+        const asyncCurve = new Internal.AsyncCurve();
+        asyncCurve.curve = {
+            keyPair: jest.fn(),
+            sharedSecret: jest.fn().mockResolvedValue(createBuffer(32, 7)),
+            sign: jest.fn().mockResolvedValue(signature),
+            verify: jest.fn().mockResolvedValue(false),
+            ...overrides,
+        } as unknown as AsyncCurveType;
+        return asyncCurve;
+    };
+
     test('createKeyPair throws when private key invalid', () => {
         const curve = buildCurve();
 
@@ -84,18 +96,65 @@ describe('Internal Curve wrapper', () => {
         expect(() => curve.Ed25519Verify(rawPubKey, message, createBuffer(10))).toThrow('Invalid signature');
     });
 
+    test('Ed25519Verify rejects missing message', () => {
+        const curve = buildCurve();
+
+        const rawPubKey = createBuffer(32);
+        expect(() => curve.Ed25519Verify(rawPubKey, undefined as unknown as ArrayBuffer, signature)).toThrow(
+            'Invalid message'
+        );
+    });
+
+    test('Ed25519Verify rejects missing signature buffer', () => {
+        const curve = buildCurve();
+
+        const rawPubKey = createBuffer(32);
+        expect(() => curve.Ed25519Verify(rawPubKey, message, undefined as unknown as ArrayBuffer)).toThrow(
+            'Invalid signature'
+        );
+    });
+
     test('Async verify throws when backend returns true', async () => {
-        const asyncCurve = new Internal.AsyncCurve();
-        asyncCurve.curve = {
-            verify: jest.fn().mockResolvedValue(true),
-            keyPair: jest.fn(),
-            sharedSecret: jest.fn(),
-            sign: jest.fn(),
-        } as unknown as AsyncCurveType;
+        const asyncCurve = buildAsyncCurve({ verify: jest.fn().mockResolvedValue(true) });
 
         const pubKey = createBuffer(33);
         new Uint8Array(pubKey)[0] = 5;
 
         await expect(asyncCurve.Ed25519Verify(pubKey, message, signature)).rejects.toThrow('Invalid signature');
+    });
+
+    test('Async ECDHE rejects malformed pubkey', () => {
+        const asyncCurve = buildAsyncCurve();
+
+        const malformed = createBuffer(33);
+        new Uint8Array(malformed)[0] = 4;
+        expect(() => asyncCurve.ECDHE(malformed, privKey)).toThrow('Invalid public key');
+    });
+
+    test('Async Ed25519Sign rejects missing message', () => {
+        const asyncCurve = buildAsyncCurve();
+        expect(() => asyncCurve.Ed25519Sign(privKey, undefined as unknown as ArrayBuffer)).toThrow('Invalid message');
+    });
+
+    test('Async Ed25519Verify rejects missing message', async () => {
+        const asyncCurve = buildAsyncCurve();
+
+        const pubKey = createBuffer(33);
+        new Uint8Array(pubKey)[0] = 5;
+
+        await expect(asyncCurve.Ed25519Verify(pubKey, undefined as unknown as ArrayBuffer, signature)).rejects.toThrow(
+            'Invalid message'
+        );
+    });
+
+    test('Async Ed25519Verify rejects missing signature buffer', async () => {
+        const asyncCurve = buildAsyncCurve();
+
+        const pubKey = createBuffer(33);
+        new Uint8Array(pubKey)[0] = 5;
+
+        await expect(asyncCurve.Ed25519Verify(pubKey, message, undefined as unknown as ArrayBuffer)).rejects.toThrow(
+            'Invalid signature'
+        );
     });
 });
