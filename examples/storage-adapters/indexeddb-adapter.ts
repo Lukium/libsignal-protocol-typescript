@@ -51,6 +51,14 @@ interface KeyPairRecord {
     keyPair: KeyPairType;
 }
 
+const identityKeyIdFor = (identifier: string): string => {
+    const separatorIndex = identifier.indexOf('.');
+    if (separatorIndex === -1) {
+        return identifier;
+    }
+    return identifier.slice(0, separatorIndex);
+};
+
 async function openDatabase(options: IndexedDBStoreOptions): Promise<IDBDatabase> {
     const name = options.dbName ?? DEFAULT_DB_NAME;
     const version = options.version ?? DEFAULT_VERSION;
@@ -170,8 +178,9 @@ export async function createIndexedDBSignalProtocolStore(
         },
 
         async isTrustedIdentity(identifier: string, identityKey: ArrayBuffer, _direction: Direction): Promise<boolean> {
+            const identityId = identityKeyIdFor(identifier);
             const record = (await withStore<IdentityRecord | undefined>(db, STORE_IDENTITIES, 'readonly', (store) =>
-                store.get(identifier)
+                store.get(identityId)
             )) as IdentityRecord | undefined;
             if (!record) {
                 return true;
@@ -180,12 +189,13 @@ export async function createIndexedDBSignalProtocolStore(
         },
 
         async saveIdentity(identifier: string, identityKey: ArrayBuffer): Promise<boolean> {
+            const identityId = identityKeyIdFor(identifier);
             const existing = (await withStore<IdentityRecord | undefined>(db, STORE_IDENTITIES, 'readonly', (store) =>
-                store.get(identifier)
+                store.get(identityId)
             )) as IdentityRecord | undefined;
 
             await withStore(db, STORE_IDENTITIES, 'readwrite', (store) =>
-                store.put({ id: identifier, key: cloneBuffer(identityKey) })
+                store.put({ id: identityId, key: cloneBuffer(identityKey) })
             );
 
             if (!existing) {

@@ -16,10 +16,23 @@ describe('Internal Curve wrapper', () => {
     const message = createBuffer(16);
     const signature = createBuffer(64);
 
+    let warnSpy: jest.SpyInstance;
+    let errorSpy: jest.SpyInstance;
+
     let sharedSecretMock: jest.Mock;
     let signMock: jest.Mock;
     let verifyMock: jest.Mock;
     let keyPairMock: jest.Mock;
+
+    beforeAll(() => {
+        warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    });
+
+    afterAll(() => {
+        warnSpy.mockRestore();
+        errorSpy.mockRestore();
+    });
 
     beforeEach(() => {
         sharedSecretMock = jest.fn().mockReturnValue(createBuffer(32, 7));
@@ -69,10 +82,8 @@ describe('Internal Curve wrapper', () => {
         expect((calledPubKey as ArrayBuffer).byteLength).toBe(32);
 
         const rawPubKey = createBuffer(32);
-        const errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         curve.ECDHE(rawPubKey, privKey);
         expect(sharedSecretMock).toHaveBeenCalledWith(rawPubKey, privKey);
-        errorSpy.mockRestore();
     });
 
     test('ECDHE rejects malformed pubkey', () => {

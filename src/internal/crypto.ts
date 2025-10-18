@@ -3,8 +3,28 @@ import * as util from '../helpers';
 import { KeyPairType } from '../types';
 import { AsyncCurve as AsyncCurveType } from '@privacyresearch/curve25519-typescript';
 
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const webcrypto = globalThis?.crypto || require('../../lib/msrcrypto'); // globalThis?.crypto || window?.crypto || require('../../lib/msrcrypto')
+const resolveWebCrypto = (): globalThis.Crypto => {
+    if (typeof globalThis !== 'undefined' && globalThis.crypto) {
+        return globalThis.crypto;
+    }
+
+    const maybeMsCrypto =
+        typeof globalThis !== 'undefined' ? (globalThis as unknown as { msCrypto?: Crypto }).msCrypto : undefined;
+    if (maybeMsCrypto) {
+        return maybeMsCrypto as unknown as globalThis.Crypto;
+    }
+
+    if (typeof require === 'function') {
+        // eslint-disable-next-line @typescript-eslint/no-var-requires
+        return require('../../lib/msrcrypto');
+    }
+
+    throw new Error(
+        'No WebCrypto implementation found. Provide one via setWebCrypto() before using libsignal-protocol-typescript.'
+    );
+};
+
+const webcrypto = resolveWebCrypto();
 
 export class Crypto {
     private _curve: Internal.AsyncCurve;
