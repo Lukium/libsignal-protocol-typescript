@@ -2,7 +2,7 @@
 
 _Last updated: 2025-10-19_
 
-This guide helps consumers of `@privacyresearch/libsignal-protocol-typescript@0.0.16` adopt the modernization work delivered across Phase 1 and Phase 2.
+This guide helps consumers of the legacy `@privacyresearch/libsignal-protocol-typescript@0.0.16` release migrate to the current `@lukium/libsignal-protocol-typescript` package and adopt the modernization work delivered across Phase 1 and Phase 2.
 
 ## 1. Installation & Build Targets
 

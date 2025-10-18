@@ -271,7 +271,7 @@ Phase 3: Enhancement (Weeks 9-12)
 
 ### Original Fork
 
-- [privacyresearchgroup/libsignal-protocol-typescript](https://github.com/privacyresearchgroup/libsignal-protocol-typescript)
+- [lukium/libsignal-protocol-typescript](https://github.com/Lukium/libsignal-protocol-typescript)
 
 ## Contributing
 

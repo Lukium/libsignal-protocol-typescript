@@ -10,7 +10,7 @@ export default defineConfig({
     worker: {
         format: 'es',
         rollupOptions: {
-            external: ['@privacyresearch/libsignal-protocol-typescript/lib/msrcrypto.js'],
+            external: ['@lukium/libsignal-protocol-typescript/lib/msrcrypto.js'],
         },
     },
     build: {
@@ -31,11 +31,11 @@ export default defineConfig({
                 replacement: path.resolve(__dirname, '../storage-adapters/indexeddb-adapter.ts'),
             },
             {
-                find: /^@privacyresearch\/libsignal-protocol-typescript$/,
+                find: /^@lukium\/libsignal-protocol-typescript$/,
                 replacement: path.join(libEsmDir, 'index.js'),
             },
             {
-                find: /^@privacyresearch\/libsignal-protocol-typescript\/(.*)$/,
+                find: /^@lukium\/libsignal-protocol-typescript\/(.*)$/,
                 replacement: `${libEsmDirPosix}/$1.js`,
             },
         ],

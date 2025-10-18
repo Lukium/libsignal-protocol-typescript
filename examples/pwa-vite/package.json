@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@privacyresearch/libsignal-protocol-typescript": "workspace:*"
+    "@lukium/libsignal-protocol-typescript": "workspace:*"
   },
   "devDependencies": {
     "typescript": "^5.9.3",

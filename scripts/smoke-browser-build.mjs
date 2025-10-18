@@ -28,7 +28,7 @@ async function main() {
             external: [
                 'path',
                 'fs',
-                '@privacyresearch/libsignal-protocol-typescript/lib/msrcrypto.js',
+                '@lukium/libsignal-protocol-typescript/lib/msrcrypto.js',
                 '../lib/msrcrypto',
                 '../../lib/msrcrypto',
             ],

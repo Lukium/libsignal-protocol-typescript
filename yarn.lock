@@ -1189,6 +1189,38 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@lukium/libsignal-protocol-typescript@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@lukium/libsignal-protocol-typescript@workspace:."
+  dependencies:
+    "@commitlint/cli": "npm:^20.1.0"
+    "@commitlint/config-conventional": "npm:^20.0.0"
+    "@playwright/test": "npm:^1.49.1"
+    "@privacyresearch/curve25519-typescript": "npm:^0.0.12"
+    "@types/base64-js": "npm:^1.3.2"
+    "@types/jest": "npm:^29.5.14"
+    "@typescript-eslint/eslint-plugin": "npm:^8.46.1"
+    "@typescript-eslint/parser": "npm:^8.46.1"
+    base64-js: "npm:^1.5.1"
+    esbuild: "npm:^0.21.5"
+    eslint: "npm:^9.38.0"
+    eslint-config-prettier: "npm:^10.1.8"
+    eslint-plugin-prettier: "npm:5.5.4"
+    fake-indexeddb: "npm:^6.2.4"
+    husky: "npm:^9.1.7"
+    jest: "npm:^29.7.0"
+    lint-staged: "npm:^16.2.4"
+    prettier: "npm:^3.6.2"
+    protobufjs: "npm:^7.5.4"
+    protobufjs-cli: "npm:1.1.3"
+    ts-jest: "npm:^29.4.5"
+    typedoc: "npm:0.27.3"
+    typedoc-plugin-markdown: "npm:4.9.0"
+    typescript: "npm:5.9.3"
+    vite: "npm:^5.4.11"
+  languageName: unknown
+  linkType: soft
+
 "@nodelib/fs.scandir@npm:2.1.5":
   version: 2.1.5
   resolution: "@nodelib/fs.scandir@npm:2.1.5"
@@ -1269,38 +1301,6 @@ __metadata:
   checksum: 10c0/ca201234696a478f078784c863b38920f5489a264cf0010d0374845f0fdeec0b53129304313f9ef57a7b833f289763f96d3ab6afd34c1a06d326ed81fe275d2e
   languageName: node
   linkType: hard
-
-"@privacyresearch/libsignal-protocol-typescript@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "@privacyresearch/libsignal-protocol-typescript@workspace:."
-  dependencies:
-    "@commitlint/cli": "npm:^20.1.0"
-    "@commitlint/config-conventional": "npm:^20.0.0"
-    "@playwright/test": "npm:^1.49.1"
-    "@privacyresearch/curve25519-typescript": "npm:^0.0.12"
-    "@types/base64-js": "npm:^1.3.2"
-    "@types/jest": "npm:^29.5.14"
-    "@typescript-eslint/eslint-plugin": "npm:^8.46.1"
-    "@typescript-eslint/parser": "npm:^8.46.1"
-    base64-js: "npm:^1.5.1"
-    esbuild: "npm:^0.21.5"
-    eslint: "npm:^9.38.0"
-    eslint-config-prettier: "npm:^10.1.8"
-    eslint-plugin-prettier: "npm:5.5.4"
-    fake-indexeddb: "npm:^6.2.4"
-    husky: "npm:^9.1.7"
-    jest: "npm:^29.7.0"
-    lint-staged: "npm:^16.2.4"
-    prettier: "npm:^3.6.2"
-    protobufjs: "npm:^7.5.4"
-    protobufjs-cli: "npm:1.1.3"
-    ts-jest: "npm:^29.4.5"
-    typedoc: "npm:0.27.3"
-    typedoc-plugin-markdown: "npm:4.9.0"
-    typescript: "npm:5.9.3"
-    vite: "npm:^5.4.11"
-  languageName: unknown
-  linkType: soft
 
 "@protobufjs/aspromise@npm:^1.1.1, @protobufjs/aspromise@npm:^1.1.2":
   version: 1.1.2

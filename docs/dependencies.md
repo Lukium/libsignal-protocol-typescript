@@ -2,7 +2,7 @@
 
 _Last reviewed: 2025-10-19_
 
-This document captures the current dependency set for `@privacyresearch/libsignal-protocol-typescript`, along with the rationale for keeping each package during Phase 2. All version numbers reflect the values in `package.json` at the time of review. A `yarn npm audit` check reports **no known vulnerabilities**.
+This document captures the current dependency set for `@lukium/libsignal-protocol-typescript`, along with the rationale for keeping each package during Phase 2. All version numbers reflect the values in `package.json` at the time of review. A `yarn npm audit` check reports **no known vulnerabilities**.
 
 ## Runtime Dependencies
 

@@ -1,16 +1,11 @@
-import {
-    KeyHelper,
-    SessionBuilder,
-    SessionCipher,
-    SignalProtocolAddress,
-} from '@privacyresearch/libsignal-protocol-typescript';
+import { KeyHelper, SessionBuilder, SessionCipher, SignalProtocolAddress } from '@lukium/libsignal-protocol-typescript';
 import type {
     Direction,
     StorageType,
     KeyPairType,
     SignedPublicPreKeyType,
     PreKeyType,
-} from '@privacyresearch/libsignal-protocol-typescript';
+} from '@lukium/libsignal-protocol-typescript';
 
 const { TextEncoder, TextDecoder } = globalThis;
 

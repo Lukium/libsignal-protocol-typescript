@@ -2,7 +2,7 @@
 
 _Last updated: 2025-10-17_
 
-This guide explains how to embed `@privacyresearch/libsignal-protocol-typescript` in a Progressive Web App (PWA) with IndexedDB-backed storage and Service Worker support.
+This guide explains how to embed `@lukium/libsignal-protocol-typescript` in a Progressive Web App (PWA) with IndexedDB-backed storage and Service Worker support.
 
 ## 1. Application Architecture
 
@@ -44,8 +44,8 @@ The quickest way to validate Service Worker compatibility is to wire an ES modul
 
 ```ts
 // sw.ts
-import { SessionBuilder, SessionCipher, SignalProtocolAddress } from '@privacyresearch/libsignal-protocol-typescript';
-import { createIndexedDBSignalProtocolStore } from '@privacyresearch/libsignal-protocol-typescript/examples/storage-adapters/indexeddb-adapter';
+import { SessionBuilder, SessionCipher, SignalProtocolAddress } from '@lukium/libsignal-protocol-typescript';
+import { createIndexedDBSignalProtocolStore } from '@lukium/libsignal-protocol-typescript/examples/storage-adapters/indexeddb-adapter';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -99,13 +99,13 @@ export default defineConfig({
         format: 'es',
         rollupOptions: {
             // The library now hydrates `globalThis.crypto` first, so we can skip bundling msrcrypto in workers.
-            external: ['@privacyresearch/libsignal-protocol-typescript/lib/msrcrypto.js'],
+            external: ['@lukium/libsignal-protocol-typescript/lib/msrcrypto.js'],
         },
     },
     resolve: {
         alias: {
             // Optional: provide an explicit shim if a dependency tries to import the fallback module.
-            '@privacyresearch/libsignal-protocol-typescript/lib/msrcrypto.js': '/src/shims/msrcrypto-empty.ts',
+            '@lukium/libsignal-protocol-typescript/lib/msrcrypto.js': '/src/shims/msrcrypto-empty.ts',
         },
     },
 });
@@ -138,8 +138,8 @@ Launch the demo locally with `yarn example:pwa-vite` after running `yarn build`.
 
 ## 5. Bundle Size Considerations
 
-- Import from the ESM build (`import { SessionBuilder } from '@privacyresearch/libsignal-protocol-typescript'`) to leverage tree-shaking.
-- Prefer subpath imports (e.g., `@privacyresearch/libsignal-protocol-typescript/session-cipher`) to keep bundlers from pulling unused helpers.
+- Import from the ESM build (`import { SessionBuilder } from '@lukium/libsignal-protocol-typescript'`) to leverage tree-shaking.
+- Prefer subpath imports (e.g., `@lukium/libsignal-protocol-typescript/session-cipher`) to keep bundlers from pulling unused helpers.
 - Exclude optional test utilities using bundler aliasing (`resolve.alias` in Vite/Webpack).
 - Monitor bundle size; aim for <100 KB gzipped by deferring unused helpers (Phase 2 task).
 - Use `yarn bundle:size` to rebuild the demo and report current gzipped totals.
@@ -166,7 +166,7 @@ Track progress against the Phase 1/2 checklist and log gaps in `docs/limitatio
 1. Replace the existing custom store import with the shared adapter:
 
    ```ts
-   import { createIndexedDBSignalProtocolStore } from '@privacyresearch/libsignal-protocol-typescript/examples/storage-adapters/indexeddb-adapter';
+   import { createIndexedDBSignalProtocolStore } from '@lukium/libsignal-protocol-typescript/examples/storage-adapters/indexeddb-adapter';
    ```
 
 2. During bootstrap, open the IndexedDB database and hydrate identity/registration data:

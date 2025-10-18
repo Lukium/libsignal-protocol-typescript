@@ -1,12 +1,12 @@
 # Contributing Guide
 
-Thanks for your interest in improving `@privacyresearch/libsignal-protocol-typescript`! This guide outlines the local workflow, coding standards, and release routines for contributors.
+Thanks for your interest in improving `@lukium/libsignal-protocol-typescript`! This guide outlines the local workflow, coding standards, and release routines for contributors.
 
 ## Prerequisites
 
 - Node.js 18+
 - Yarn 4 (Corepack-enabled)
-- `PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers npx playwright install chromium` (run once if you will execute the E2E suite)
+- `PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers yarn playwright install chromium` (run once if you will execute the E2E suite)
 
 ## Getting Started
 
@@ -43,7 +43,7 @@ This is optional for doc-only changes but required for PWA or Service Worker mod
 - TypeScript: prefer explicit types on exported APIs; avoid `any` unless absolutely necessary.
 - Formatting: enforced by Prettier; let `yarn lint`/`yarn format` fix styling issues.
 - Tests: Jest is limited to a single worker; add coverage when touching protocol code or storage adapters.
-- Bundle health: be mindful of optional imports—use subpath exports (e.g., `@privacyresearch/libsignal-protocol-typescript/session-cipher`) to keep tree-shaking effective.
+- Bundle health: be mindful of optional imports—use subpath exports (e.g., `@lukium/libsignal-protocol-typescript/session-cipher`) to keep tree-shaking effective.
 
 ## Documentation & Release Notes
 

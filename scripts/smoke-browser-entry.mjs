@@ -3,7 +3,7 @@ import {
     SessionCipher,
     SignalProtocolAddress,
     setLogger,
-} from '@privacyresearch/libsignal-protocol-typescript';
+} from '@lukium/libsignal-protocol-typescript';
 
 // Ensure logger hook tree-shakes cleanly when bundling for the browser.
 setLogger({

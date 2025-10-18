@@ -28,7 +28,7 @@ This document highlights the most important differences between our maintained T
 
 ## 4. When to Choose Each Library
 
-Use `@privacyresearch/libsignal-protocol-typescript` when:
+Use `@lukium/libsignal-protocol-typescript` when:
 
 - You need browser/PWA compatibility without native modules.
 - You require transparent TypeScript sources for auditing or customization.

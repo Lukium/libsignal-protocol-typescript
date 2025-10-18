@@ -115,7 +115,7 @@ Use `setLogger` (exported from the package root) to plug the library into your t
 
 ### Community
 
-- Original fork: https://github.com/privacyresearchgroup/libsignal-protocol-typescript
+- Source repository: https://github.com/Lukium/libsignal-protocol-typescript (originally forked from privacyresearchgroup/libsignal-protocol-typescript)
 - Our issues: Track in GitHub Issues
 - Our discussions: GitHub Discussions
 

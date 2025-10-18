@@ -13,9 +13,9 @@ For a complete overview, visit [`docs/README.md`](docs/README.md).
 ## Installation
 
 ```bash
-yarn add @privacyresearch/libsignal-protocol-typescript
+yarn add @lukium/libsignal-protocol-typescript
 # or
-npm install @privacyresearch/libsignal-protocol-typescript
+npm install @lukium/libsignal-protocol-typescript
 ```
 
 ES module consumption is recommended:
@@ -26,7 +26,7 @@ import {
     SessionBuilder,
     SessionCipher,
     SignalProtocolAddress,
-} from '@privacyresearch/libsignal-protocol-typescript';
+} from '@lukium/libsignal-protocol-typescript';
 ```
 
 ## Documentation
@@ -99,13 +99,13 @@ The code samples below come almost directly from our [sample web application](ht
 We use [yarn](https://yarnpkg.com).
 
 ```
-yarn add @privacyresearch/libsignal-protocol-typescript
+yarn add @lukium/libsignal-protocol-typescript
 ```
 
 But npm is good too:
 
 ```
-npm install @privacyresearch/libsignal-protocol-typescript
+npm install @lukium/libsignal-protocol-typescript
 ```
 
 Now you can import classes and functions from the library. To make the examples below work, the following import suffices:

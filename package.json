@@ -1,10 +1,10 @@
 {
-  "name": "@privacyresearch/libsignal-protocol-typescript",
+  "name": "@lukium/libsignal-protocol-typescript",
   "version": "0.0.16",
   "main": "lib/cjs/index.js",
   "module": "lib/esm/index.js",
   "types": "lib/cjs/index.d.ts",
-  "repository": "https://github.com/privacyresearchgroup/libsignal-protocol-typescript",
+  "repository": "https://github.com/Lukium/libsignal-protocol-typescript",
   "author": "Rolfe Schmidt <rolfeschmidt@gmail.com>",
   "license": "GPL-3.0-only",
   "scripts": {

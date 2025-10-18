@@ -2,7 +2,7 @@
 
 _Last reviewed: 2025-10-19_
 
-This document captures the major gaps and caveats that apply to `@privacyresearch/libsignal-protocol-typescript` during Phase 2 of the modernization project.
+This document captures the major gaps and caveats that apply to `@lukium/libsignal-protocol-typescript` during Phase 2 of the modernization project.
 
 ## Known Issues
 
