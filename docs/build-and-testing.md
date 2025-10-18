@@ -64,5 +64,5 @@ Recent additions:
 - Decide on Yarn Berry permanence; confirm lockfile stability.
 - Audit runtime dependencies:
   - ✅ Patched transitive CVEs via Yarn `resolutions`.
-- 🚧 Signal protobuf bundle: `proto/wire.proto` tracked and codecs normalized (2025-10-18); push content regeneration remains pending (`proto/push_messages.proto`).
+- ✅ Signal protobuf bundle: `proto/wire.proto` and `proto/push_messages.proto` tracked with regenerated codecs (2025-10-18).
 - Publish a beta package after documenting CJS/ESM usage examples in the README.

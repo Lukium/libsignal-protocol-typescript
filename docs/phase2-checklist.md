@@ -9,11 +9,11 @@
 
 ## Week 4: Protocol Fidelity & Test Coverage
 
-- [ ] **Regenerate protobuf bundle**
+- [x] **Regenerate protobuf bundle**
   - Files: `proto/wire.proto`, `proto/push_messages.proto`
   - Use latest upstream schemas (`protobufjs` JSON descriptors + wrappers)
   - Update TypeScript typings and ensure compatibility with existing code
-  - _Status 2025-10-18_: `wire.proto` refreshed and codecs normalized; push content still outstanding.
+  - _Status 2025-10-18_: `wire.proto` and `push_messages.proto` regenerated with in-repo codecs.
 - [x] **Upgrade test vectors**
   - Add fresh fixtures for session-cipher error branches and archival flows
   - Expand coverage for `session-record.ts` edge cases (target >90% branches)
