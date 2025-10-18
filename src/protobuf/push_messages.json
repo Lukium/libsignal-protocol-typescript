@@ -1,0 +1,139 @@
+{
+  "nested": {
+    "signal": {
+      "nested": {
+        "proto": {
+          "nested": {
+            "push": {
+              "nested": {
+                "IncomingPushMessageSignal": {
+                  "edition": "proto2",
+                  "fields": {
+                    "type": {
+                      "type": "Type",
+                      "id": 1
+                    },
+                    "source": {
+                      "type": "string",
+                      "id": 2
+                    },
+                    "relay": {
+                      "type": "string",
+                      "id": 3
+                    },
+                    "timestamp": {
+                      "type": "uint64",
+                      "id": 5
+                    },
+                    "message": {
+                      "type": "bytes",
+                      "id": 6
+                    },
+                    "sourceDevice": {
+                      "type": "uint32",
+                      "id": 7
+                    }
+                  },
+                  "nested": {
+                    "Type": {
+                      "values": {
+                        "UNKNOWN": 0,
+                        "CIPHERTEXT": 1,
+                        "KEY_EXCHANGE": 2,
+                        "PREKEY_BUNDLE": 3,
+                        "PLAINTEXT": 4,
+                        "RECEIPT": 5,
+                        "PREKEY_BUNDLE_DEVICE_CONTROL": 6,
+                        "DEVICE_CONTROL": 7
+                      }
+                    }
+                  }
+                },
+                "PushMessageContent": {
+                  "edition": "proto2",
+                  "fields": {
+                    "body": {
+                      "type": "string",
+                      "id": 1
+                    },
+                    "attachments": {
+                      "rule": "repeated",
+                      "type": "AttachmentPointer",
+                      "id": 2
+                    },
+                    "group": {
+                      "type": "GroupContext",
+                      "id": 3
+                    },
+                    "flags": {
+                      "type": "uint32",
+                      "id": 4
+                    }
+                  },
+                  "nested": {
+                    "Flags": {
+                      "values": {
+                        "END_SESSION": 1
+                      }
+                    },
+                    "AttachmentPointer": {
+                      "fields": {
+                        "id": {
+                          "type": "fixed64",
+                          "id": 1
+                        },
+                        "contentType": {
+                          "type": "string",
+                          "id": 2
+                        },
+                        "key": {
+                          "type": "bytes",
+                          "id": 3
+                        }
+                      }
+                    },
+                    "GroupContext": {
+                      "fields": {
+                        "id": {
+                          "type": "bytes",
+                          "id": 1
+                        },
+                        "type": {
+                          "type": "Type",
+                          "id": 2
+                        },
+                        "name": {
+                          "type": "string",
+                          "id": 3
+                        },
+                        "members": {
+                          "rule": "repeated",
+                          "type": "string",
+                          "id": 4
+                        },
+                        "avatar": {
+                          "type": "AttachmentPointer",
+                          "id": 5
+                        }
+                      },
+                      "nested": {
+                        "Type": {
+                          "values": {
+                            "UNKNOWN": 0,
+                            "UPDATE": 1,
+                            "DELIVER": 2,
+                            "QUIT": 3
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
