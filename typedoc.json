@@ -1,4 +1,5 @@
 {
+  "name": "libsignal-protocol-typescript API",
   "entryPoints": ["src/index.ts"],
   "tsconfig": "tsconfig.json",
   "plugin": [],
