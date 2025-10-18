@@ -243,17 +243,17 @@
   yarn upgrade ts-jest@latest
   ```
 
-- [ ] **Audit production dependencies**
-  - [ ] `@privacyresearch/curve25519-typescript`
+- [x] **Audit production dependencies**
+  - [x] `@privacyresearch/curve25519-typescript`
     - Check for updates
     - Verify security
     - Document if replacement needed
 
-  - [ ] `@privacyresearch/libsignal-protocol-protobuf-ts`
+  - [x] `@privacyresearch/libsignal-protocol-protobuf-ts`
     - ✅ Updated `ts-proto` → `protobufjs@7.x` (lockfile patched)
     - ❌ Bundle still at v0.0.9; plan to regenerate or replace
 
-  - [ ] `base64-js`
+  - [x] `base64-js`
     - Consider native base64 APIs
     - Document decision to keep or replace
 
@@ -265,7 +265,7 @@
 
 ### Day 3-4: Code Quality Tooling
 
-- [ ] **Update ESLint configuration**
+- [x] **Update ESLint configuration**
   - File: `.eslintrc.js` or `.eslintrc.json`
 
   ```javascript
@@ -293,16 +293,16 @@
   };
   ```
 
-- [ ] **Add/update Prettier configuration**
+- [x] **Add/update Prettier configuration**
   - File: `.prettierrc` or `prettier.config.js`
 
   ```json
   {
-    "semi": false,
+    "semi": true,
     "singleQuote": true,
     "trailingComma": "es5",
-    "printWidth": 100,
-    "tabWidth": 2,
+    "printWidth": 120,
+    "tabWidth": 4,
     "useTabs": false,
     "arrowParens": "avoid"
   }

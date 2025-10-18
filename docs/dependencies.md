@@ -12,6 +12,16 @@ This document captures the current dependency set for `@privacyresearch/libsigna
 | `@privacyresearch/libsignal-protocol-protobuf-ts` | ^0.0.9 | ✅ Keep (monitor) | Supplies the generated protobuf message types. The bundled definitions are slightly behind the latest spec; we plan to regenerate the bundle once upstream protocol updates are finalized. A follow-up issue will capture the regeneration work. |
 | `base64-js` | ^1.5.1 | ✅ Keep | Lightweight browser-compatible Base64 utilities. Native `atob`/`btoa` lack typed-array support and fail in Node 18 without polyfills; keeping this dependency avoids cross-runtime discrepancies. |
 
+### Runtime Update Check (2025-10-17)
+
+Latest versions captured with `yarn npm info <package> --fields version`.
+
+| Package | Latest Version | Status |
+| ------- | -------------- | ------ |
+| `@privacyresearch/curve25519-typescript` | 0.0.12 | Up-to-date |
+| `@privacyresearch/libsignal-protocol-protobuf-ts` | 0.0.9 | Up-to-date (regeneration planned) |
+| `base64-js` | 1.5.1 | Up-to-date |
+
 ## Development Dependencies
 
 | Package | Current Version | Decision | Notes |
