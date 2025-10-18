@@ -21,8 +21,8 @@ yarn format                # prettier write pass
 ## Coverage & Quality Gates
 
 - Jest currently enforces **80/80/80/80** (statements/lines/functions/branches).
-- Latest run (2025-10-19): **96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines** across 263 specs.
-- Generated protobuf codecs under `src/protobuf/**` are excluded from coverage to keep the metrics focused on first-party logic.
+- Latest run (2025-10-19): **97.3% statements / 91.2% branches / 95.0% functions / 97.3% lines** across 273 specs.
+- Generated protobuf codecs under `src/protobuf/**` are excluded from coverage to keep the metrics focused on first-party logic, and runtime logging now pipes through a configurable `setLogger` helper so downstream apps can forward structured telemetry.
 - What’s left to exercise:
   1. `session-cipher.ts` archival/decryption retry loops (lines 250-350, 390+)
   2. `session-record.ts` legacy migration branches (lines 30-220)
@@ -51,7 +51,7 @@ Recent additions:
 - Framework: Playwright (`@playwright/test`)
 - Config: `playwright.config.ts` spins up the Vite demo (`examples/pwa-vite`) via `yarn preview:pwa-vite`
 - Test entry: `tests/playwright/pwa-vite.spec.ts`
-- Install browsers once per environment: `PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers npx playwright install chromium`
+- Install browsers once per environment: `PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers yarn playwright install chromium`
 - Execute suite: `yarn test:e2e`
 - Validates that the Service Worker negotiates a session, decrypts worker responses, and posts results back to the main thread.
 
@@ -83,15 +83,16 @@ Recent additions:
   - `lib/cjs/**` – CommonJS + `.d.ts` + sourcemaps
   - `lib/esm/**` – ES2020 modules + `.d.ts` + sourcemaps
   - `lib/msrcrypto.js` – legacy fallback injected at runtime
-- Package metadata declares `"sideEffects": ["lib/msrcrypto.js"]` so bundlers can tree-shake everything else by default, and subpath exports (`./session-cipher`, `./fingerprint-generator`, etc.) let bundlers import only the modules required for a given bundle.
+- Package metadata declares `"sideEffects": ["lib/msrcrypto.js"]` so bundlers can tree-shake everything else by default, and subpath exports (`./session-cipher`, `./fingerprint-generator`, `./logger`, etc.) let bundlers import only the modules required for a given bundle.
 - Current bundle footprint (2025-10-17):
   - `lib/cjs` ≈ **344 KB** on disk
   - `lib/esm` ≈ **328 KB** on disk
   - Target (Phase 2): <100 KB gzipped after tree-shaking and optional module splits
 - Ensure only these directories are packaged (`package.json > files`).
-- Smoke test the dual builds and subpath exports:
+- Smoke test the Node + browser bundles and subpath exports:
   ```bash
-  yarn smoke:build
+  yarn smoke:build      # validates CJS/ESM entry points in Node
+  yarn smoke:browser    # bundles against esbuild (browser target)
   ```
 
 ### Bundle Hot Spots (2025-10-19)

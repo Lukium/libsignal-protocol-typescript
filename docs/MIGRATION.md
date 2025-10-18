@@ -49,11 +49,12 @@ No public APIs were intentionally removed in Phase 1. Notable clarifications:
 - **Documentation**
   - PWA guide expanded with offline queue references.
   - Dependency decisions updated with an msrcrypto audit and WASM migration plan for Phase 3.
+- **Telemetry**
+  - Optional logging hooks via `setLogger`/`getLogger` to funnel structured warnings and errors into custom observability pipelines.
 
 ## 7. Future Work (Phase 3+)
 
 - PQXDH support and WASM Curve25519 evaluation.
-- Enhanced telemetry/logging hooks and structured error surface.
 - Bundle trimming below 100 KB gzipped and broader browser coverage.
 - Migration recipes for custom storage backends and advanced examples (React/Vue).
 

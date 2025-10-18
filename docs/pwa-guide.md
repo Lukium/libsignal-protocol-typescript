@@ -82,6 +82,14 @@ Example push payload (JSON):
 
 When a push arrives, fetch the ciphertext with `event.data?.arrayBuffer()`, decrypt via `SessionCipher.decryptWhisperMessage`, and post the plaintext to all clients.
 
+Field reference:
+
+- `ciphertext`: Base64 payload emitted by your messaging backend. Convert to an `ArrayBuffer` before calling `SessionCipher` helpers.
+- `timestamp`: Unix epoch seconds used for ordering or duplicate detection.
+- `sender`: `<name>.<deviceId>` string that maps back to a `SignalProtocolAddress` (this becomes the key when storing sessions).
+
+If your backend wraps data differently (e.g., includes an envelope or metadata signature), normalise the shape before handing the payload to the worker so the decryption flow remains consistent.
+
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
@@ -150,3 +158,29 @@ Launch the demo locally with `yarn example:pwa-vite` after running `yarn build`.
 - Run `yarn test:e2e` (Playwright) to verify the Vite demo continues to negotiate sessions end-to-end.
 
 Track progress against the Phase 1/2 checklist and log gaps in `docs/limitations.md`.
+
+## 8. Migration Recipes
+
+### Legacy in-memory store → IndexedDB adapter
+
+1. Replace the existing custom store import with the shared adapter:
+
+   ```ts
+   import { createIndexedDBSignalProtocolStore } from '@privacyresearch/libsignal-protocol-typescript/examples/storage-adapters/indexeddb-adapter';
+   ```
+
+2. During bootstrap, open the IndexedDB database and hydrate identity/registration data:
+
+   ```ts
+   const store = await createIndexedDBSignalProtocolStore({ dbName: 'my-app' });
+   await store.setIdentityKeyPair(legacyStore.getIdentityKeyPairSync());
+   await store.setLocalRegistrationId(legacyStore.getLocalRegistrationIdSync());
+   ```
+
+3. Move any pending sessions by serialising them through `SessionRecord.serialize()` (or reading from your legacy cache) and calling `store.storeSession(identifier, record)`.
+
+4. Drop in legacy helper methods (e.g., `removeSession`, `removeAllSessions`) with the adapter’s async equivalents. The returned promises make it safe to compose operations inside workers.
+
+5. Once migrated, delete the in-memory store to avoid drift and call `store.close()` on shutdown to release IndexedDB handles.
+
+This flow keeps the public API (methods on `SignalProtocolStore`) identical, so higher-level session code rarely needs adjustments beyond awaiting the async versions of the persistence helpers.

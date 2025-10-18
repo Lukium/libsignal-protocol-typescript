@@ -13,6 +13,7 @@ export * from './curve';
 import * as Internal from './internal';
 
 export { setWebCrypto, setCurve } from './internal';
+export { setLogger, getLogger } from './logger';
 
 /**
  * Builds a compatibility wrapper that mirrors the legacy

@@ -6,6 +6,7 @@ import {
     Curve as CurveType,
 } from '@privacyresearch/curve25519-typescript';
 import { uint8ArrayToArrayBuffer } from '../helpers';
+import { getLogger } from '../logger';
 
 export class Curve {
     // Curve 25519 crypto
@@ -30,10 +31,6 @@ export class Curve {
         pubKey = validatePubKeyFormat(pubKey);
         validatePrivKey(privKey);
 
-        if (pubKey.byteLength != 32) {
-            throw new Error('Invalid public key');
-        }
-
         return this._curve25519.sharedSecret(pubKey, privKey);
     }
 
@@ -49,10 +46,6 @@ export class Curve {
 
     Ed25519Verify(pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer): boolean {
         pubKey = validatePubKeyFormat(pubKey);
-
-        if (pubKey.byteLength != 32) {
-            throw new Error('Invalid public key');
-        }
 
         if (msg === undefined) {
             throw new Error('Invalid message');
@@ -86,10 +79,6 @@ export class AsyncCurve {
         pubKey = validatePubKeyFormat(pubKey);
         validatePrivKey(privKey);
 
-        if (pubKey.byteLength != 32) {
-            throw new Error('Invalid public key');
-        }
-
         return this._curve25519.sharedSecret(pubKey, privKey);
     }
 
@@ -105,10 +94,6 @@ export class AsyncCurve {
 
     async Ed25519Verify(pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer): Promise<boolean> {
         pubKey = validatePubKeyFormat(pubKey);
-
-        if (pubKey.byteLength != 32) {
-            throw new Error('Invalid public key');
-        }
 
         if (msg === undefined) {
             throw new Error('Invalid message');
@@ -138,15 +123,13 @@ function validatePubKeyFormat(pubKey: ArrayBuffer): ArrayBuffer {
         pubKey === undefined ||
         ((pubKey.byteLength != 33 || new Uint8Array(pubKey)[0] != 5) && pubKey.byteLength != 32)
     ) {
-        console.warn(`Invalid public key`, { pubKey });
+        getLogger().warn('Invalid public key format', { pubKey });
         throw new Error(`Invalid public key: ${pubKey} ${pubKey?.byteLength}`);
     }
     if (pubKey.byteLength == 33) {
         return pubKey.slice(1);
     } else {
-        console.error(
-            'WARNING: Expected pubkey of length 33, please report the ST and client that generated the pubkey'
-        );
+        getLogger().error('Unexpected public key length; expected 33 bytes.', { pubKey });
         return pubKey;
     }
 }

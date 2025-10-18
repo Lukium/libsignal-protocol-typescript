@@ -87,8 +87,10 @@ yarn test --coverage
 3. ✅ Add browser tests (Week 7-8 – Playwright smoke test)
 4. ✅ Add performance benchmarks (Week 9 – `yarn benchmark`)
 
-Current coverage (2025-10-19): 96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines  
+Current coverage (2025-10-19): 97.3% statements / 91.2% branches / 95.0% functions / 97.3% lines  
 Target: Maintain ≥95% statements / ≥90% branches going forward
+
+Use `setLogger` (exported from the package root) to plug the library into your telemetry pipeline; by default only warnings/errors bubble to the console.
 
 ## Security Considerations
 

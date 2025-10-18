@@ -1,5 +1,6 @@
 node_modules
 lib
+dist
 AGENTS.md
 playwright-report
 test-results

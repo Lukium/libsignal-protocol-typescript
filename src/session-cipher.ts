@@ -10,6 +10,7 @@ import { SessionRecord } from './session-record';
 import { SessionLock } from './session-lock';
 import { SessionBuilder } from './session-builder';
 import { uint8ArrayToArrayBuffer } from './helpers';
+import { getLogger } from './logger';
 
 export interface MessageType {
     type: number;
@@ -384,9 +385,14 @@ export class SessionCipher {
         if (!message.ratchetKey) {
             throw new Error('SignalMessage missing ratchet key');
         }
-        const chain = session.chains[base64.fromByteArray(message.ratchetKey)];
+        const ratchetKeyString = message.ratchetKey ? base64.fromByteArray(message.ratchetKey) : undefined;
+        const chain = ratchetKeyString ? session.chains[ratchetKeyString] : undefined;
         if (!chain) {
-            console.warn(`no chain found for key`, { key: base64.fromByteArray(message.ratchetKey), session });
+            getLogger().warn('No chain found for ratchet key', {
+                ratchetKey: ratchetKeyString,
+                sessionBaseKey: session.indexInfo.baseKey,
+            });
+            throw new Error('No receiving chain available for ratchet key');
         }
         if (chain?.chainType === ChainType.SENDING) {
             throw new Error('Tried to decrypt on a sending chain');

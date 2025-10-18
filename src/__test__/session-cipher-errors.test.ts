@@ -6,6 +6,7 @@ import { StorageType, KeyPairType } from '../types';
 import { PreKeyWhisperMessage, WhisperMessage } from '../protobuf/wire';
 import * as base64 from 'base64-js';
 import * as Internal from '../internal';
+import { setLogger } from '../logger';
 
 const createBuffer = (fill: number, length: number): ArrayBuffer => {
     const array = new Uint8Array(length);
@@ -104,14 +105,16 @@ const createPreKeyPayload = (
 
 describe('SessionCipher error handling', () => {
     const address = 'device.1';
-    let warnSpy: jest.SpyInstance;
 
     beforeEach(() => {
-        warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        setLogger({
+            warn: jest.fn(),
+            error: jest.fn(),
+        });
     });
 
     afterEach(() => {
-        warnSpy.mockRestore();
+        setLogger();
     });
 
     test('encryptJob rejects non ArrayBuffer payloads', async () => {
@@ -539,6 +542,8 @@ describe('SessionCipher error handling', () => {
             'maybeStepRatchet'
         ).mockResolvedValue(undefined);
 
+        const ratchetKey = new Uint8Array(32);
+        const ratchetKeyString = base64.fromByteArray(ratchetKey);
         const session: SessionType = {
             registrationId: 1,
             currentRatchet: {
@@ -553,13 +558,19 @@ describe('SessionCipher error handling', () => {
                 baseKeyType: BaseKeyType.OURS,
                 closed: -1,
             },
-            chains: {},
+            chains: {
+                [ratchetKeyString]: {
+                    chainType: ChainType.RECEIVING,
+                    chainKey: { counter: 0, key: createBuffer(6, 32) },
+                    messageKeys: {},
+                },
+            },
             oldRatchetList: [],
         };
         const payload = new Uint8Array(9);
         payload[0] = 0x33;
         const decodeSpy = jest.spyOn(WhisperMessage, 'decode').mockReturnValue({
-            ratchetKey: new Uint8Array(32),
+            ratchetKey,
             previousCounter: 0,
         } as unknown as WhisperMessage);
 

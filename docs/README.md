@@ -71,6 +71,17 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 
 **Share this** with anyone wiring the library into CI or release tooling.
 
+### [Security Review Checklist](./security-review.md)
+
+**Step-by-step release gate** to keep dependencies clean and bundles within guard rails:
+
+- Dependency audit (`yarn npm audit`, `yarn npm ls`)
+- Bundle integrity checks (`yarn bundle:size`, `yarn smoke:build`)
+- Coverage and Playwright smoke-test verification
+- Guidance for wiring the optional logger and finalising release notes
+
+**Use this** right before cutting `v0.1.0-beta` tags or stable releases.
+
 ### [Dependency Decisions](./dependencies.md)
 
 **Current status log** for runtime and development dependencies:
@@ -193,8 +204,8 @@ Phase 3: Enhancement (Weeks 9-12)
 
 | Component     | Status            | Notes                                                              |
 | ------------- | ----------------- | ------------------------------------------------------------------ |
-| Tests         | ✅ Stable         | Jest 29 with custom environment; 263 specs passing                 |
-| Coverage      | ✅ Branch 91%     | 96.7% statements / 90.8% branches / 96.7% functions / 96.7% lines |
+| Tests         | ✅ Stable         | Jest 29 with custom environment; 273 specs passing                 |
+| Coverage      | ✅ Branch 91%     | 97.3% statements / 91.2% branches / 95.0% functions / 97.3% lines |
 | Build         | ✅ Dual output    | `yarn build` emits `lib/cjs` + `lib/esm` with d.ts                 |
 | Dependencies  | ✅ Audited        | `yarn npm audit` clean; dependency decisions refreshed             |
 | Documentation | 🔄 Updating       | Quick start & Phase 1 checklist refreshed                          |

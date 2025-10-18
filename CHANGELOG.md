@@ -15,3 +15,4 @@ All notable changes to this project will be documented in this file.
 - Added `yarn example:basic` CLI harness to exercise the basic messaging demo against packaged artifacts.
 - Updated the Vite PWA example with offline queue handling and refreshed documentation references.
 - Expanded test coverage to >90% branches with new environment fallbacks and session-cipher edge cases (protobuf output excluded from coverage totals).
+- Added configurable logging hooks (`setLogger`/`getLogger`) so apps can forward structured telemetry instead of relying on console output.

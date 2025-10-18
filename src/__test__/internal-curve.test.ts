@@ -4,6 +4,7 @@ import {
     Curve as CurveType,
     Curve25519Wrapper,
 } from '@privacyresearch/curve25519-typescript';
+import { setLogger } from '../logger';
 
 const createBuffer = (length: number, fill = 1): ArrayBuffer => {
     const array = new Uint8Array(length);
@@ -16,29 +17,26 @@ describe('Internal Curve wrapper', () => {
     const message = createBuffer(16);
     const signature = createBuffer(64);
 
-    let warnSpy: jest.SpyInstance;
-    let errorSpy: jest.SpyInstance;
+    let warnMock: jest.Mock;
+    let errorMock: jest.Mock;
 
     let sharedSecretMock: jest.Mock;
     let signMock: jest.Mock;
     let verifyMock: jest.Mock;
     let keyPairMock: jest.Mock;
 
-    beforeAll(() => {
-        warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
-        errorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-    });
-
-    afterAll(() => {
-        warnSpy.mockRestore();
-        errorSpy.mockRestore();
-    });
-
     beforeEach(() => {
+        warnMock = jest.fn();
+        errorMock = jest.fn();
+        setLogger({ warn: warnMock, error: errorMock });
         sharedSecretMock = jest.fn().mockReturnValue(createBuffer(32, 7));
         signMock = jest.fn().mockReturnValue(signature);
         verifyMock = jest.fn().mockReturnValue(false);
         keyPairMock = jest.fn().mockReturnValue({ pubKey: createBuffer(32, 5), privKey });
+    });
+
+    afterEach(() => {
+        setLogger();
     });
 
     const buildCurve = (): Internal.Curve => {
@@ -70,6 +68,13 @@ describe('Internal Curve wrapper', () => {
         expect(() => curve.createKeyPair(createBuffer(31))).toThrow('Invalid private key');
     });
 
+    test('createKeyPair returns processed keys when valid', () => {
+        const curve = buildCurve();
+        const result = curve.createKeyPair(privKey);
+        expect(result.privKey).toBe(privKey);
+        expect(new Uint8Array(result.pubKey)[0]).toBe(5);
+    });
+
     test('ECDHE strips version byte and enforces length', () => {
         const curve = buildCurve();
 
@@ -84,6 +89,9 @@ describe('Internal Curve wrapper', () => {
         const rawPubKey = createBuffer(32);
         curve.ECDHE(rawPubKey, privKey);
         expect(sharedSecretMock).toHaveBeenCalledWith(rawPubKey, privKey);
+        expect(errorMock).toHaveBeenCalledWith('Unexpected public key length; expected 33 bytes.', {
+            pubKey: rawPubKey,
+        });
     });
 
     test('ECDHE rejects malformed pubkey', () => {
@@ -92,12 +100,21 @@ describe('Internal Curve wrapper', () => {
         const malformed = createBuffer(33);
         new Uint8Array(malformed)[0] = 4;
         expect(() => curve.ECDHE(malformed, privKey)).toThrow('Invalid public key');
+        expect(warnMock).toHaveBeenCalled();
     });
 
     test('Ed25519Sign rejects missing message', () => {
         const curve = buildCurve();
 
         expect(() => curve.Ed25519Sign(privKey, undefined as unknown as ArrayBuffer)).toThrow('Invalid message');
+    });
+
+    test('Ed25519Sign delegates to underlying curve implementation', () => {
+        const curve = buildCurve();
+
+        const result = curve.Ed25519Sign(privKey, message);
+        expect(result).toBe(signature);
+        expect(signMock).toHaveBeenCalled();
     });
 
     test('Ed25519Verify enforces signature length', () => {
@@ -123,6 +140,16 @@ describe('Internal Curve wrapper', () => {
         expect(() => curve.Ed25519Verify(rawPubKey, message, undefined as unknown as ArrayBuffer)).toThrow(
             'Invalid signature'
         );
+    });
+
+    test('Ed25519Verify returns backend verification result', () => {
+        const curve = buildCurve();
+
+        const versionedPubKey = createBuffer(33);
+        new Uint8Array(versionedPubKey)[0] = 5;
+        const result = curve.Ed25519Verify(versionedPubKey, message, signature);
+        expect(result).toBe(false);
+        expect(verifyMock).toHaveBeenCalled();
     });
 
     test('Async verify throws when backend returns true', async () => {
@@ -167,5 +194,26 @@ describe('Internal Curve wrapper', () => {
         await expect(asyncCurve.Ed25519Verify(pubKey, message, undefined as unknown as ArrayBuffer)).rejects.toThrow(
             'Invalid signature'
         );
+    });
+
+    test('Async operations resolve when inputs are valid', async () => {
+        const asyncCurve = buildAsyncCurve({
+            keyPair: jest.fn().mockResolvedValue({
+                pubKey: createBuffer(32, 8),
+                privKey,
+            }),
+        });
+
+        const privKeyBuffer = createBuffer(32);
+        const keyPair = await asyncCurve.createKeyPair(privKeyBuffer);
+        expect(keyPair.privKey).toBeDefined();
+
+        const pubKey = createBuffer(33);
+        new Uint8Array(pubKey)[0] = 5;
+        const secret = await asyncCurve.ECDHE(pubKey, privKey);
+        expect(secret.byteLength).toBeGreaterThan(0);
+
+        const verifyResult = await asyncCurve.Ed25519Verify(pubKey, message, signature);
+        expect(verifyResult).toBe(false);
     });
 });
