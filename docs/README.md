@@ -65,6 +65,7 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 - Outstanding QA and packaging tasks
 - Browser automation + API documentation commands
 - Release workflow (`yarn release:beta`) and bundle-size guard rails
+- GitHub Pages steps for publishing the API (see [api-publishing.md](./api-publishing.md))
 
 **Share this** with anyone wiring the library into CI or release tooling.
 
