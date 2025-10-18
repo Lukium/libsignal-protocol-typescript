@@ -5,19 +5,23 @@ This is a condensed reference for the modernization plan. For full details, see 
 ## Critical Decisions Made
 
 ### 1. Continue TypeScript Implementation (Not Migrate to Official)
+
 **Why**: The official `@signalapp/libsignal-client` does NOT support browsers/PWA - it's Node.js only. We're filling a critical gap in the ecosystem.
 
 ### 2. Three-Phase Approach (12 Weeks)
+
 - **Phase 1** (Weeks 1-3): Fix foundation - tests, build, dependencies
 - **Phase 2** (Weeks 4-8): Modernize - TypeScript, crypto, PWA
 - **Phase 3** (Weeks 9-12): Enhance - performance, docs, v1.0.0
 
 ### 3. Defer Post-Quantum (PQXDH)
+
 PQXDH support is planned for future (post-v1.0.0) due to complexity and lack of JS/TS ML-KEM implementations.
 
 ## Immediate Next Steps (Week 1)
 
 ### 1. Maintain Coverage & Confidence (Day 1-2)
+
 ```bash
 # Watch branch hot spots in session-cipher/session-record/internal crypto
 yarn test --coverage
@@ -25,10 +29,12 @@ yarn test --coverage
 ```
 
 ### 2. Finalize Packaging Decisions (Day 2-3)
+
 - Confirm Yarn Berry adoption (`.yarnrc.yml`, `.yarn/`) or roll back to Yarn Classic.
 - Add `exports` map and smoke tests for CJS/ESM bundles.
 
 ### 3. Monitor CI/CD (Day 4-5)
+
 - Workflow: `.github/workflows/ci.yml`
 - Validates lint → typecheck → tests (coverage) → build on Node 18 & 20
 - Coverage artifact (`coverage/lcov.info`) uploaded from the 20.x run
@@ -36,18 +42,21 @@ yarn test --coverage
 ## Key Goals by Phase
 
 ### Phase 1 Goals
+
 - ✅ All tests passing (Jest 29, ts-jest, custom env)
 - ✅ Modern build system (ESM + CJS)
 - ✅ CI/CD running (GitHub Actions on push/PR)
 - 🔄 Dependencies audited and updated (crypto deps pending review)
 
 ### Phase 2 Goals
+
 - ✅ TypeScript strict mode enabled (shared tsconfig)
 - 🔄 Protocol compliance verified (extend integration vectors)
 - 🔄 PWA optimizations complete (browser storage adapters outstanding)
 - 🔄 Bundle size <100KB (measure after tree-shaking pass)
 
 ### Phase 3 Goals
+
 - 🔄 Performance benchmarks passing
 - 🔄 Comprehensive documentation
 - 🔄 Browser compatibility tested
@@ -64,12 +73,12 @@ yarn test --coverage
 
 ## Technology Updates Summary
 
-| Component | Current | Target | Reason |
-|-----------|---------|--------|--------|
-| TS Target | ES6 | ES2020 | Modern features, better optimization |
-| Module | CommonJS | ESM + CJS | PWA compatibility, tree-shaking |
-| Strict Mode | Partial | Full | Type safety |
-| Source Maps | No | Yes | Debugging |
+| Component   | Current  | Target    | Reason                               |
+| ----------- | -------- | --------- | ------------------------------------ |
+| TS Target   | ES6      | ES2020    | Modern features, better optimization |
+| Module      | CommonJS | ESM + CJS | PWA compatibility, tree-shaking      |
+| Strict Mode | Partial  | Full      | Type safety                          |
+| Source Maps | No       | Yes       | Debugging                            |
 
 ## Testing Strategy
 
@@ -92,15 +101,18 @@ Target: Maintain ≥90% statements / ≥80% branches
 ## Resources
 
 ### Official Signal Docs
+
 - Specifications: https://signal.org/docs/
 - X3DH: https://signal.org/docs/specifications/x3dh/
 - Double Ratchet: https://signal.org/docs/specifications/doubleratchet/
 
 ### Signal Repos
+
 - Main repo: https://github.com/signalapp/libsignal
 - NPM package: https://www.npmjs.com/package/@signalapp/libsignal-client
 
 ### Community
+
 - Original fork: https://github.com/privacyresearchgroup/libsignal-protocol-typescript
 - Our issues: Track in GitHub Issues
 - Our discussions: GitHub Discussions
@@ -108,15 +120,19 @@ Target: Maintain ≥90% statements / ≥80% branches
 ## Common Issues and Solutions
 
 ### Issue: Branch coverage below 80%
+
 **Solution**: Add targeted specs around ratchet edge cases and multi-device pre-key flows
 
 ### Issue: Module Resolution
+
 **Solution**: Dual-build via `yarn build:cjs` + `yarn build:esm`; decide Yarn tooling and add package `exports`
 
 ### Issue: PWA Compatibility
+
 **Solution**: Maintain DOM-free core, implement IndexedDB storage adapter, document required WebCrypto APIs
 
 ### Issue: Bundle Too Large
+
 **Solution**: Tree-shaking, code splitting, lazy loading
 
 ## Quick Commands
@@ -170,12 +186,14 @@ yarn lint && yarn test && yarn build
 ## Success Metrics
 
 ### Technical
+
 - Tests: >90% coverage
 - Bundle: <100KB gzipped
 - Performance: Within 2x of native implementations
 - Compatibility: Chrome, Firefox, Safari (latest 2 versions)
 
 ### Project
+
 - Stars: 50+ in 6 months
 - Projects: Used in 3+ production projects
 - Contributors: 5+ community contributors

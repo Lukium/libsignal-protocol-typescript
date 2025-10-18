@@ -1,7 +1,5 @@
 {
-  "roots": [
-    "<rootDir>/src"
-  ],
+  "roots": ["<rootDir>/src"],
   "transform": {
     "^.+\\.ts$": "ts-jest"
   },
@@ -10,12 +8,7 @@
   "testEnvironment": "./src/__test-utils__/custom-jest-environment.js",
   "maxWorkers": 1,
   "collectCoverage": true,
-  "collectCoverageFrom": [
-    "src/**/*.ts",
-    "!src/**/*.test.ts",
-    "!src/__test__/**",
-    "!src/__test-utils__/**"
-  ],
+  "collectCoverageFrom": ["src/**/*.ts", "!src/**/*.test.ts", "!src/__test__/**", "!src/__test-utils__/**"],
   "coverageDirectory": "coverage",
   "coverageReporters": ["text", "lcov", "html"],
   "coverageThreshold": {

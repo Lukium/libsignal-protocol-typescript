@@ -1,47 +1,47 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { hexToArrayBuffer } from '../__test-utils__/utils'
+import { hexToArrayBuffer } from '../__test-utils__/utils';
 
 type aKeyType = {
-    keyId?: number
-    publicKey?: ArrayBuffer
-    signature?: ArrayBuffer
-}
+    keyId?: number;
+    publicKey?: ArrayBuffer;
+    signature?: ArrayBuffer;
+};
 
 type DeviceType = {
-    deviceId?: number
-    preKey?: aKeyType
-    signedPreKey?: aKeyType
-    registrationId: any
-}
+    deviceId?: number;
+    preKey?: aKeyType;
+    signedPreKey?: aKeyType;
+    registrationId: any;
+};
 
 type KeyData = {
-    identityKey?: ArrayBuffer
-    devices?: Array<DeviceType>
-}
+    identityKey?: ArrayBuffer;
+    devices?: Array<DeviceType>;
+};
 
 type testVectorData = {
-    smsText?: string
-    ourBaseKey?: ArrayBuffer
-    ourEphemeralKey?: ArrayBuffer
-    ourIdentityKey?: ArrayBuffer
-    registrationId?: number
-    getKeys?: KeyData
-    expectedCiphertext?: ArrayBuffer
-    message?: ArrayBuffer
-    type?: number
-    newEphemeralKey?: ArrayBuffer
-    expectedSmsText?: string
-    ourPreKey?: ArrayBuffer
-    preKeyId?: number
-    ourSignedPreKey?: ArrayBuffer
-    signedPreKeyId?: number
-    expectTerminateSession?: boolean
-}
-type testType = [string, testVectorData]
+    smsText?: string;
+    ourBaseKey?: ArrayBuffer;
+    ourEphemeralKey?: ArrayBuffer;
+    ourIdentityKey?: ArrayBuffer;
+    registrationId?: number;
+    getKeys?: KeyData;
+    expectedCiphertext?: ArrayBuffer;
+    message?: ArrayBuffer;
+    type?: number;
+    newEphemeralKey?: ArrayBuffer;
+    expectedSmsText?: string;
+    ourPreKey?: ArrayBuffer;
+    preKeyId?: number;
+    ourSignedPreKey?: ArrayBuffer;
+    signedPreKeyId?: number;
+    expectTerminateSession?: boolean;
+};
+type testType = [string, testVectorData];
 
 export function TestVectors(): Array<Record<string, any>> {
     // We're gonna throw the finalized tests in here:
-    const tests = <Array<Record<string, any>>>[]
+    const tests = <Array<Record<string, any>>>[];
 
     // The common-case ALICE test vectors themselves...
     const TwoPartyTestVectorsAlice: testType[] = [
@@ -121,14 +121,14 @@ export function TestVectors(): Array<Record<string, any>> {
                 ),
             },
         ],
-    ]
+    ];
     // Now change the order and make 2 tests out of them:
-    tests[tests.length] = { name: 'Standard Signal Protocol Test Vectors as Alice', vectors: TwoPartyTestVectorsAlice }
+    tests[tests.length] = { name: 'Standard Signal Protocol Test Vectors as Alice', vectors: TwoPartyTestVectorsAlice };
 
     tests[tests.length] = (function () {
-        const test: Array<testType> = []
-        test[0] = TwoPartyTestVectorsAlice[0]
-        test[1] = TwoPartyTestVectorsAlice[1]
+        const test: Array<testType> = [];
+        test[0] = TwoPartyTestVectorsAlice[0];
+        test[1] = TwoPartyTestVectorsAlice[1];
 
         test[2] = [
             'receiveMessage',
@@ -138,7 +138,7 @@ export function TestVectors(): Array<Record<string, any>> {
                 expectedSmsText: TwoPartyTestVectorsAlice[3][1].expectedSmsText,
                 newEphemeralKey: TwoPartyTestVectorsAlice[2][1].newEphemeralKey,
             },
-        ]
+        ];
         test[3] = [
             'receiveMessage',
             {
@@ -146,11 +146,11 @@ export function TestVectors(): Array<Record<string, any>> {
                 type: TwoPartyTestVectorsAlice[2][1].type,
                 expectedSmsText: TwoPartyTestVectorsAlice[2][1].expectedSmsText,
             },
-        ]
+        ];
 
-        test[4] = TwoPartyTestVectorsAlice[4]
-        return { name: 'Shuffled Signal Protocol Test Vectors as Alice', vectors: test }
-    })()
+        test[4] = TwoPartyTestVectorsAlice[4];
+        return { name: 'Shuffled Signal Protocol Test Vectors as Alice', vectors: test };
+    })();
 
     // The common-case BOB test vectors themselves...
     const TwoPartyTestVectorsBob: testType[] = [
@@ -210,91 +210,91 @@ export function TestVectors(): Array<Record<string, any>> {
                 expectedSmsText: 'E',
             },
         ],
-    ]
+    ];
 
     // Now change the order and make 5 tests out of them:
-    tests[tests.length] = { name: 'Standard Signal Protocol Test Vectors as Bob', vectors: TwoPartyTestVectorsBob }
+    tests[tests.length] = { name: 'Standard Signal Protocol Test Vectors as Bob', vectors: TwoPartyTestVectorsBob };
 
     const TwoPartyTestVectorsBobCopy = function () {
-        const orig = TwoPartyTestVectorsBob
-        const v: testType[] = []
+        const orig = TwoPartyTestVectorsBob;
+        const v: testType[] = [];
         for (let i = 0; i < TwoPartyTestVectorsBob.length; i++) {
-            v[i] = [...orig[i]]
+            v[i] = [...orig[i]];
         }
-        return v
-    }
+        return v;
+    };
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = TwoPartyTestVectorsBobCopy()
-        const orig = TwoPartyTestVectorsBob
+        const v = TwoPartyTestVectorsBobCopy();
+        const orig = TwoPartyTestVectorsBob;
 
         // Swap first and second received prekey messages
-        v[0][1] = { message: orig[1][1].message, type: orig[1][1].type, expectedSmsText: orig[1][1].expectedSmsText }
-        v[0][1].ourPreKey = orig[0][1].ourPreKey
-        v[0][1].preKeyId = orig[0][1].preKeyId
-        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey
-        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId
-        v[0][1].registrationId = orig[0][1].registrationId
-        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey
-        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey
+        v[0][1] = { message: orig[1][1].message, type: orig[1][1].type, expectedSmsText: orig[1][1].expectedSmsText };
+        v[0][1].ourPreKey = orig[0][1].ourPreKey;
+        v[0][1].preKeyId = orig[0][1].preKeyId;
+        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey;
+        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId;
+        v[0][1].registrationId = orig[0][1].registrationId;
+        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey;
+        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey;
 
-        v[1][1] = { message: orig[0][1].message, type: orig[0][1].type, expectedSmsText: orig[0][1].expectedSmsText }
-        return { name: 'Shuffled Signal Protocol Test Vectors as Bob I', vectors: v }
-    })()
+        v[1][1] = { message: orig[0][1].message, type: orig[0][1].type, expectedSmsText: orig[0][1].expectedSmsText };
+        return { name: 'Shuffled Signal Protocol Test Vectors as Bob I', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = TwoPartyTestVectorsBobCopy()
-        const orig = TwoPartyTestVectorsBob
+        const v = TwoPartyTestVectorsBobCopy();
+        const orig = TwoPartyTestVectorsBob;
 
         // Swap second received prekey msg with the first send
-        v[1] = orig[2]
-        v[2] = orig[1]
+        v[1] = orig[2];
+        v[2] = orig[1];
 
-        return { name: 'Shuffled Signal Protocol Test Vectors as Bob II', vectors: v }
-    })()
+        return { name: 'Shuffled Signal Protocol Test Vectors as Bob II', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = TwoPartyTestVectorsBobCopy()
-        const orig = TwoPartyTestVectorsBob
+        const v = TwoPartyTestVectorsBobCopy();
+        const orig = TwoPartyTestVectorsBob;
 
         // Move second received prekey msg to the end (incl after the first received message in the second chain)
-        v[4] = orig[1]
-        v[1] = orig[2]
-        v[2] = orig[3]
-        v[3] = orig[4]
+        v[4] = orig[1];
+        v[1] = orig[2];
+        v[2] = orig[3];
+        v[3] = orig[4];
 
-        return { name: 'Shuffled Signal Protocol Test Vectors as Bob III', vectors: v }
-    })()
+        return { name: 'Shuffled Signal Protocol Test Vectors as Bob III', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = TwoPartyTestVectorsBobCopy()
-        const orig = TwoPartyTestVectorsBob
+        const v = TwoPartyTestVectorsBobCopy();
+        const orig = TwoPartyTestVectorsBob;
 
         // Move first received prekey msg to the end (incl after the first received message in the second chain)
         // ... by first swapping first and second received prekey msg
-        v[0][1] = { message: orig[1][1].message, type: orig[1][1].type, expectedSmsText: orig[1][1].expectedSmsText }
-        v[0][1].ourPreKey = orig[0][1].ourPreKey
-        v[0][1].preKeyId = orig[0][1].preKeyId
-        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey
-        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId
-        v[0][1].registrationId = orig[0][1].registrationId
-        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey
-        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey
+        v[0][1] = { message: orig[1][1].message, type: orig[1][1].type, expectedSmsText: orig[1][1].expectedSmsText };
+        v[0][1].ourPreKey = orig[0][1].ourPreKey;
+        v[0][1].preKeyId = orig[0][1].preKeyId;
+        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey;
+        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId;
+        v[0][1].registrationId = orig[0][1].registrationId;
+        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey;
+        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey;
 
-        v[1][1] = { message: orig[0][1].message, type: orig[0][1].type, expectedSmsText: orig[0][1].expectedSmsText }
+        v[1][1] = { message: orig[0][1].message, type: orig[0][1].type, expectedSmsText: orig[0][1].expectedSmsText };
 
         // ... then moving the (now-second) message to the end
-        v[4] = v[1]
-        v[1] = orig[2]
-        v[2] = orig[3]
-        v[3] = orig[4]
+        v[4] = v[1];
+        v[1] = orig[2];
+        v[2] = orig[3];
+        v[3] = orig[4];
 
-        return { name: 'Shuffled Signal Protocol Test Vectors as Bob IV', vectors: v }
-    })()
+        return { name: 'Shuffled Signal Protocol Test Vectors as Bob IV', vectors: v };
+    })();
 
     // Test vectors around an end-session
     const EndSessionTestVectorsBob: testType[] = [
@@ -370,131 +370,134 @@ export function TestVectors(): Array<Record<string, any>> {
                 ),
             },
         ],
-    ]
+    ];
 
     // Now shuffle them around and make 6 tests
-    tests[tests.length] = { name: 'Signal Protocol End Session Test Vectors as Bob', vectors: EndSessionTestVectorsBob }
+    tests[tests.length] = {
+        name: 'Signal Protocol End Session Test Vectors as Bob',
+        vectors: EndSessionTestVectorsBob,
+    };
 
     const EndSessionTestVectorsBobCopy = function () {
-        const orig = EndSessionTestVectorsBob
-        const v: testType[] = []
+        const orig = EndSessionTestVectorsBob;
+        const v: testType[] = [];
         for (let i = 0; i < EndSessionTestVectorsBob.length; i++) {
-            v[i] = [...orig[i]]
+            v[i] = [...orig[i]];
         }
-        return v
-    }
+        return v;
+    };
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = EndSessionTestVectorsBobCopy()
+        const v = EndSessionTestVectorsBobCopy();
         // const orig = EndSessionTestVectorsBob
 
         // Swap message 2 and 3, moving 2 after its session close
-        const tmp = v[2][1]
-        v[2][1] = v[1][1]
-        v[1][1] = tmp
+        const tmp = v[2][1];
+        v[2][1] = v[1][1];
+        v[1][1] = tmp;
 
-        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob I', vectors: v }
-    })()
+        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob I', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = EndSessionTestVectorsBobCopy()
+        const v = EndSessionTestVectorsBobCopy();
 
         // Swap message 2 and 4, moving 2 after the new session
-        const tmp = v[3][1]
-        v[3][1] = v[1][1]
-        v[1][1] = tmp
+        const tmp = v[3][1];
+        v[3][1] = v[1][1];
+        v[1][1] = tmp;
 
-        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob II', vectors: v }
-    })()
-
-    tests[tests.length] = (function () {
-        // Copy TwoPartyTestVectorsBob into v
-        const v = EndSessionTestVectorsBobCopy()
-
-        // Swap message 3 and 4, starting a new session before closing the last
-        const tmp = v[3][1]
-        v[3][1] = v[2][1]
-        v[2][1] = tmp
-
-        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob III', vectors: v }
-    })()
+        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob II', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = EndSessionTestVectorsBobCopy()
+        const v = EndSessionTestVectorsBobCopy();
 
         // Swap message 3 and 4, starting a new session before closing the last
-        let tmp = v[3][1]
-        v[3][1] = v[2][1]
-        v[2][1] = tmp
+        const tmp = v[3][1];
+        v[3][1] = v[2][1];
+        v[2][1] = tmp;
+
+        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob III', vectors: v };
+    })();
+
+    tests[tests.length] = (function () {
+        // Copy TwoPartyTestVectorsBob into v
+        const v = EndSessionTestVectorsBobCopy();
+
+        // Swap message 3 and 4, starting a new session before closing the last
+        let tmp = v[3][1];
+        v[3][1] = v[2][1];
+        v[2][1] = tmp;
 
         // Swap message 4 and 5, continuing the new session before closing the last
-        tmp = v[4][1]
-        v[4][1] = v[3][1]
-        v[3][1] = tmp
+        tmp = v[4][1];
+        v[4][1] = v[3][1];
+        v[3][1] = tmp;
 
         //...and also swap 5 and 6, sending before the last is closed
-        tmp = v[4][1]
-        v[4] = ['sendMessage', v[5][1]]
-        v[5] = ['receiveMessage', tmp]
+        tmp = v[4][1];
+        v[4] = ['sendMessage', v[5][1]];
+        v[5] = ['receiveMessage', tmp];
 
-        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob IV', vectors: v }
-    })()
+        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob IV', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = EndSessionTestVectorsBobCopy()
-        const orig = EndSessionTestVectorsBob
+        const v = EndSessionTestVectorsBobCopy();
+        const orig = EndSessionTestVectorsBob;
 
         // Put the end session message before all the cooresponding messages
-        const tmp = v[0][1]
+        const tmp = v[0][1];
         v[0][1] = {
             message: orig[2][1].message,
             type: orig[2][1].type,
             expectTerminateSession: orig[2][1].expectTerminateSession,
-        }
-        v[0][1].ourPreKey = orig[0][1].ourPreKey
-        v[0][1].preKeyId = orig[0][1].preKeyId
-        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey
-        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId
-        v[0][1].registrationId = orig[0][1].registrationId
-        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey
-        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey
-        v[2][1] = { message: tmp.message, type: tmp.type, expectedSmsText: tmp.expectedSmsText }
+        };
+        v[0][1].ourPreKey = orig[0][1].ourPreKey;
+        v[0][1].preKeyId = orig[0][1].preKeyId;
+        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey;
+        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId;
+        v[0][1].registrationId = orig[0][1].registrationId;
+        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey;
+        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey;
+        v[2][1] = { message: tmp.message, type: tmp.type, expectedSmsText: tmp.expectedSmsText };
 
-        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob V', vectors: v }
-    })()
+        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob V', vectors: v };
+    })();
 
     tests[tests.length] = (function () {
         // Copy TwoPartyTestVectorsBob into v
-        const v = EndSessionTestVectorsBobCopy()
-        const orig = EndSessionTestVectorsBob
+        const v = EndSessionTestVectorsBobCopy();
+        const orig = EndSessionTestVectorsBob;
 
         // Put the end session message before all the cooresponding messages
-        let tmp = v[0][1]
+        let tmp = v[0][1];
         v[0][1] = {
             message: orig[2][1].message,
             type: orig[2][1].type,
             expectTerminateSession: orig[2][1].expectTerminateSession,
-        }
-        v[0][1].ourPreKey = orig[0][1].ourPreKey
-        v[0][1].preKeyId = orig[0][1].preKeyId
-        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey
-        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId
-        v[0][1].registrationId = orig[0][1].registrationId
-        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey
-        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey
-        v[2][1] = { message: tmp.message, type: tmp.type, expectedSmsText: tmp.expectedSmsText }
+        };
+        v[0][1].ourPreKey = orig[0][1].ourPreKey;
+        v[0][1].preKeyId = orig[0][1].preKeyId;
+        v[0][1].ourSignedPreKey = orig[0][1].ourSignedPreKey;
+        v[0][1].signedPreKeyId = orig[0][1].signedPreKeyId;
+        v[0][1].registrationId = orig[0][1].registrationId;
+        v[0][1].ourIdentityKey = orig[0][1].ourIdentityKey;
+        v[0][1].newEphemeralKey = orig[0][1].newEphemeralKey;
+        v[2][1] = { message: tmp.message, type: tmp.type, expectedSmsText: tmp.expectedSmsText };
 
         // ... and also open a new session before receiving the pending messages
-        tmp = v[3][1]
-        v[3][1] = v[2][1]
-        v[2][1] = tmp
+        tmp = v[3][1];
+        v[3][1] = v[2][1];
+        v[2][1] = tmp;
 
-        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob VI', vectors: v }
-    })()
+        return { name: 'Shuffled End Session Signal Protocol Test Vectors as Bob VI', vectors: v };
+    })();
 
     // Nearly same as above except as Alice
     const EndSessionTestVectorsAlice = [
@@ -610,12 +613,12 @@ export function TestVectors(): Array<Record<string, any>> {
                 expectedSmsText: 'E',
             },
         ],
-    ]
+    ];
 
     tests[tests.length] = {
         name: 'Standard End Session Signal Protocol Test Vectors as Alice',
         vectors: EndSessionTestVectorsAlice,
-    }
+    };
 
     // Nearly same as above except as Alice
     /*var NoPreKeyEndSessionTestVectorsBob = [
@@ -680,5 +683,5 @@ export function TestVectors(): Array<Record<string, any>> {
     //TODO: GROUPS
     //TODO: Sender changes identity key?
 
-    return tests
+    return tests;
 }

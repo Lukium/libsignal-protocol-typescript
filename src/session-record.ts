@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 
-import base64 from 'base64-js'
+import base64 from 'base64-js';
 
-import * as util from './helpers'
-import { KeyPairType } from './types'
+import * as util from './helpers';
+import { KeyPairType } from './types';
 import {
     SessionType,
     BaseKeyType,
@@ -13,11 +13,11 @@ import {
     Ratchet,
     IndexInfo,
     RecordType,
-} from './session-types'
+} from './session-types';
 
-const ARCHIVED_STATES_MAX_LENGTH = 40
-const OLD_RATCHETS_MAX_LENGTH = 10
-const SESSION_RECORD_VERSION = 'v1'
+const ARCHIVED_STATES_MAX_LENGTH = 40;
+const OLD_RATCHETS_MAX_LENGTH = 10;
+const SESSION_RECORD_VERSION = 'v1';
 
 export class SessionRecord implements RecordType {
     private static migrations = [
@@ -25,12 +25,12 @@ export class SessionRecord implements RecordType {
             version: 'v1',
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             migrate: function migrateV1(data: any) {
-                const sessions = data.sessions
-                let key
+                const sessions = data.sessions;
+                let key;
                 if (data.registrationId) {
                     for (key in sessions) {
                         if (!sessions[key].registrationId) {
-                            sessions[key].registrationId = data.registrationId
+                            sessions[key].registrationId = data.registrationId;
                         }
                     }
                 } else {
@@ -47,40 +47,40 @@ export class SessionRecord implements RecordType {
                 }
             },
         },
-    ]
+    ];
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     private static migrate(data: any): void {
-        let run = data.version === undefined
+        let run = data.version === undefined;
         for (let i = 0; i < SessionRecord.migrations.length; ++i) {
             if (run) {
-                SessionRecord.migrations[i].migrate(data)
+                SessionRecord.migrations[i].migrate(data);
             } else if (SessionRecord.migrations[i].version === data.version) {
-                run = true
+                run = true;
             }
         }
         if (!run) {
-            throw new Error('Error migrating SessionRecord')
+            throw new Error('Error migrating SessionRecord');
         }
     }
 
-    registrationId?: number
-    sessions: { [k: string]: SessionType } = {}
-    version = SESSION_RECORD_VERSION
+    registrationId?: number;
+    sessions: { [k: string]: SessionType } = {};
+    version = SESSION_RECORD_VERSION;
     constructor(registrationId?: number) {
-        this.registrationId = registrationId
+        this.registrationId = registrationId;
     }
 
     static deserialize(serialized: string): SessionRecord {
-        const data = JSON.parse(serialized)
+        const data = JSON.parse(serialized);
         if (data.version !== SESSION_RECORD_VERSION) {
-            SessionRecord.migrate(data)
+            SessionRecord.migrate(data);
         }
 
-        const record = new SessionRecord()
-        record.sessions = {}
+        const record = new SessionRecord();
+        record.sessions = {};
         for (const k of Object.keys(data.sessions)) {
-            record.sessions[k] = sessionTypeStringToArrayBuffer(data.sessions[k])
+            record.sessions[k] = sessionTypeStringToArrayBuffer(data.sessions[k]);
         }
         if (
             record.sessions === undefined ||
@@ -88,137 +88,137 @@ export class SessionRecord implements RecordType {
             typeof record.sessions !== 'object' ||
             Array.isArray(record.sessions)
         ) {
-            throw new Error('Error deserializing SessionRecord')
+            throw new Error('Error deserializing SessionRecord');
         }
-        return record
+        return record;
     }
 
     serialize(): string {
-        const sessions: { [k: string]: SessionType<string> } = {}
+        const sessions: { [k: string]: SessionType<string> } = {};
         for (const k of Object.keys(this.sessions)) {
-            sessions[k] = sessionTypeArrayBufferToString(this.sessions[k])
+            sessions[k] = sessionTypeArrayBufferToString(this.sessions[k]);
         }
         const json = {
             sessions,
             version: this.version,
-        }
-        return JSON.stringify(json)
+        };
+        return JSON.stringify(json);
     }
 
     haveOpenSession(): boolean {
-        const openSession = this.getOpenSession()
-        return !!openSession && typeof openSession.registrationId === 'number'
+        const openSession = this.getOpenSession();
+        return !!openSession && typeof openSession.registrationId === 'number';
     }
 
     getSessionByBaseKey(baseKey: ArrayBuffer): SessionType | undefined {
-        const idx = util.arrayBufferToString(baseKey)
+        const idx = util.arrayBufferToString(baseKey);
         if (!idx) {
-            return undefined
+            return undefined;
         }
-        const session = this.sessions[idx]
+        const session = this.sessions[idx];
         if (session && session.indexInfo.baseKeyType === BaseKeyType.OURS) {
-            return undefined
+            return undefined;
         }
-        return session
+        return session;
     }
 
     getSessionByRemoteEphemeralKey(remoteEphemeralKey: ArrayBuffer): SessionType | undefined {
-        this.detectDuplicateOpenSessions()
-        const sessions = this.sessions
+        this.detectDuplicateOpenSessions();
+        const sessions = this.sessions;
 
-        const searchKey = util.arrayBufferToString(remoteEphemeralKey)
+        const searchKey = util.arrayBufferToString(remoteEphemeralKey);
 
         if (searchKey) {
-            let openSession
+            let openSession;
             for (const key in sessions) {
                 if (sessions[key].indexInfo.closed == -1) {
-                    openSession = sessions[key]
+                    openSession = sessions[key];
                 }
                 if (sessions[key].chains[searchKey] !== undefined) {
-                    return sessions[key]
+                    return sessions[key];
                 }
             }
             if (openSession !== undefined) {
-                return openSession
+                return openSession;
             }
         }
 
-        return undefined
+        return undefined;
     }
 
     getOpenSession(): SessionType | undefined {
-        const sessions = this.sessions
+        const sessions = this.sessions;
         if (sessions === undefined) {
-            return undefined
+            return undefined;
         }
 
-        this.detectDuplicateOpenSessions()
+        this.detectDuplicateOpenSessions();
 
         for (const key in sessions) {
             if (sessions[key].indexInfo.closed == -1) {
-                return sessions[key]
+                return sessions[key];
             }
         }
-        return undefined
+        return undefined;
     }
 
     private detectDuplicateOpenSessions(): void {
-        let openSession: SessionType | null = null
-        const sessions = this.sessions
+        let openSession: SessionType | null = null;
+        const sessions = this.sessions;
         for (const key in sessions) {
             if (sessions[key].indexInfo.closed == -1) {
                 if (openSession !== null) {
-                    throw new Error('Datastore inconsistensy: multiple open sessions')
+                    throw new Error('Datastore inconsistensy: multiple open sessions');
                 }
-                openSession = sessions[key]
+                openSession = sessions[key];
             }
         }
     }
 
     updateSessionState(session: SessionType): void {
-        const sessions = this.sessions
+        const sessions = this.sessions;
 
-        this.removeOldChains(session)
+        this.removeOldChains(session);
 
-        const idx = session.indexInfo.baseKey && util.arrayBufferToString(session.indexInfo.baseKey)
+        const idx = session.indexInfo.baseKey && util.arrayBufferToString(session.indexInfo.baseKey);
         if (!idx) {
-            throw new Error(`invalid index for session`)
+            throw new Error(`invalid index for session`);
         }
-        sessions[idx] = session
+        sessions[idx] = session;
 
-        this.removeOldSessions()
+        this.removeOldSessions();
     }
 
     getSessions(): SessionType[] {
         // return an array of sessions ordered by time closed,
         // followed by the open session
-        let list: SessionType[] = []
-        let openSession: SessionType | null = null
+        let list: SessionType[] = [];
+        let openSession: SessionType | null = null;
         for (const k in this.sessions) {
             if (this.sessions[k].indexInfo.closed === -1) {
-                openSession = this.sessions[k]
+                openSession = this.sessions[k];
             } else {
-                list.push(this.sessions[k])
+                list.push(this.sessions[k]);
             }
         }
         list = list.sort(function (s1, s2) {
-            return s1.indexInfo.closed - s2.indexInfo.closed
-        })
+            return s1.indexInfo.closed - s2.indexInfo.closed;
+        });
         if (openSession) {
-            list.push(openSession)
+            list.push(openSession);
         }
-        return list
+        return list;
     }
 
     archiveCurrentState(): void {
-        const open_session = this.getOpenSession()
+        const open_session = this.getOpenSession();
         if (open_session !== undefined) {
-            open_session.indexInfo.closed = Date.now()
-            this.updateSessionState(open_session)
+            open_session.indexInfo.closed = Date.now();
+            this.updateSessionState(open_session);
         }
     }
     promoteState(session: SessionType): void {
-        session.indexInfo.closed = -1
+        session.indexInfo.closed = -1;
     }
 
     removeOldChains(session: SessionType): void {
@@ -226,97 +226,97 @@ export class SessionRecord implements RecordType {
         // Receiving ratchets are added to the oldRatchetList, which we parse
         // here and remove all but the last ten.
         while (session.oldRatchetList.length > OLD_RATCHETS_MAX_LENGTH) {
-            let index = 0
-            let oldest = session.oldRatchetList[0]
+            let index = 0;
+            let oldest = session.oldRatchetList[0];
             for (let i = 0; i < session.oldRatchetList.length; i++) {
                 if (session.oldRatchetList[i].added < oldest.added) {
-                    oldest = session.oldRatchetList[i]
-                    index = i
+                    oldest = session.oldRatchetList[i];
+                    index = i;
                 }
             }
-            const idx = util.arrayBufferToString(oldest.ephemeralKey)
+            const idx = util.arrayBufferToString(oldest.ephemeralKey);
             if (!idx) {
-                throw new Error(`invalid index for chain`)
+                throw new Error(`invalid index for chain`);
             }
-            delete session.chains[idx]
-            session.oldRatchetList.splice(index, 1)
+            delete session.chains[idx];
+            session.oldRatchetList.splice(index, 1);
         }
     }
 
     removeOldSessions(): void {
         // Retain only the last 20 sessions
-        const { sessions } = this
-        let oldestBaseKey: string | null = null
-        let oldestSession: SessionType | null = null
+        const { sessions } = this;
+        let oldestBaseKey: string | null = null;
+        let oldestSession: SessionType | null = null;
         while (Object.keys(sessions).length > ARCHIVED_STATES_MAX_LENGTH) {
             for (const key in sessions) {
-                const session = sessions[key]
+                const session = sessions[key];
                 if (
                     session.indexInfo.closed > -1 && // session is closed
                     (!oldestSession || session.indexInfo.closed < oldestSession.indexInfo.closed)
                 ) {
-                    oldestBaseKey = key
-                    oldestSession = session
+                    oldestBaseKey = key;
+                    oldestSession = session;
                 }
             }
             if (oldestBaseKey) {
-                delete sessions[oldestBaseKey]
+                delete sessions[oldestBaseKey];
             }
         }
     }
     deleteAllSessions(): void {
         // Used primarily in session reset scenarios, where we really delete sessions
-        this.sessions = {}
+        this.sessions = {};
     }
 }
 
 // Serialization helpers
 function toAB(s: string): ArrayBuffer {
-    return util.uint8ArrayToArrayBuffer(base64.toByteArray(s))
+    return util.uint8ArrayToArrayBuffer(base64.toByteArray(s));
 }
 function abToS(b: ArrayBuffer): string {
-    return base64.fromByteArray(new Uint8Array(b))
+    return base64.fromByteArray(new Uint8Array(b));
 }
 
 export function keyPairStirngToArrayBuffer(kp: KeyPairType<string>): KeyPairType<ArrayBuffer> {
     return {
         pubKey: toAB(kp.pubKey),
         privKey: toAB(kp.privKey),
-    }
+    };
 }
 
 export function keyPairArrayBufferToString(kp: KeyPairType<ArrayBuffer>): KeyPairType<string> {
     return {
         pubKey: abToS(kp.pubKey),
         privKey: abToS(kp.privKey),
-    }
+    };
 }
 
 export function pendingPreKeyStringToArrayBuffer(ppk: PendingPreKey<string>): PendingPreKey<ArrayBuffer> {
-    const { preKeyId, signedKeyId } = ppk
+    const { preKeyId, signedKeyId } = ppk;
     return {
         baseKey: toAB(ppk.baseKey),
         preKeyId,
         signedKeyId,
-    }
+    };
 }
 
 export function pendingPreKeyArrayBufferToString(ppk: PendingPreKey<ArrayBuffer>): PendingPreKey<string> {
-    const { preKeyId, signedKeyId } = ppk
+    const { preKeyId, signedKeyId } = ppk;
     return {
         baseKey: abToS(ppk.baseKey),
         preKeyId,
         signedKeyId,
-    }
+    };
 }
 
 export function chainStringToArrayBuffer(c: Chain<string>): Chain<ArrayBuffer> {
-    const { chainType, chainKey, messageKeys } = c
-    const { key, counter } = chainKey
-    const newMessageKeys: { [k: number]: ArrayBuffer } = {}
+    const { chainType, chainKey, messageKeys } = c;
+    const { key, counter } = chainKey;
+    const newMessageKeys: { [k: number]: ArrayBuffer } = {};
     for (const k of Object.keys(messageKeys)) {
-        const numericKey = Number(k)
-        newMessageKeys[numericKey] = toAB(messageKeys[numericKey])
+        const numericKey = Number(k);
+        newMessageKeys[numericKey] = toAB(messageKeys[numericKey]);
     }
     return {
         chainType,
@@ -325,16 +325,16 @@ export function chainStringToArrayBuffer(c: Chain<string>): Chain<ArrayBuffer> {
             counter,
         },
         messageKeys: newMessageKeys,
-    }
+    };
 }
 
 export function chainArrayBufferToString(c: Chain<ArrayBuffer>): Chain<string> {
-    const { chainType, chainKey, messageKeys } = c
-    const { key, counter } = chainKey
-    const newMessageKeys: { [k: number]: string } = {}
+    const { chainType, chainKey, messageKeys } = c;
+    const { key, counter } = chainKey;
+    const newMessageKeys: { [k: number]: string } = {};
     for (const k of Object.keys(messageKeys)) {
-        const numericKey = Number(k)
-        newMessageKeys[numericKey] = abToS(messageKeys[numericKey])
+        const numericKey = Number(k);
+        newMessageKeys[numericKey] = abToS(messageKeys[numericKey]);
     }
     return {
         chainType,
@@ -343,21 +343,21 @@ export function chainArrayBufferToString(c: Chain<ArrayBuffer>): Chain<string> {
             counter,
         },
         messageKeys: newMessageKeys,
-    }
+    };
 }
 
 export function oldRatchetInfoStringToArrayBuffer(ori: OldRatchetInfo<string>): OldRatchetInfo<ArrayBuffer> {
     return {
         ephemeralKey: toAB(ori.ephemeralKey),
         added: ori.added,
-    }
+    };
 }
 
 export function oldRatchetInfoArrayBufferToString(ori: OldRatchetInfo<ArrayBuffer>): OldRatchetInfo<string> {
     return {
         ephemeralKey: abToS(ori.ephemeralKey),
         added: ori.added,
-    }
+    };
 }
 
 export function ratchetStringToArrayBuffer(r: Ratchet<string>): Ratchet<ArrayBuffer> {
@@ -367,7 +367,7 @@ export function ratchetStringToArrayBuffer(r: Ratchet<string>): Ratchet<ArrayBuf
         lastRemoteEphemeralKey: toAB(r.lastRemoteEphemeralKey),
         previousCounter: r.previousCounter,
         added: r.added,
-    }
+    };
 }
 
 export function ratchetArrayBufferToString(r: Ratchet<ArrayBuffer>): Ratchet<string> {
@@ -377,34 +377,34 @@ export function ratchetArrayBufferToString(r: Ratchet<ArrayBuffer>): Ratchet<str
         lastRemoteEphemeralKey: abToS(r.lastRemoteEphemeralKey),
         previousCounter: r.previousCounter,
         added: r.added,
-    }
+    };
 }
 
 export function indexInfoStringToArrayBuffer(ii: IndexInfo<string>): IndexInfo<ArrayBuffer> {
-    const { closed, remoteIdentityKey, baseKey, baseKeyType } = ii
+    const { closed, remoteIdentityKey, baseKey, baseKeyType } = ii;
     return {
         closed,
         remoteIdentityKey: toAB(remoteIdentityKey),
         baseKey: baseKey ? toAB(baseKey) : undefined,
         baseKeyType,
-    }
+    };
 }
 
 export function indexInfoArrayBufferToString(ii: IndexInfo<ArrayBuffer>): IndexInfo<string> {
-    const { closed, remoteIdentityKey, baseKey, baseKeyType } = ii
+    const { closed, remoteIdentityKey, baseKey, baseKeyType } = ii;
     return {
         closed,
         remoteIdentityKey: abToS(remoteIdentityKey),
         baseKey: baseKey ? abToS(baseKey) : undefined,
         baseKeyType,
-    }
+    };
 }
 
 export function sessionTypeStringToArrayBuffer(sess: SessionType<string>): SessionType<ArrayBuffer> {
-    const { indexInfo, registrationId, currentRatchet, pendingPreKey, oldRatchetList, chains } = sess
-    const newChains: { [ephKeyString: string]: Chain<ArrayBuffer> } = {}
+    const { indexInfo, registrationId, currentRatchet, pendingPreKey, oldRatchetList, chains } = sess;
+    const newChains: { [ephKeyString: string]: Chain<ArrayBuffer> } = {};
     for (const k of Object.keys(chains)) {
-        newChains[k] = chainStringToArrayBuffer(chains[k])
+        newChains[k] = chainStringToArrayBuffer(chains[k]);
     }
     return {
         indexInfo: indexInfoStringToArrayBuffer(indexInfo),
@@ -413,14 +413,14 @@ export function sessionTypeStringToArrayBuffer(sess: SessionType<string>): Sessi
         pendingPreKey: pendingPreKey ? pendingPreKeyStringToArrayBuffer(pendingPreKey) : undefined,
         oldRatchetList: oldRatchetList.map(oldRatchetInfoStringToArrayBuffer),
         chains: newChains,
-    }
+    };
 }
 
 export function sessionTypeArrayBufferToString(sess: SessionType<ArrayBuffer>): SessionType<string> {
-    const { indexInfo, registrationId, currentRatchet, pendingPreKey, oldRatchetList, chains } = sess
-    const newChains: { [ephKeyString: string]: Chain<string> } = {}
+    const { indexInfo, registrationId, currentRatchet, pendingPreKey, oldRatchetList, chains } = sess;
+    const newChains: { [ephKeyString: string]: Chain<string> } = {};
     for (const k of Object.keys(chains)) {
-        newChains[k] = chainArrayBufferToString(chains[k])
+        newChains[k] = chainArrayBufferToString(chains[k]);
     }
     return {
         indexInfo: indexInfoArrayBufferToString(indexInfo),
@@ -429,7 +429,7 @@ export function sessionTypeArrayBufferToString(sess: SessionType<ArrayBuffer>): 
         pendingPreKey: pendingPreKey ? pendingPreKeyArrayBufferToString(pendingPreKey) : undefined,
         oldRatchetList: oldRatchetList.map(oldRatchetInfoArrayBufferToString),
         chains: newChains,
-    }
+    };
 }
 
 /*

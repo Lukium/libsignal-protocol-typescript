@@ -108,19 +108,19 @@ Here is what setup might look like:
 
 ```ts
 const createID = async (name: string, store: SignalProtocolStore) => {
-  const registrationId = KeyHelper.generateRegistrationId()
-  storeSomewhereSafe(`registrationID`, registrationId)
+  const registrationId = KeyHelper.generateRegistrationId();
+  storeSomewhereSafe(`registrationID`, registrationId);
 
-  const identityKeyPair = await KeyHelper.generateIdentityKeyPair()
-  storeSomewhereSafe('identityKey', identityKeyPair)
+  const identityKeyPair = await KeyHelper.generateIdentityKeyPair();
+  storeSomewhereSafe('identityKey', identityKeyPair);
 
-  const baseKeyId = makeKeyId()
-  const preKey = await KeyHelper.generatePreKey(baseKeyId)
-  store.storePreKey(`${baseKeyId}`, preKey.keyPair)
+  const baseKeyId = makeKeyId();
+  const preKey = await KeyHelper.generatePreKey(baseKeyId);
+  store.storePreKey(`${baseKeyId}`, preKey.keyPair);
 
-  const signedPreKeyId = makeKeyId()
-  const signedPreKey = await KeyHelper.generateSignedPreKey(identityKeyPair, signedPreKeyId)
-  store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair)
+  const signedPreKeyId = makeKeyId();
+  const signedPreKey = await KeyHelper.generateSignedPreKey(identityKeyPair, signedPreKeyId);
+  store.storeSignedPreKey(signedPreKeyId, signedPreKey.keyPair);
 
   // Now we register this with the server or other directory so all users can see them.
   // You might implement your directory differently, this is not part of the SDK.
@@ -129,20 +129,20 @@ const createID = async (name: string, store: SignalProtocolStore) => {
     keyId: signedPreKeyId,
     publicKey: signedPreKey.keyPair.pubKey,
     signature: signedPreKey.signature,
-  }
+  };
 
   const publicPreKey: PreKeyType = {
     keyId: preKey.keyId,
     publicKey: preKey.keyPair.pubKey,
-  }
+  };
 
   directory.storeKeyBundle(name, {
     registrationId,
     identityPubKey: identityKeyPair.pubKey,
     signedPreKey: publicSignedPreKey,
     oneTimePreKeys: [publicPreKey],
-  })
-}
+  });
+};
 ```
 
 Relevant type definitions and classes: [KeyHelper](), [KeyPairType](), [PreKeyPairType](), [SignedPreKeyPairType](),
@@ -154,45 +154,31 @@ Once this is implemented, building a session is fairly straightforward:
 
 ```ts
 const starterMessageBytes = Uint8Array.from([
-  0xce,
-  0x93,
-  0xce,
-  0xb5,
-  0xce,
-  0xb9,
-  0xce,
-  0xac,
-  0x20,
-  0xcf,
-  0x83,
-  0xce,
-  0xbf,
-  0xcf,
-  0x85,
-])
+  0xce, 0x93, 0xce, 0xb5, 0xce, 0xb9, 0xce, 0xac, 0x20, 0xcf, 0x83, 0xce, 0xbf, 0xcf, 0x85,
+]);
 
 const startSessionWithBoris = async () => {
   // get Boris' key bundle. This is a DeviceType<ArrayBuffer>
-  const borisBundle = directory.getPreKeyBundle('boris')
+  const borisBundle = directory.getPreKeyBundle('boris');
 
   // borisAddress is a SignalProtocolAddress
-  const recipientAddress = borisAddress
+  const recipientAddress = borisAddress;
 
   // Instantiate a SessionBuilder for a remote recipientId + deviceId tuple.
-  const sessionBuilder = new SessionBuilder(adiStore, recipientAddress)
+  const sessionBuilder = new SessionBuilder(adiStore, recipientAddress);
 
   // Process a prekey fetched from the server. Returns a promise that resolves
   // once a session is created and saved in the store, or rejects if the
   // identityKey differs from a previously seen identity for this address.
-  await sessionBuilder.processPreKey(borisBundle!)
+  await sessionBuilder.processPreKey(borisBundle!);
 
   // Now we can encrypt a messageto get a MessageType object
-  const senderSessionCipher = new SessionCipher(adiStore, recipientAddress)
-  const ciphertext = await senderSessionCipher.encrypt(starterMessageBytes.buffer)
+  const senderSessionCipher = new SessionCipher(adiStore, recipientAddress);
+  const ciphertext = await senderSessionCipher.encrypt(starterMessageBytes.buffer);
 
   // The message is encrypted, now send it however you like.
-  sendMessage('boris', 'adalheid', ciphertext)
-}
+  sendMessage('boris', 'adalheid', ciphertext);
+};
 ```
 
 Relevant type definitions: [DeviceType](), [SignalProtocolAddress](), [MessageType](), [SessionBuilder](), [SessionCipher]()
@@ -208,15 +194,15 @@ Once you have a session established with an address, you can encrypt messages
 using SessionCipher.
 
 ```ts
-const plaintext = 'μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος / οὐλομένην, ἣ μυρί᾽ Ἀχαιοῖς ἄλγε᾽ ἔθηκε'
-const buffer = new TextEncoder().encode(plaintext).buffer
+const plaintext = 'μῆνιν ἄειδε θεὰ Πηληϊάδεω Ἀχιλῆος / οὐλομένην, ἣ μυρί᾽ Ἀχαιοῖς ἄλγε᾽ ἔθηκε';
+const buffer = new TextEncoder().encode(plaintext).buffer;
 
-const sessionCipher = new SessionCipher(store, address)
-const ciphertext = await sessionCipher.encrypt(buffer)
+const sessionCipher = new SessionCipher(store, address);
+const ciphertext = await sessionCipher.encrypt(buffer);
 // If we've already established a session, thenciphertext.type === 1.
 
 // Now we can send it over the channel of our choice
-sendMessage('adalheid', 'boris', ciphertext)
+sendMessage('adalheid', 'boris', ciphertext);
 ```
 
 ### Decrypting
@@ -224,30 +210,30 @@ sendMessage('adalheid', 'boris', ciphertext)
 Ciphertexts come in two flavors: WhisperMessage and PreKeyWhisperMessage.
 
 ```ts
-const address = new SignalProtocolAddress(recipientId, deviceId)
-const sessionCipher = new SessionCipher(store, address)
+const address = new SignalProtocolAddress(recipientId, deviceId);
+const sessionCipher = new SessionCipher(store, address);
 
 // Decrypting a PreKeyWhisperMessage will establish a new session and
 // store it in the SignalProtocolStore. It returns a promise that resolves
 // when the message is decrypted or rejects if the identityKey differs from
 // a previously seen identity for this address.
 
-let plaintext: ArrayBuffer
+let plaintext: ArrayBuffer;
 // ciphertext: MessageType
 if (ciphertext.type === 3) {
   // It is a PreKeyWhisperMessage and will establish a session.
   try {
-    plaintext = await sessionCipher.decryptPreKeyWhisperMessage(ciphertext.body!, 'binary')
+    plaintext = await sessionCipher.decryptPreKeyWhisperMessage(ciphertext.body!, 'binary');
   } catch (e) {
     // handle identity key conflict
   }
 } else if (ciphertext.type === 1) {
   // It is a WhisperMessage for an established session.
-  plaintext = await sessionCipher.decryptWhisperMessage(ciphertext.body!, 'binary')
+  plaintext = await sessionCipher.decryptWhisperMessage(ciphertext.body!, 'binary');
 }
 
 // now you can do something with your plaintext, like
-const secretMessage = new TextDecoder().decode(new Uint8Array(plaintext))
+const secretMessage = new TextDecoder().decode(new Uint8Array(plaintext));
 ```
 
 ## Injecting Dependencies
@@ -263,7 +249,7 @@ By default this library will use `window.crypto` if it is present. Otherwise it 
 To replace the WebCrypto component with your own, simply call `setWebCrypto` as follows:
 
 ```ts
-setWebCrypto(myCryptImplementation)
+setWebCrypto(myCryptImplementation);
 ```
 
 Your WebCrypto imlementation does not need to support the entire interface, but does need to implement:
@@ -277,7 +263,7 @@ Your WebCrypto imlementation does not need to support the entire interface, but 
 By default this library uses the curve X25519 implementation in [`curve25519-typescript`](https://github.com/privacyresearchgroup/curve25519-typescript). This is a javascript implementation, compiled into [asm.js](http://asmjs.org/) from C with [emscripten](https://emscripten.org/). You may want to provide a native implementation or even use a different curve, like X448. To do this, wrap your implementation into a an object that implements the [AsyncCurve](https://github.com/privacyresearchgroup/curve25519-typescript/blob/master/src/types.ts#L21) interface and set it as follows:
 
 ```ts
-setCurve(myCurve)
+setCurve(myCurve);
 ```
 
 ## License

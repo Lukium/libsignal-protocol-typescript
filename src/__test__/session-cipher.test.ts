@@ -1,36 +1,36 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { SessionCipher, MessageType } from '../session-cipher'
-import { SessionBuilder } from '../session-builder'
-import { generateIdentity, generatePreKeyBundle, assertEqualUint8Arrays } from '../__test-utils__/utils'
+import { SessionCipher, MessageType } from '../session-cipher';
+import { SessionBuilder } from '../session-builder';
+import { generateIdentity, generatePreKeyBundle, assertEqualUint8Arrays } from '../__test-utils__/utils';
 
-import { SignalProtocolStore } from './storage-type'
-import { SignalProtocolAddress } from '../signal-protocol-address'
-import { SessionRecord } from '../session-record'
-import { TestVectors } from './testvectors'
-import * as Internal from '../internal'
-import { KeyPairType } from '../types'
-import * as utils from '../helpers'
+import { SignalProtocolStore } from './storage-type';
+import { SignalProtocolAddress } from '../signal-protocol-address';
+import { SessionRecord } from '../session-record';
+import { TestVectors } from './testvectors';
+import * as Internal from '../internal';
+import { KeyPairType } from '../types';
+import * as utils from '../helpers';
 import {
     PreKeyWhisperMessage,
     PushMessageContentCompatible as PushMessageContent,
     IncomingPushMessageSignal_Type,
     PushMessageContent_Flags,
     WhisperMessage,
-} from '@privacyresearch/libsignal-protocol-protobuf-ts'
-import { BaseKeyType } from '../session-types'
+} from '@privacyresearch/libsignal-protocol-protobuf-ts';
+import { BaseKeyType } from '../session-types';
 
-type TestStep = [direction: 'receiveMessage' | 'sendMessage', data: Record<string, any>]
-type VectorSuite = { name: string; vectors: TestStep[] }
+type TestStep = [direction: 'receiveMessage' | 'sendMessage', data: Record<string, any>];
+type VectorSuite = { name: string; vectors: TestStep[] };
 
-const tv = TestVectors() as VectorSuite[]
+const tv = TestVectors() as VectorSuite[];
 
-const store = new SignalProtocolStore()
-const registrationId = 1337
-const address = new SignalProtocolAddress('foo', 1)
-const sessionCipher = new SessionCipher(store, address.toString())
+const store = new SignalProtocolStore();
+const registrationId = 1337;
+const address = new SignalProtocolAddress('foo', 1);
+const sessionCipher = new SessionCipher(store, address.toString());
 
-const record = new SessionRecord(registrationId)
+const record = new SessionRecord(registrationId);
 const session = {
     registrationId: registrationId,
     currentRatchet: {
@@ -46,46 +46,46 @@ const session = {
     },
     oldRatchetList: [],
     chains: {},
-}
-record.updateSessionState(session)
-const prep = store.storeSession(address.toString(), record.serialize())
+};
+record.updateSessionState(session);
+const prep = store.storeSession(address.toString(), record.serialize());
 
 test('getRemoteRegistrationId, when an open record exists, returns a valid registrationId', async () => {
-    await prep
-    const value = await sessionCipher.getRemoteRegistrationId()
-    expect(value).toBe(registrationId)
-})
+    await prep;
+    const value = await sessionCipher.getRemoteRegistrationId();
+    expect(value).toBe(registrationId);
+});
 
 test('getRemoteRegistrationId, when a record does not exist, returns undefined', async () => {
-    await prep
-    const sessionCipher = new SessionCipher(store, 'bar.1')
-    const value = await sessionCipher.getRemoteRegistrationId()
-    expect(value).toBeUndefined()
-})
+    await prep;
+    const sessionCipher = new SessionCipher(store, 'bar.1');
+    const value = await sessionCipher.getRemoteRegistrationId();
+    expect(value).toBeUndefined();
+});
 
 test('hasOpenSession returns true', async () => {
-    await prep
-    const value = await sessionCipher.hasOpenSession()
-    expect(value).toBeTruthy()
-})
+    await prep;
+    const value = await sessionCipher.hasOpenSession();
+    expect(value).toBeTruthy();
+});
 
 it('hasOpenSession: no open session exists returns false', async () => {
-    await prep
-    const address = new SignalProtocolAddress('bar', 1)
-    const sessionCipher = new SessionCipher(store, address.toString())
-    const record = new SessionRecord()
-    await store.storeSession(address.toString(), record.serialize())
-    const value = await sessionCipher.hasOpenSession()
-    expect(value).toBeFalsy()
-})
+    await prep;
+    const address = new SignalProtocolAddress('bar', 1);
+    const sessionCipher = new SessionCipher(store, address.toString());
+    const record = new SessionRecord();
+    await store.storeSession(address.toString(), record.serialize());
+    const value = await sessionCipher.hasOpenSession();
+    expect(value).toBeFalsy();
+});
 
 test('hasOpenSession: when there is no session returns false', async () => {
-    await prep
-    const address = new SignalProtocolAddress('baz', 1)
-    const sessionCipher = new SessionCipher(store, address.toString())
-    const value = await sessionCipher.hasOpenSession()
-    expect(value).toBeFalsy()
-})
+    await prep;
+    const address = new SignalProtocolAddress('baz', 1);
+    const sessionCipher = new SessionCipher(store, address.toString());
+    const value = await sessionCipher.hasOpenSession();
+    expect(value).toBeFalsy();
+});
 //----------------------------------------------------------------------------------------------------
 async function setupReceiveStep(
     store: SignalProtocolStore,
@@ -93,53 +93,53 @@ async function setupReceiveStep(
     privKeyQueue: ArrayBuffer[]
 ): Promise<void> {
     if (data.newEphemeralKey !== undefined) {
-        privKeyQueue.push(data.newEphemeralKey)
+        privKeyQueue.push(data.newEphemeralKey);
     }
 
     if (data.ourIdentityKey === undefined) {
-        return Promise.resolve()
+        return Promise.resolve();
     }
 
-    const keyPair = await Internal.crypto.createKeyPair(data.ourIdentityKey)
-    store.put('identityKey', keyPair)
-    const signedKeyPair = await Internal.crypto.createKeyPair(data.ourSignedPreKey)
-    await store.storeSignedPreKey(data.signedPreKeyId, signedKeyPair)
+    const keyPair = await Internal.crypto.createKeyPair(data.ourIdentityKey);
+    store.put('identityKey', keyPair);
+    const signedKeyPair = await Internal.crypto.createKeyPair(data.ourSignedPreKey);
+    await store.storeSignedPreKey(data.signedPreKeyId, signedKeyPair);
     if (data.ourPreKey !== undefined) {
-        const keyPair = await Internal.crypto.createKeyPair(data.ourPreKey)
-        await store.storePreKey(data.preKeyId, keyPair)
+        const keyPair = await Internal.crypto.createKeyPair(data.ourPreKey);
+        await store.storePreKey(data.preKeyId, keyPair);
     }
 }
 
 function getPaddedMessageLength(messageLength: number): number {
-    const messageLengthWithTerminator = messageLength + 1
-    let messagePartCount = Math.floor(messageLengthWithTerminator / 160)
+    const messageLengthWithTerminator = messageLength + 1;
+    let messagePartCount = Math.floor(messageLengthWithTerminator / 160);
     if (messageLengthWithTerminator % 160 !== 0) {
-        messagePartCount++
+        messagePartCount++;
     }
-    return messagePartCount * 160
+    return messagePartCount * 160;
 }
 
 function pad(plaintext: ArrayBuffer): ArrayBuffer {
-    const paddedPlaintext = new Uint8Array(getPaddedMessageLength(plaintext.byteLength + 1) - 1)
+    const paddedPlaintext = new Uint8Array(getPaddedMessageLength(plaintext.byteLength + 1) - 1);
 
-    paddedPlaintext.set(new Uint8Array(plaintext))
-    paddedPlaintext[plaintext.byteLength] = 0x80
-    return utils.uint8ArrayToArrayBuffer(paddedPlaintext)
+    paddedPlaintext.set(new Uint8Array(plaintext));
+    paddedPlaintext[plaintext.byteLength] = 0x80;
+    return utils.uint8ArrayToArrayBuffer(paddedPlaintext);
 }
 
 function unpad(paddedPlaintext: Uint8Array): Uint8Array {
-    const ppt = new Uint8Array(paddedPlaintext)
+    const ppt = new Uint8Array(paddedPlaintext);
 
     for (let i = ppt.length - 1; i >= 0; i--) {
         if (ppt[i] == 0x80) {
-            const plaintext = new Uint8Array(i)
-            plaintext.set(ppt.subarray(0, i))
-            return plaintext
+            const plaintext = new Uint8Array(i);
+            plaintext.set(ppt.subarray(0, i));
+            return plaintext;
         } else if (ppt[i] !== 0x00) {
-            throw new Error('Invalid padding')
+            throw new Error('Invalid padding');
         }
     }
-    throw new Error('Invalid data: input empty or all 0x00s')
+    throw new Error('Invalid data: input empty or all 0x00s');
 }
 
 async function doReceiveStep(
@@ -148,37 +148,37 @@ async function doReceiveStep(
     privKeyQueue: Array<any>,
     address: SignalProtocolAddress
 ): Promise<boolean> {
-    await setupReceiveStep(store, data, privKeyQueue)
-    const sessionCipher = new SessionCipher(store, address)
+    await setupReceiveStep(store, data, privKeyQueue);
+    const sessionCipher = new SessionCipher(store, address);
 
     try {
-        let plaintext: Uint8Array
+        let plaintext: Uint8Array;
         if (data.type == IncomingPushMessageSignal_Type.CIPHERTEXT) {
-            const dWS: Uint8Array = new Uint8Array(await sessionCipher.decryptWhisperMessage(data.message))
-            plaintext = await unpad(dWS)
+            const dWS: Uint8Array = new Uint8Array(await sessionCipher.decryptWhisperMessage(data.message));
+            plaintext = await unpad(dWS);
         } else if (data.type == IncomingPushMessageSignal_Type.PREKEY_BUNDLE) {
-            const dPKWS: Uint8Array = new Uint8Array(await sessionCipher.decryptPreKeyWhisperMessage(data.message))
-            plaintext = await unpad(dPKWS)
+            const dPKWS: Uint8Array = new Uint8Array(await sessionCipher.decryptPreKeyWhisperMessage(data.message));
+            plaintext = await unpad(dPKWS);
         } else {
-            throw new Error('Unknown data type in test vector')
+            throw new Error('Unknown data type in test vector');
         }
 
-        const content = PushMessageContent.decode(plaintext)
+        const content = PushMessageContent.decode(plaintext);
         if (data.expectTerminateSession) {
             if (content.flags == PushMessageContent_Flags.END_SESSION) {
-                return true
+                return true;
             } else {
-                return false
+                return false;
             }
         }
 
-        return content.body === data.expectedSmsText
+        return content.body === data.expectedSmsText;
     } catch (e) {
         if (data.expectException) {
-            return true
+            return true;
         }
-        console.error(e)
-        throw e
+        console.error(e);
+        throw e;
     }
 }
 
@@ -188,24 +188,24 @@ async function setupSendStep(
     privKeyQueue: ArrayBuffer[]
 ): Promise<void> {
     if (data.registrationId !== undefined) {
-        store.put('registrationId', data.registrationId)
+        store.put('registrationId', data.registrationId);
     }
     if (data.ourBaseKey !== undefined) {
-        privKeyQueue.push(data.ourBaseKey)
+        privKeyQueue.push(data.ourBaseKey);
     }
     if (data.ourEphemeralKey !== undefined) {
-        privKeyQueue.push(data.ourEphemeralKey)
+        privKeyQueue.push(data.ourEphemeralKey);
     }
 
     if (data.ourIdentityKey !== undefined) {
         try {
-            const keyPair: KeyPairType = await Internal.crypto.createKeyPair(data.ourIdentityKey)
-            store.put('identityKey', keyPair)
+            const keyPair: KeyPairType = await Internal.crypto.createKeyPair(data.ourIdentityKey);
+            store.put('identityKey', keyPair);
         } catch (e) {
-            console.error({ e })
+            console.error({ e });
         }
     }
-    return Promise.resolve()
+    return Promise.resolve();
 }
 
 async function doSendStep(
@@ -214,7 +214,7 @@ async function doSendStep(
     privKeyQueue: Array<any>,
     address: SignalProtocolAddress
 ): Promise<boolean> {
-    await setupSendStep(store, data, privKeyQueue)
+    await setupSendStep(store, data, privKeyQueue);
     try {
         if (data.getKeys !== undefined) {
             const deviceObject = {
@@ -223,59 +223,59 @@ async function doSendStep(
                 preKey: data.getKeys.devices[0].preKey,
                 signedPreKey: data.getKeys.devices[0].signedPreKey,
                 registrationId: data.getKeys.devices[0].registrationId,
-            }
-            const builder = new SessionBuilder(store, address)
-            await builder.processPreKey(deviceObject)
+            };
+            const builder = new SessionBuilder(store, address);
+            await builder.processPreKey(deviceObject);
         }
 
-        const proto = PushMessageContent.fromJSON({})
+        const proto = PushMessageContent.fromJSON({});
         if (data.endSession) {
-            proto.flags = PushMessageContent_Flags.END_SESSION
+            proto.flags = PushMessageContent_Flags.END_SESSION;
         } else {
-            proto.body = data.smsText
+            proto.body = data.smsText;
         }
 
-        const sessionCipher = new SessionCipher(store, address)
-        const pt = PushMessageContent.encode(proto).finish()
+        const sessionCipher = new SessionCipher(store, address);
+        const pt = PushMessageContent.encode(proto).finish();
 
         if (data.endSession) {
             //      console.log(`END SESSION PROTO`, { proto, pt })
         }
-        const msg = await sessionCipher.encrypt(pad(utils.uint8ArrayToArrayBuffer(pt)))
+        const msg = await sessionCipher.encrypt(pad(utils.uint8ArrayToArrayBuffer(pt)));
 
-        const msgbody = new Uint8Array(utils.binaryStringToArrayBuffer(msg.body!.substring(1))!)
+        const msgbody = new Uint8Array(utils.binaryStringToArrayBuffer(msg.body!.substring(1))!);
         // NOTE: equivalent protobuf objects can have different binary encodings and still be accepted by our
         // parsers to produce quivalent objects.  Instead of testing binary identity of the entire
         // protobuf message, we parse it and check field-level identity.
-        let res: boolean
+        let res: boolean;
         if (msg.type === 1) {
-            res = utils.isEqual(data.expectedCiphertext, utils.binaryStringToArrayBuffer(msg.body || ''))
+            res = utils.isEqual(data.expectedCiphertext, utils.binaryStringToArrayBuffer(msg.body || ''));
         } else {
             if (new Uint8Array(data.expectedCiphertext)[0] !== msg.body?.charCodeAt(0)) {
-                throw new Error('Bad version byte')
+                throw new Error('Bad version byte');
             }
             //  console.log({
             //      expectedCiphertext: data.expectedCiphertext,
             //      msg: msgbody,
             //  })
 
-            const ourpkwmsg = PreKeyWhisperMessage.decode(msgbody)
-            const datapkwmsg = PreKeyWhisperMessage.decode(new Uint8Array(data.expectedCiphertext).slice(1))
+            const ourpkwmsg = PreKeyWhisperMessage.decode(msgbody);
+            const datapkwmsg = PreKeyWhisperMessage.decode(new Uint8Array(data.expectedCiphertext).slice(1));
 
-            assertEqualUint8Arrays(datapkwmsg.baseKey, ourpkwmsg.baseKey)
-            assertEqualUint8Arrays(datapkwmsg.identityKey, ourpkwmsg.identityKey)
-            expect(datapkwmsg.preKeyId).toStrictEqual(ourpkwmsg.preKeyId)
-            expect(datapkwmsg.signedPreKeyId).toStrictEqual(ourpkwmsg.signedPreKeyId)
+            assertEqualUint8Arrays(datapkwmsg.baseKey, ourpkwmsg.baseKey);
+            assertEqualUint8Arrays(datapkwmsg.identityKey, ourpkwmsg.identityKey);
+            expect(datapkwmsg.preKeyId).toStrictEqual(ourpkwmsg.preKeyId);
+            expect(datapkwmsg.signedPreKeyId).toStrictEqual(ourpkwmsg.signedPreKeyId);
 
-            const ourencrypted = WhisperMessage.decode(ourpkwmsg.message.slice(1, ourpkwmsg.message.length - 8))
-            const dataencrypted = WhisperMessage.decode(datapkwmsg.message.slice(1, datapkwmsg.message.length - 8))
+            const ourencrypted = WhisperMessage.decode(ourpkwmsg.message.slice(1, ourpkwmsg.message.length - 8));
+            const dataencrypted = WhisperMessage.decode(datapkwmsg.message.slice(1, datapkwmsg.message.length - 8));
 
-            expect(ourencrypted.counter).toBe(dataencrypted.counter)
-            expect(ourencrypted.previousCounter).toBe(dataencrypted.previousCounter)
-            assertEqualUint8Arrays(ourencrypted.ephemeralKey, dataencrypted.ephemeralKey)
-            assertEqualUint8Arrays(ourencrypted.ciphertext, dataencrypted.ciphertext)
+            expect(ourencrypted.counter).toBe(dataencrypted.counter);
+            expect(ourencrypted.previousCounter).toBe(dataencrypted.previousCounter);
+            assertEqualUint8Arrays(ourencrypted.ephemeralKey, dataencrypted.ephemeralKey);
+            assertEqualUint8Arrays(ourencrypted.ciphertext, dataencrypted.ciphertext);
 
-            const expected = PreKeyWhisperMessage.encode(datapkwmsg).finish()
+            const expected = PreKeyWhisperMessage.encode(datapkwmsg).finish();
 
             if (
                 !utils.isEqual(
@@ -283,81 +283,81 @@ async function doSendStep(
                     utils.binaryStringToArrayBuffer(msg.body.substring(1))
                 )
             ) {
-                throw new Error('Result does not match expected ciphertext')
+                throw new Error('Result does not match expected ciphertext');
             }
 
-            res = true
+            res = true;
         }
         if (data.endSession) {
-            await sessionCipher.closeOpenSessionForDevice()
-            return res
+            await sessionCipher.closeOpenSessionForDevice();
+            return res;
         }
-        return res
+        return res;
     } catch (e) {
-        console.error(e, { store })
-        throw e
+        console.error(e, { store });
+        throw e;
     }
 }
 
 function getDescription(step: TestStep): string {
-    const [direction, data] = step
+    const [direction, data] = step;
     if (direction === 'receiveMessage') {
         if (data.expectTerminateSession) {
-            return 'receive end session message'
+            return 'receive end session message';
         } else if (data.type === 3) {
-            return 'receive prekey message ' + data.expectedSmsText
+            return 'receive prekey message ' + data.expectedSmsText;
         } else {
-            return 'receive message ' + data.expectedSmsText
+            return 'receive message ' + data.expectedSmsText;
         }
     } else if (direction === 'sendMessage') {
         if (data.endSession) {
-            return 'send end session message'
+            return 'send end session message';
         } else if (data.ourIdentityKey) {
-            return 'send prekey message ' + data.smsText
+            return 'send prekey message ' + data.smsText;
         } else {
-            return 'send message ' + data.smsText
+            return 'send message ' + data.smsText;
         }
     }
-    return ''
+    return '';
 }
 
 tv.forEach(function (test: VectorSuite) {
     describe(test.name, () => {
-        const privKeyQueue: ArrayBuffer[] = []
-        const origCreateKeyPair = Internal.crypto.createKeyPair.bind(Internal.crypto)
+        const privKeyQueue: ArrayBuffer[] = [];
+        const origCreateKeyPair = Internal.crypto.createKeyPair.bind(Internal.crypto);
 
         beforeAll(function () {
             // Shim createKeyPair to return predetermined keys from
             // privKeyQueue instead of random keys.
             Internal.crypto.createKeyPair = function (privKey) {
                 if (privKey !== undefined) {
-                    return origCreateKeyPair(privKey)
+                    return origCreateKeyPair(privKey);
                 }
                 if (privKeyQueue.length == 0) {
-                    throw new Error('Out of private keys')
+                    throw new Error('Out of private keys');
                 } else {
-                    const privKey = privKeyQueue.shift()
+                    const privKey = privKeyQueue.shift();
                     return Internal.crypto.createKeyPair(privKey).then(function (keyPair) {
                         if (
                             !privKey ||
                             utils.arrayBufferToString(keyPair.privKey) != utils.arrayBufferToString(privKey)
                         )
-                            throw new Error('Failed to rederive private key!')
-                        else return keyPair
-                    })
+                            throw new Error('Failed to rederive private key!');
+                        else return keyPair;
+                    });
                 }
-            }
-        })
+            };
+        });
 
         afterAll(function () {
-            Internal.crypto.createKeyPair = origCreateKeyPair
+            Internal.crypto.createKeyPair = origCreateKeyPair;
             if (privKeyQueue.length != 0) {
-                throw new Error('Leftover private keys')
+                throw new Error('Leftover private keys');
             }
-        })
+        });
 
-        const store = new SignalProtocolStore()
-        const address = SignalProtocolAddress.fromString('SNOWDEN.1')
+        const store = new SignalProtocolStore();
+        const address = SignalProtocolAddress.fromString('SNOWDEN.1');
         test.vectors.forEach(function (step: TestStep) {
             it(getDescription(step), async () => {
                 let doStep: (
@@ -365,81 +365,81 @@ tv.forEach(function (test: VectorSuite) {
                     data: Record<string, any>,
                     q: ArrayBuffer[],
                     address: SignalProtocolAddress
-                ) => Promise<boolean>
+                ) => Promise<boolean>;
 
                 if (step[0] === 'receiveMessage') {
-                    doStep = doReceiveStep
+                    doStep = doReceiveStep;
                 } else if (step[0] === 'sendMessage') {
-                    doStep = doSendStep
+                    doStep = doSendStep;
                 } else {
-                    throw new Error('Invalid test')
+                    throw new Error('Invalid test');
                 }
 
-                await expect(doStep(store, step[1], privKeyQueue, address)).resolves.toBeTruthy() //.then(assert).then(done, done)
-            })
-        })
-    })
-})
+                await expect(doStep(store, step[1], privKeyQueue, address)).resolves.toBeTruthy(); //.then(assert).then(done, done)
+            });
+        });
+    });
+});
 
 describe('key changes', function () {
-    const ALICE_ADDRESS = new SignalProtocolAddress('+14151111111', 1)
-    const BOB_ADDRESS = new SignalProtocolAddress('+14152222222', 1)
-    const originalMessage = <ArrayBuffer>utils.binaryStringToArrayBuffer("L'homme est condamné à être libre")
+    const ALICE_ADDRESS = new SignalProtocolAddress('+14151111111', 1);
+    const BOB_ADDRESS = new SignalProtocolAddress('+14152222222', 1);
+    const originalMessage = <ArrayBuffer>utils.binaryStringToArrayBuffer("L'homme est condamné à être libre");
 
-    const aliceStore = new SignalProtocolStore()
+    const aliceStore = new SignalProtocolStore();
 
-    const bobStore = new SignalProtocolStore()
-    const bobPreKeyId = 1337
-    const bobSignedKeyId = 1
+    const bobStore = new SignalProtocolStore();
+    const bobPreKeyId = 1337;
+    const bobSignedKeyId = 1;
 
-    const bobSessionCipher = new SessionCipher(bobStore, ALICE_ADDRESS)
+    const bobSessionCipher = new SessionCipher(bobStore, ALICE_ADDRESS);
 
     beforeAll(function (done) {
         Promise.all([aliceStore, bobStore].map(generateIdentity))
             .then(function () {
-                return generatePreKeyBundle(bobStore, bobPreKeyId, bobSignedKeyId)
+                return generatePreKeyBundle(bobStore, bobPreKeyId, bobSignedKeyId);
             })
             .then((preKeyBundle) => {
-                const builder = new SessionBuilder(aliceStore, BOB_ADDRESS)
+                const builder = new SessionBuilder(aliceStore, BOB_ADDRESS);
                 return builder
                     .processPreKey(preKeyBundle)
                     .then(function () {
-                        const aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS)
-                        return aliceSessionCipher.encrypt(originalMessage)
+                        const aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS);
+                        return aliceSessionCipher.encrypt(originalMessage);
                     })
                     .then(function (ciphertext) {
-                        return bobSessionCipher.decryptPreKeyWhisperMessage(ciphertext.body!, 'binary')
+                        return bobSessionCipher.decryptPreKeyWhisperMessage(ciphertext.body!, 'binary');
                     })
                     .then(function () {
-                        done()
+                        done();
                     })
-                    .catch(done)
-            })
-    })
+                    .catch(done);
+            });
+    });
 
     describe("When bob's identity changes", function () {
-        let messageFromBob: MessageType
+        let messageFromBob: MessageType;
         beforeAll(async () => {
-            const ciphertext = await bobSessionCipher.encrypt(originalMessage)
-            messageFromBob = ciphertext
-            await generateIdentity(bobStore)
-            const idK = bobStore.get('identityKey', undefined) as KeyPairType
-            const pubK = idK.pubKey
-            await aliceStore.saveIdentity(BOB_ADDRESS.toString(), pubK)
-        })
+            const ciphertext = await bobSessionCipher.encrypt(originalMessage);
+            messageFromBob = ciphertext;
+            await generateIdentity(bobStore);
+            const idK = bobStore.get('identityKey', undefined) as KeyPairType;
+            const pubK = idK.pubKey;
+            await aliceStore.saveIdentity(BOB_ADDRESS.toString(), pubK);
+        });
 
         test('alice cannot encrypt with the old session', async () => {
-            const aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS)
+            const aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS);
             await expect(async () => {
-                await aliceSessionCipher.encrypt(originalMessage)
-            }).rejects.toThrow('Identity key changed')
-        })
+                await aliceSessionCipher.encrypt(originalMessage);
+            }).rejects.toThrow('Identity key changed');
+        });
 
         test('alice cannot decrypt from the old session', async () => {
-            const aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS)
+            const aliceSessionCipher = new SessionCipher(aliceStore, BOB_ADDRESS);
             await expect(async () => {
-                await aliceSessionCipher.decryptWhisperMessage(<string>messageFromBob.body, 'binary')
-            }).rejects.toThrow('Identity key changed')
-        })
-    })
-})
+                await aliceSessionCipher.decryptWhisperMessage(<string>messageFromBob.body, 'binary');
+            }).rejects.toThrow('Identity key changed');
+        });
+    });
+});

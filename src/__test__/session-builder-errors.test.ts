@@ -1,26 +1,26 @@
-import { SessionBuilder } from '../session-builder'
-import { SignalProtocolAddress } from '../signal-protocol-address'
-import { StorageType, KeyPairType } from '../types'
-import { SessionType, BaseKeyType } from '../session-types'
-import { SessionRecord } from '../session-record'
-import { PreKeyWhisperMessage } from '@privacyresearch/libsignal-protocol-protobuf-ts'
+import { SessionBuilder } from '../session-builder';
+import { SignalProtocolAddress } from '../signal-protocol-address';
+import { StorageType, KeyPairType } from '../types';
+import { SessionType, BaseKeyType } from '../session-types';
+import { SessionRecord } from '../session-record';
+import { PreKeyWhisperMessage } from '@privacyresearch/libsignal-protocol-protobuf-ts';
 
 const createBuffer = (fill: number, length: number): ArrayBuffer => {
-    const bytes = new Uint8Array(length)
-    bytes.fill(fill)
-    return bytes.buffer
-}
+    const bytes = new Uint8Array(length);
+    bytes.fill(fill);
+    return bytes.buffer;
+};
 
 const createUint8 = (fill: number, length: number): Uint8Array => {
-    const bytes = new Uint8Array(length)
-    bytes.fill(fill)
-    return bytes
-}
+    const bytes = new Uint8Array(length);
+    bytes.fill(fill);
+    return bytes;
+};
 
 const createKeyPair = (fill = 5): KeyPairType<ArrayBuffer> => ({
     pubKey: createBuffer(fill, 32),
     privKey: createBuffer(fill + 1, 32),
-})
+});
 
 const createStorage = (overrides: Partial<StorageType> = {}): StorageType => ({
     getIdentityKeyPair: jest.fn().mockResolvedValue(createKeyPair()),
@@ -36,33 +36,38 @@ const createStorage = (overrides: Partial<StorageType> = {}): StorageType => ({
     storeSignedPreKey: jest.fn().mockResolvedValue(undefined),
     removeSignedPreKey: jest.fn().mockResolvedValue(undefined),
     ...overrides,
-})
+});
 
-const address = new SignalProtocolAddress('test', 1)
+const address = new SignalProtocolAddress('test', 1);
 
 describe('SessionBuilder defensive paths', () => {
     test('startSessionAsInitiator rejects when identity key missing', async () => {
         const builder = new SessionBuilder(
             createStorage({ getIdentityKeyPair: jest.fn().mockResolvedValue(undefined) }),
             address
-        )
+        );
         await expect(
             builder.startSessionAsInitiator(createKeyPair(), createBuffer(1, 32), createBuffer(2, 32), undefined)
-        ).rejects.toThrow('No identity key. Cannot initiate session.')
-    })
+        ).rejects.toThrow('No identity key. Cannot initiate session.');
+    });
 
     test('startSessionAsInitiator rejects when signed prekey is undefined', async () => {
-        const builder = new SessionBuilder(createStorage(), address)
+        const builder = new SessionBuilder(createStorage(), address);
         await expect(
-            builder.startSessionAsInitiator(createKeyPair(), createBuffer(1, 32), undefined as unknown as ArrayBuffer, undefined)
-        ).rejects.toThrow('theirSignedPubKey is undefined. Cannot proceed with ECDHE')
-    })
+            builder.startSessionAsInitiator(
+                createKeyPair(),
+                createBuffer(1, 32),
+                undefined as unknown as ArrayBuffer,
+                undefined
+            )
+        ).rejects.toThrow('theirSignedPubKey is undefined. Cannot proceed with ECDHE');
+    });
 
     test('startSessionWthPreKeyMessage rejects when identity key missing', async () => {
         const builder = new SessionBuilder(
             createStorage({ getIdentityKeyPair: jest.fn().mockResolvedValue(undefined) }),
             address
-        )
+        );
 
         const message = {
             identityKey: createUint8(7, 32),
@@ -70,15 +75,15 @@ describe('SessionBuilder defensive paths', () => {
             message: createUint8(9, 10),
             signedPreKeyId: 1,
             registrationId: 2,
-        } as unknown as PreKeyWhisperMessage
+        } as unknown as PreKeyWhisperMessage;
 
         await expect(builder.startSessionWthPreKeyMessage(undefined, createKeyPair(), message)).rejects.toThrow(
             'No identity key. Cannot initiate session.'
-        )
-    })
+        );
+    });
 
     test('calculateSendingRatchet rejects when ephemeral key missing', async () => {
-        const builder = new SessionBuilder(createStorage(), address)
+        const builder = new SessionBuilder(createStorage(), address);
         const session: SessionType = {
             registrationId: 1,
             currentRatchet: {
@@ -92,15 +97,15 @@ describe('SessionBuilder defensive paths', () => {
             },
             oldRatchetList: [],
             chains: {},
-        }
+        };
 
         await expect(builder.calculateSendingRatchet(session, createBuffer(4, 32))).rejects.toThrow(
             'Invalid ratchet - ephemeral key pair is missing'
-        )
-    })
+        );
+    });
 
     test('calculateSendingRatchet rejects when keys are missing', async () => {
-        const builder = new SessionBuilder(createStorage(), address)
+        const builder = new SessionBuilder(createStorage(), address);
         const session: SessionType = {
             registrationId: 1,
             currentRatchet: {
@@ -118,18 +123,18 @@ describe('SessionBuilder defensive paths', () => {
             },
             oldRatchetList: [],
             chains: {},
-        }
+        };
 
         await expect(builder.calculateSendingRatchet(session, createBuffer(4, 32))).rejects.toThrow(
             'Missing key, cannot calculate sending ratchet'
-        )
-    })
+        );
+    });
 
     test('processV3 returns early when session already exists', async () => {
-        const baseKeyBuffer = createBuffer(11, 32)
-        const baseKeyBytes = new Uint8Array(baseKeyBuffer)
-        const builder = new SessionBuilder(createStorage(), address)
-        const record = new SessionRecord()
+        const baseKeyBuffer = createBuffer(11, 32);
+        const baseKeyBytes = new Uint8Array(baseKeyBuffer);
+        const builder = new SessionBuilder(createStorage(), address);
+        const record = new SessionRecord();
         const session: SessionType = {
             registrationId: 9,
             currentRatchet: {
@@ -145,8 +150,8 @@ describe('SessionBuilder defensive paths', () => {
             },
             oldRatchetList: [],
             chains: {},
-        }
-        record.updateSessionState(session)
+        };
+        record.updateSessionState(session);
 
         const message = {
             identityKey: createUint8(7, 32),
@@ -154,11 +159,11 @@ describe('SessionBuilder defensive paths', () => {
             message: createUint8(9, 8),
             signedPreKeyId: 3,
             registrationId: 4,
-        } as unknown as PreKeyWhisperMessage
+        } as unknown as PreKeyWhisperMessage;
 
-        const result = await builder.processV3(record, message)
-        expect(result).toBeUndefined()
-    })
+        const result = await builder.processV3(record, message);
+        expect(result).toBeUndefined();
+    });
 
     test('processV3 returns when signed prekey missing but session present', async () => {
         const builder = new SessionBuilder(
@@ -166,8 +171,8 @@ describe('SessionBuilder defensive paths', () => {
                 loadSignedPreKey: jest.fn().mockResolvedValue(undefined),
             }),
             address
-        )
-        const record = new SessionRecord()
+        );
+        const record = new SessionRecord();
         const session: SessionType = {
             registrationId: 9,
             currentRatchet: {
@@ -184,8 +189,8 @@ describe('SessionBuilder defensive paths', () => {
             },
             oldRatchetList: [],
             chains: {},
-        }
-        record.updateSessionState(session)
+        };
+        record.updateSessionState(session);
 
         const message = {
             identityKey: createUint8(7, 32),
@@ -193,11 +198,11 @@ describe('SessionBuilder defensive paths', () => {
             message: createUint8(9, 8),
             signedPreKeyId: 3,
             registrationId: 4,
-        } as unknown as PreKeyWhisperMessage
+        } as unknown as PreKeyWhisperMessage;
 
-        const result = await builder.processV3(record, message)
-        expect(result).toBeUndefined()
-    })
+        const result = await builder.processV3(record, message);
+        expect(result).toBeUndefined();
+    });
 
     test('processV3 throws when signed prekey missing and no open session', async () => {
         const builder = new SessionBuilder(
@@ -206,16 +211,18 @@ describe('SessionBuilder defensive paths', () => {
                 loadPreKey: jest.fn().mockResolvedValue(undefined),
             }),
             address
-        )
-        const record = new SessionRecord()
+        );
+        const record = new SessionRecord();
         const message = {
             identityKey: createUint8(7, 32),
             baseKey: createUint8(8, 32),
             message: createUint8(9, 8),
             signedPreKeyId: 3,
             registrationId: 4,
-        } as unknown as PreKeyWhisperMessage
+        } as unknown as PreKeyWhisperMessage;
 
-        await expect(builder.processV3(record, message)).rejects.toThrow('Missing Signed PreKey for PreKeyWhisperMessage')
-    })
-})
+        await expect(builder.processV3(record, message)).rejects.toThrow(
+            'Missing Signed PreKey for PreKeyWhisperMessage'
+        );
+    });
+});

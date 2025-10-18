@@ -5,7 +5,9 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 ## Planning Documents
 
 ### [Modernization Plan](./modernization-plan.md)
+
 **The main planning document** - A comprehensive 14-section plan covering:
+
 - Current state analysis
 - Official Signal Protocol status
 - Gap analysis and technical debt
@@ -19,7 +21,9 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 **Read this first** for a complete understanding of the modernization effort.
 
 ### [Quick Start Guide](./quick-start-guide.md)
+
 **Condensed reference** for quick lookups:
+
 - Critical decisions made
 - Immediate next steps
 - Goals by phase
@@ -30,7 +34,9 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 **Read this** for a fast overview and quick reference.
 
 ### [Phase 1 Checklist](./phase1-checklist.md)
+
 **Detailed implementation checklist** for Phase 1 (Weeks 1-3):
+
 - Week-by-week breakdown
 - Day-by-day tasks
 - Code examples and configurations
@@ -40,7 +46,9 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 **Use this** to execute Phase 1 tasks.
 
 ### [Build & Testing Handbook](./build-and-testing.md)
+
 **Living reference** for developer workflows:
+
 - Toolchain summary and key commands
 - Coverage expectations and current metrics
 - Build artifact layout (CJS + ESM)
@@ -51,7 +59,9 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 ## Key Findings Summary
 
 ### Critical Discovery
+
 The official Signal JavaScript library (`libsignal-protocol-javascript`) has been **deprecated and replaced** by `@signalapp/libsignal-client`, which is:
+
 - ✅ Actively maintained (v0.83.0 as of Oct 2025)
 - ✅ Written in Rust with TypeScript bindings
 - ❌ **Node.js ONLY** - does NOT support browsers or PWA
@@ -59,7 +69,9 @@ The official Signal JavaScript library (`libsignal-protocol-javascript`) has bee
 This means **there is NO official Signal Protocol implementation for browser/PWA environments**.
 
 ### Strategic Decision
+
 We will **continue maintaining and modernizing** this TypeScript implementation to:
+
 1. Fill the critical gap in browser/PWA support
 2. Stay aligned with official Signal Protocol specifications
 3. Provide a production-ready Signal Protocol library for web applications
@@ -67,14 +79,17 @@ We will **continue maintaining and modernizing** this TypeScript implementation 
 ## Protocol Status (2024/2025)
 
 ### Current Implementations
-| Protocol | Status in Our Library | Priority |
-|----------|----------------------|----------|
-| X3DH (Key Agreement) | ✅ Implemented | Maintain |
-| Double Ratchet | ✅ Implemented | Maintain |
-| PQXDH (Post-Quantum) | ❌ Not Implemented | Future |
+
+| Protocol             | Status in Our Library | Priority |
+| -------------------- | --------------------- | -------- |
+| X3DH (Key Agreement) | ✅ Implemented        | Maintain |
+| Double Ratchet       | ✅ Implemented        | Maintain |
+| PQXDH (Post-Quantum) | ❌ Not Implemented    | Future   |
 
 ### Post-Quantum Update
+
 Signal added **PQXDH** in 2024, which combines:
+
 - ML-KEM-1024 (formerly Kyber, now FIPS-203)
 - Traditional X3DH
 
@@ -101,21 +116,22 @@ Phase 3: Enhancement (Weeks 9-12)
 
 ## Current Status (2025-10-17)
 
-| Component | Status | Notes |
-|-----------|--------|-------|
-| Tests | ✅ Stable | Jest 29 with custom environment; 210 specs passing |
-| Coverage | ✅ Branch 81% | 92% statements / 81% branches / 94% functions |
-| Build | ✅ Dual output | `yarn build` emits `lib/cjs` + `lib/esm` with d.ts |
-| Dependencies | ⚠️ Review pending | Runtime deps unchanged; audit queued |
-| Documentation | 🔄 Updating | Quick start & Phase 1 checklist refreshed |
-| PWA Ready | ❌ Not optimized | IndexedDB adapter + bundle size work outstanding |
-| CI/CD | ✅ Running | GitHub Actions (`.github/workflows/ci.yml`) covers lint/test/build |
+| Component     | Status            | Notes                                                              |
+| ------------- | ----------------- | ------------------------------------------------------------------ |
+| Tests         | ✅ Stable         | Jest 29 with custom environment; 210 specs passing                 |
+| Coverage      | ✅ Branch 81%     | 92% statements / 81% branches / 94% functions                      |
+| Build         | ✅ Dual output    | `yarn build` emits `lib/cjs` + `lib/esm` with d.ts                 |
+| Dependencies  | ⚠️ Review pending | Runtime deps unchanged; audit queued                               |
+| Documentation | 🔄 Updating       | Quick start & Phase 1 checklist refreshed                          |
+| PWA Ready     | ❌ Not optimized  | IndexedDB adapter + bundle size work outstanding                   |
+| CI/CD         | ✅ Running        | GitHub Actions (`.github/workflows/ci.yml`) covers lint/test/build |
 
 **Immediate Focus**: Complete dependency audit and begin PWA/browser integration work before shipping a beta.
 
 ## Key Files to Understand
 
 ### Source Code
+
 - `src/index.ts` - Main exports
 - `src/types.ts` - Type definitions
 - `src/session-builder.ts` - Session establishment (X3DH)
@@ -124,6 +140,7 @@ Phase 3: Enhancement (Weeks 9-12)
 - `src/internal/curve.ts` - Curve25519 operations
 
 ### Configuration
+
 - `tsconfig.base.json`, `tsconfig.cjs.json`, `tsconfig.esm.json` - Shared strict compiler settings
 - `package.json` - Dual build scripts, prepare hook, Yarn Berry
 - `jestconfig.json` - ts-jest config, coverage thresholds, custom environment
@@ -131,18 +148,21 @@ Phase 3: Enhancement (Weeks 9-12)
 ## Success Criteria
 
 ### Phase 1 (Foundation)
+
 - ✅ All tests passing with coverage reporting
 - ✅ Modern build system (ESM + CJS) with strict TS config
 - ✅ CI/CD operational (GitHub Actions on push/PR)
 - 🔄 Dependencies updated (security audit pending)
 
 ### Phase 2 (Modernization)
+
 - ✅ TypeScript strict mode
 - 🔄 Protocol compliance verified (extend vector coverage)
 - ❌ PWA optimizations
 - ❌ Bundle <100KB
 
 ### Phase 3 (Enhancement)
+
 - ❌ Performance benchmarks
 - 🔄 Comprehensive docs
 - ❌ Browser tested
@@ -151,26 +171,32 @@ Phase 3: Enhancement (Weeks 9-12)
 ## Resources
 
 ### Official Signal
+
 - [Protocol Specifications](https://signal.org/docs/)
 - [X3DH Spec](https://signal.org/docs/specifications/x3dh/)
 - [PQXDH Spec](https://signal.org/docs/specifications/pqxdh/)
 - [Double Ratchet Spec](https://signal.org/docs/specifications/doubleratchet/)
 
 ### Signal Repositories
+
 - [libsignal (main)](https://github.com/signalapp/libsignal)
 - [libsignal-client (NPM)](https://www.npmjs.com/package/@signalapp/libsignal-client)
 - [Deprecated JS lib](https://github.com/signalapp/libsignal-protocol-javascript)
 
 ### Original Fork
+
 - [privacyresearchgroup/libsignal-protocol-typescript](https://github.com/privacyresearchgroup/libsignal-protocol-typescript)
 
 ## Contributing
 
 ### Phase 1 (Current)
+
 Internal modernization - not accepting external contributions yet
 
 ### Post-Phase 1
+
 Will open for community contributions with:
+
 - Contributing guidelines
 - Code of conduct
 - Issue templates
@@ -179,19 +205,20 @@ Will open for community contributions with:
 ## Questions?
 
 For questions about:
+
 - **Planning**: See [modernization-plan.md](./modernization-plan.md) FAQ section
 - **Implementation**: See [phase1-checklist.md](./phase1-checklist.md)
 - **Quick answers**: See [quick-start-guide.md](./quick-start-guide.md) FAQ section
 
 ## Document Status
 
-| Document | Status | Last Updated |
-|----------|--------|--------------|
-| modernization-plan.md | ✅ Baseline | 2025-10-17 |
-| quick-start-guide.md | 🔄 Updated | 2025-10-17 |
-| phase1-checklist.md | 🔄 Updated | 2025-10-17 |
-| build-and-testing.md | 🆕 Draft | 2025-10-17 |
-| README.md (this file) | 🔄 Updated | 2025-10-17 |
+| Document              | Status      | Last Updated |
+| --------------------- | ----------- | ------------ |
+| modernization-plan.md | ✅ Baseline | 2025-10-17   |
+| quick-start-guide.md  | 🔄 Updated  | 2025-10-17   |
+| phase1-checklist.md   | 🔄 Updated  | 2025-10-17   |
+| build-and-testing.md  | 🆕 Draft    | 2025-10-17   |
+| README.md (this file) | 🔄 Updated  | 2025-10-17   |
 
 ## Next Review
 

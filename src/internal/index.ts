@@ -1,2 +1,2 @@
-export * from './curve'
-export * from './crypto'
+export * from './curve';
+export * from './crypto';

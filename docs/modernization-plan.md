@@ -40,23 +40,25 @@ Given the lack of official browser support, we will **continue maintaining and m
 
 ### 1.2 Technology Stack
 
-| Component | Current Version | Status |
-|-----------|----------------|--------|
-| TypeScript | 5.8.3 | Modern |
-| Target | ES2020 | ✅ Modern |
+| Component     | Current Version  | Status    |
+| ------------- | ---------------- | --------- |
+| TypeScript    | 5.8.3            | Modern    |
+| Target        | ES2020           | ✅ Modern |
 | Module System | Dual (ESM + CJS) | ✅ Modern |
-| Jest | 29.7.0 | Modern |
-| ESLint | 9.38.0 | Modern |
-| Yarn | 4.5.3 | Modern |
+| Jest          | 29.7.0           | Modern    |
+| ESLint        | 9.38.0           | Modern    |
+| Yarn          | 4.5.3            | Modern    |
 
 ### 1.3 Dependencies
 
 #### Production Dependencies
+
 - `@privacyresearch/curve25519-typescript` ^0.0.12
 - `@privacyresearch/libsignal-protocol-protobuf-ts` ^0.0.9
 - `base64-js` ^1.5.1
 
 #### Key Issues
+
 - Custom curve25519 implementation (asm.js from C via emscripten)
 - Outdated protobuf definitions
 - Missing modern cryptographic algorithm support
@@ -92,6 +94,7 @@ Given the lack of official browser support, we will **continue maintaining and m
 ### 2.1 Signal's Current State
 
 **Official Implementation**: `@signalapp/libsignal-client`
+
 - **Version**: 0.83.0 (published 6 days ago)
 - **Language**: Rust with TypeScript/Java/Swift bindings
 - **Platform**: Node.js only (native addons)
@@ -99,17 +102,18 @@ Given the lack of official browser support, we will **continue maintaining and m
 
 ### 2.2 API Changes in Official Implementation
 
-| Old API (JavaScript/TypeScript) | New API (@signalapp/libsignal-client) |
-|--------------------------------|----------------------------------------|
-| `PreKeyWhisperMessage` | `PreKeySignalMessage` |
-| `WhisperMessage` | `SignalMessage` |
-| `SessionBuilder.processPreKey()` | Different session API |
-| Promise-based | Promise-based |
-| CommonJS | ESM |
+| Old API (JavaScript/TypeScript)  | New API (@signalapp/libsignal-client) |
+| -------------------------------- | ------------------------------------- |
+| `PreKeyWhisperMessage`           | `PreKeySignalMessage`                 |
+| `WhisperMessage`                 | `SignalMessage`                       |
+| `SessionBuilder.processPreKey()` | Different session API                 |
+| Promise-based                    | Promise-based                         |
+| CommonJS                         | ESM                                   |
 
 ### 2.3 Protocol Specifications
 
 #### Current Protocols (2024/2025)
+
 1. **X3DH** (Extended Triple Diffie-Hellman)
    - Original key agreement protocol
    - Specification: https://signal.org/docs/specifications/x3dh/
@@ -131,15 +135,15 @@ Given the lack of official browser support, we will **continue maintaining and m
 
 ### 3.1 Functionality Gaps
 
-| Feature | Current Status | Required | Priority |
-|---------|---------------|----------|----------|
-| X3DH Key Agreement | ✅ Implemented | Yes | - |
-| PQXDH (Post-Quantum) | ❌ Missing | Future | Low |
-| Double Ratchet | ✅ Implemented | Yes | - |
-| Session Management | ✅ Implemented | Yes | - |
-| PreKey Rotation | ⚠️ Basic | Enhanced | Medium |
-| Sealed Sender | ❌ Missing | Optional | Low |
-| Group Messaging | ❌ Missing | Optional | Low |
+| Feature              | Current Status | Required | Priority |
+| -------------------- | -------------- | -------- | -------- |
+| X3DH Key Agreement   | ✅ Implemented | Yes      | -        |
+| PQXDH (Post-Quantum) | ❌ Missing     | Future   | Low      |
+| Double Ratchet       | ✅ Implemented | Yes      | -        |
+| Session Management   | ✅ Implemented | Yes      | -        |
+| PreKey Rotation      | ⚠️ Basic       | Enhanced | Medium   |
+| Sealed Sender        | ❌ Missing     | Optional | Low      |
+| Group Messaging      | ❌ Missing     | Optional | Low      |
 
 ### 3.2 Technical Debt
 
@@ -166,14 +170,14 @@ Given the lack of official browser support, we will **continue maintaining and m
 
 ### 3.3 PWA-Specific Requirements
 
-| Requirement | Current | Needed |
-|-------------|---------|--------|
-| Service Worker Compatible | ⚠️ Unknown | ✅ Required |
-| Web Crypto API | ✅ Supported | ✅ Optimize |
-| IndexedDB Storage | ❌ Manual | ⚠️ Helper |
-| Bundle Size | ❌ Unknown | ✅ <100KB |
-| Tree-shakeable | ❌ No | ✅ Yes |
-| TypeScript Declarations | ✅ Yes | ✅ Improve |
+| Requirement               | Current      | Needed      |
+| ------------------------- | ------------ | ----------- |
+| Service Worker Compatible | ⚠️ Unknown   | ✅ Required |
+| Web Crypto API            | ✅ Supported | ✅ Optimize |
+| IndexedDB Storage         | ❌ Manual    | ⚠️ Helper   |
+| Bundle Size               | ❌ Unknown   | ✅ <100KB   |
+| Tree-shakeable            | ❌ No        | ✅ Yes      |
+| TypeScript Declarations   | ✅ Yes       | ✅ Improve  |
 
 ---
 
@@ -220,6 +224,7 @@ Phase 3: Enhancement (Weeks 9-12)
 **Priority**: Critical
 
 **Tasks**:
+
 - [ ] Fix Jest custom environment configuration
 - [ ] Update jest.config.json for modern Node.js
 - [ ] Restore all existing tests to passing state
@@ -227,11 +232,13 @@ Phase 3: Enhancement (Weeks 9-12)
 - [ ] Set up CI/CD pipeline (GitHub Actions)
 
 **Files to Modify**:
+
 - `src/__test-utils__/custom-jest-environment.js`
 - `jestconfig.json`
 - `.github/workflows/test.yml` (new)
 
 **Success Criteria**:
+
 - All existing tests pass
 - Coverage report generated
 - CI running on PR and main branch
@@ -241,6 +248,7 @@ Phase 3: Enhancement (Weeks 9-12)
 **Priority**: High
 
 **Tasks**:
+
 - [ ] Update `tsconfig.json` for modern targets
   - Target: ES2020
   - Module: ES2020 (dual build: ESM + CommonJS)
@@ -251,6 +259,7 @@ Phase 3: Enhancement (Weeks 9-12)
 - [ ] Configure tree-shaking
 
 **tsconfig.json Updates**:
+
 ```json
 {
   "compilerOptions": {
@@ -270,6 +279,7 @@ Phase 3: Enhancement (Weeks 9-12)
 ```
 
 **New Build Script**:
+
 ```json
 {
   "scripts": {
@@ -285,6 +295,7 @@ Phase 3: Enhancement (Weeks 9-12)
 **Priority**: High
 
 **Tasks**:
+
 - [ ] Audit all dependencies for security vulnerabilities
 - [ ] Update dev dependencies to latest stable versions
 - [ ] Evaluate production dependencies:
@@ -294,6 +305,7 @@ Phase 3: Enhancement (Weeks 9-12)
 - [ ] Document dependency decisions
 
 **Security Audit**:
+
 ```bash
 yarn audit
 yarn outdated
@@ -304,6 +316,7 @@ yarn outdated
 **Priority**: Medium
 
 **Tasks**:
+
 - [ ] Update ESLint rules for strict TypeScript
 - [ ] Add Prettier configuration (if not present)
 - [ ] Add commitlint for conventional commits
@@ -311,6 +324,7 @@ yarn outdated
 - [ ] Add lint-staged
 
 **Files to Add/Update**:
+
 - `.eslintrc.json`
 - `.prettierrc`
 - `.commitlintrc.json`
@@ -321,6 +335,7 @@ yarn outdated
 **Priority**: Medium
 
 **Tasks**:
+
 - [ ] Document current API surface
 - [ ] Create migration guide from v0.0.16
 - [ ] Add inline JSDoc comments to all public APIs
@@ -336,6 +351,7 @@ yarn outdated
 **Priority**: High
 
 **Tasks**:
+
 - [ ] Enable strict TypeScript options
 - [ ] Fix all `any` types with proper typing
 - [ ] Add generic constraints where appropriate
@@ -343,21 +359,22 @@ yarn outdated
 - [ ] Add utility types for better DX
 
 **Example Improvements**:
+
 ```typescript
 // Before
-export type SessionRecordType = string
+export type SessionRecordType = string;
 
 // After
-export type SessionRecordType = string & { readonly __brand: 'SessionRecord' }
+export type SessionRecordType = string & { readonly __brand: 'SessionRecord' };
 
 // Before
 export interface StorageType {
-  getIdentityKeyPair: () => Promise<KeyPairType | undefined>
+  getIdentityKeyPair: () => Promise<KeyPairType | undefined>;
 }
 
 // After
 export interface StorageType {
-  getIdentityKeyPair(): Promise<KeyPairType | undefined>
+  getIdentityKeyPair(): Promise<KeyPairType | undefined>;
   // Add readonly where appropriate
 }
 ```
@@ -367,6 +384,7 @@ export interface StorageType {
 **Priority**: Critical
 
 **Tasks**:
+
 - [ ] Audit current WebCrypto usage
 - [ ] Optimize for SubtleCrypto API
 - [ ] Evaluate WASM vs asm.js for curve operations
@@ -374,12 +392,14 @@ export interface StorageType {
 - [ ] Add crypto performance benchmarks
 
 **WebCrypto Improvements**:
+
 ```typescript
 // Prefer SubtleCrypto over custom implementations where possible
 // Ensure constant-time operations for security-critical code
 ```
 
 **Curve25519 Evaluation**:
+
 1. Keep current asm.js implementation (proven, stable)
 2. Add WASM version as optional enhancement (Phase 3)
 3. Allow runtime selection based on environment
@@ -389,6 +409,7 @@ export interface StorageType {
 **Priority**: High
 
 **Tasks**:
+
 - [ ] Verify X3DH implementation against latest spec
 - [ ] Verify Double Ratchet against latest spec
 - [ ] Update protobuf definitions to match current Signal
@@ -396,6 +417,7 @@ export interface StorageType {
 - [ ] Document protocol deviations (if any)
 
 **Protocol Verification Checklist**:
+
 - [ ] Key derivation functions match spec
 - [ ] Message formats match spec
 - [ ] Session establishment follows spec
@@ -407,6 +429,7 @@ export interface StorageType {
 **Priority**: Medium
 
 **Tasks**:
+
 - [ ] Add modern Promise patterns (avoid callback hell)
 - [ ] Add async iterators where appropriate
 - [ ] Improve error types and error handling
@@ -414,12 +437,16 @@ export interface StorageType {
 - [ ] Add progress callbacks for long operations
 
 **Error Handling**:
+
 ```typescript
 // Define specific error classes
 export class SignalProtocolError extends Error {
-  constructor(message: string, public readonly code: string) {
-    super(message)
-    this.name = 'SignalProtocolError'
+  constructor(
+    message: string,
+    public readonly code: string
+  ) {
+    super(message);
+    this.name = 'SignalProtocolError';
   }
 }
 
@@ -433,6 +460,7 @@ export class InvalidKeyError extends SignalProtocolError {}
 **Priority**: High (for target use case)
 
 **Tasks**:
+
 - [ ] Add service worker compatibility tests
 - [ ] Optimize bundle size (<100KB target)
 - [ ] Add tree-shaking support
@@ -441,6 +469,7 @@ export class InvalidKeyError extends SignalProtocolError {}
 - [ ] Test in PWA environment
 
 **Bundle Size Strategy**:
+
 ```typescript
 // Ensure code splitting for large dependencies
 // Lazy load crypto operations
@@ -448,6 +477,7 @@ export class InvalidKeyError extends SignalProtocolError {}
 ```
 
 **IndexedDB Adapter**:
+
 ```typescript
 export class IndexedDBStorage implements StorageType {
   // Implement efficient IndexedDB-based storage
@@ -465,6 +495,7 @@ export class IndexedDBStorage implements StorageType {
 **Priority**: Medium
 
 **Tasks**:
+
 - [ ] Profile crypto operations
 - [ ] Optimize hot paths
 - [ ] Add caching where appropriate
@@ -473,6 +504,7 @@ export class IndexedDBStorage implements StorageType {
 - [ ] Compare against @signalapp/libsignal-client (Node.js)
 
 **Benchmarking Suite**:
+
 - Key generation speed
 - Encryption throughput
 - Decryption throughput
@@ -484,6 +516,7 @@ export class IndexedDBStorage implements StorageType {
 **Priority**: Low-Medium
 
 **Tasks**:
+
 - [ ] Enhanced PreKey rotation strategies
 - [ ] Session archive/restore functionality
 - [ ] Multi-device support helpers
@@ -495,6 +528,7 @@ export class IndexedDBStorage implements StorageType {
 **Priority**: Medium
 
 **Tasks**:
+
 - [ ] Create comprehensive examples
   - Basic messaging
   - PWA integration
@@ -510,6 +544,7 @@ export class IndexedDBStorage implements StorageType {
 **Priority**: High
 
 **Tasks**:
+
 - [ ] Security audit (internal)
 - [ ] Penetration testing checklist
 - [ ] Browser compatibility testing
@@ -569,12 +604,12 @@ export class TestVectors {
 describe('Browser Environment', () => {
   it('should work in service worker context', async () => {
     // Test SW compatibility
-  })
+  });
 
   it('should handle IndexedDB storage', async () => {
     // Test storage adapter
-  })
-})
+  });
+});
 ```
 
 ### 6.3 Continuous Testing
@@ -591,12 +626,14 @@ describe('Browser Environment', () => {
 ### 7.1 Service Worker Compatibility
 
 **Requirements**:
+
 - All APIs must work in Service Worker context
 - No DOM dependencies
 - Handle offline scenarios
 - Background sync support
 
 **Implementation**:
+
 ```typescript
 // Ensure no window/document references
 // Use Web Crypto API (available in SW)
@@ -606,6 +643,7 @@ describe('Browser Environment', () => {
 ### 7.2 Storage Strategy
 
 **Options**:
+
 1. **IndexedDB** (Recommended for PWA)
    - Large storage quota
    - Persistent across sessions
@@ -617,6 +655,7 @@ describe('Browser Environment', () => {
    - Not available in SW
 
 **Implementation**:
+
 ```typescript
 export interface StorageAdapter {
   // Abstract storage interface
@@ -629,6 +668,7 @@ export interface StorageAdapter {
 **Target**: <100KB gzipped
 
 **Strategies**:
+
 1. Code splitting
 2. Tree-shaking
 3. Lazy loading of crypto primitives
@@ -636,6 +676,7 @@ export interface StorageAdapter {
 5. Remove unused code
 
 **Measurement**:
+
 ```bash
 # Add bundlesize to package.json
 {
@@ -653,11 +694,11 @@ export interface StorageAdapter {
 ```typescript
 // Detect capabilities
 export function checkCapabilities(): {
-  webCrypto: boolean
-  indexedDB: boolean
-  serviceWorker: boolean
-  wasm: boolean
-}
+  webCrypto: boolean;
+  indexedDB: boolean;
+  serviceWorker: boolean;
+  wasm: boolean;
+};
 
 // Graceful degradation if needed
 ```
@@ -671,17 +712,20 @@ export function checkCapabilities(): {
 **Status**: Not in Phase 1-3, but document for future
 
 **Requirements**:
+
 - ML-KEM-1024 (FIPS-203) implementation
 - Integration with existing X3DH
 - Backward compatibility with X3DH-only clients
 
 **Challenges**:
+
 - No pure JavaScript/TypeScript ML-KEM implementation
 - Would require WASM for performance
 - Significant increase in message size
 - Complex migration strategy
 
 **Recommendation**:
+
 - Monitor ecosystem for JS/TS ML-KEM libraries
 - Track Signal's implementation in libsignal
 - Plan for Phase 4 (Q3 2025+)
@@ -692,56 +736,63 @@ export function checkCapabilities(): {
 
 ### 9.1 Technical Risks
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Breaking API changes | High | Medium | Semantic versioning, deprecation notices |
-| Security vulnerabilities | Critical | Low | Security audits, test vectors |
-| Performance regression | Medium | Low | Benchmark suite, profiling |
-| Browser incompatibility | High | Medium | Extensive browser testing |
-| Test failures during modernization | Medium | High | Fix tests incrementally |
+| Risk                               | Impact   | Likelihood | Mitigation                               |
+| ---------------------------------- | -------- | ---------- | ---------------------------------------- |
+| Breaking API changes               | High     | Medium     | Semantic versioning, deprecation notices |
+| Security vulnerabilities           | Critical | Low        | Security audits, test vectors            |
+| Performance regression             | Medium   | Low        | Benchmark suite, profiling               |
+| Browser incompatibility            | High     | Medium     | Extensive browser testing                |
+| Test failures during modernization | Medium   | High       | Fix tests incrementally                  |
 
 ### 9.2 Ecosystem Risks
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Official browser support released | High | Low | Monitor Signal repos, adapt if needed |
-| Protocol changes | Medium | Low | Follow specifications closely |
-| Dependency abandonment | Medium | Low | Evaluate alternatives, fork if necessary |
+| Risk                              | Impact | Likelihood | Mitigation                               |
+| --------------------------------- | ------ | ---------- | ---------------------------------------- |
+| Official browser support released | High   | Low        | Monitor Signal repos, adapt if needed    |
+| Protocol changes                  | Medium | Low        | Follow specifications closely            |
+| Dependency abandonment            | Medium | Low        | Evaluate alternatives, fork if necessary |
 
 ### 9.3 Project Risks
 
-| Risk | Impact | Likelihood | Mitigation |
-|------|--------|------------|------------|
-| Timeline overrun | Medium | Medium | Phased approach, MVP first |
-| Scope creep | Medium | High | Strict phase boundaries |
-| Lack of adoption | Low | Medium | Good documentation, examples |
+| Risk             | Impact | Likelihood | Mitigation                   |
+| ---------------- | ------ | ---------- | ---------------------------- |
+| Timeline overrun | Medium | Medium     | Phased approach, MVP first   |
+| Scope creep      | Medium | High       | Strict phase boundaries      |
+| Lack of adoption | Low    | Medium     | Good documentation, examples |
 
 ---
 
 ## 10. Timeline and Milestones
 
 ### Phase 1: Foundation (Weeks 1-3)
+
 **Milestone**: Stable Base
+
 - All tests passing
 - Modern build system
 - CI/CD operational
 - Dependencies updated
 
 ### Phase 2: Modernization (Weeks 4-8)
+
 **Milestone**: Modern Codebase
+
 - TypeScript strict mode
 - Protocol aligned
 - PWA optimized
 - API improved
 
 ### Phase 3: Enhancement (Weeks 9-12)
+
 **Milestone**: Production Ready (v1.0.0)
+
 - Performance optimized
 - Fully documented
 - Browser tested
 - Examples complete
 
 ### Post-v1.0.0
+
 - Monitor Signal Protocol updates
 - Community feedback
 - Feature requests
@@ -752,6 +803,7 @@ export function checkCapabilities(): {
 ## 11. Success Criteria
 
 ### Technical Metrics
+
 - ✅ All tests passing (>90% coverage)
 - ✅ Bundle size <100KB gzipped
 - ✅ Works in all major browsers
@@ -760,12 +812,14 @@ export function checkCapabilities(): {
 - ✅ Zero critical security vulnerabilities
 
 ### Quality Metrics
+
 - ✅ Comprehensive documentation
 - ✅ 5+ working examples
 - ✅ Migration guide complete
 - ✅ API reference generated
 
 ### Community Metrics
+
 - ✅ 50+ GitHub stars (6 months)
 - ✅ 5+ community contributions
 - ✅ Used in 3+ projects
@@ -799,22 +853,26 @@ export function checkCapabilities(): {
 ## 13. Resources and References
 
 ### Official Signal Documentation
+
 - Protocol Specifications: https://signal.org/docs/
 - X3DH: https://signal.org/docs/specifications/x3dh/
 - PQXDH: https://signal.org/docs/specifications/pqxdh/
 - Double Ratchet: https://signal.org/docs/specifications/doubleratchet/
 
 ### Signal Repositories
+
 - libsignal: https://github.com/signalapp/libsignal
 - libsignal-client: https://www.npmjs.com/package/@signalapp/libsignal-client
 - libsignal-protocol-javascript (deprecated): https://github.com/signalapp/libsignal-protocol-javascript
 
 ### Cryptography Resources
+
 - WebCrypto API: https://developer.mozilla.org/en-US/docs/Web/API/Web_Crypto_API
 - Curve25519: https://cr.yp.to/ecdh.html
 - ML-KEM (Kyber): https://csrc.nist.gov/publications/detail/fips/203/final
 
 ### PWA Resources
+
 - PWA Checklist: https://web.dev/pwa-checklist/
 - IndexedDB API: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
 - Service Workers: https://developer.mozilla.org/en-US/docs/Web/API/Service_Worker_API
@@ -833,6 +891,7 @@ This modernization plan provides a structured path to transform our forked Signa
 The plan is ambitious but achievable over 12 weeks with dedicated effort. The phased approach allows for iterative delivery and course correction as needed.
 
 **Next Steps**:
+
 1. Review and approve this plan
 2. Set up project tracking (GitHub Projects/Issues)
 3. Begin Phase 1, Week 1 tasks

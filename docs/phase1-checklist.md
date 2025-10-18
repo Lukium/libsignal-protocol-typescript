@@ -16,6 +16,7 @@
   - Solution: Import `TestEnvironment` from `jest-environment-node` and forward `setup/teardown` to the base class.
 
 - [x] **Update jestconfig.json**
+
   ```json
   {
     "transform": {
@@ -36,14 +37,17 @@
     }
   }
   ```
+
   > `maxWorkers` remains pinned until the Jest worker crash (exitCode 0) is resolved upstream.
 
 - [x] **Run all tests and verify they pass**
+
   ```bash
   yarn test
   ```
 
 - [x] **Add coverage reporting**
+
   ```bash
   yarn test --coverage
   ```
@@ -79,6 +83,7 @@
   - Extends `tsconfig.base.json`, sets `"module": "CommonJS"`, `"moduleResolution": "node"`, `"outDir": "./lib/cjs"`
 
 - [x] **Update package.json build scripts**
+
   ```json
   {
     "scripts": {
@@ -115,6 +120,7 @@
   ```
 
 - [x] **Test build**
+
   ```bash
   yarn build
   ```
@@ -167,6 +173,7 @@
   ```
 
 - [ ] **Test CI workflow locally (optional)**
+
   ```bash
   # Install act: https://github.com/nektos/act
   act -j quality
@@ -177,9 +184,11 @@
 
   ```markdown
   ## Description
+
   <!-- Describe your changes -->
 
   ## Type of Change
+
   - [ ] Bug fix
   - [ ] New feature
   - [ ] Breaking change
@@ -188,11 +197,13 @@
   - [ ] Performance improvement
 
   ## Testing
+
   - [ ] Tests pass locally
   - [ ] New tests added (if applicable)
   - [ ] Coverage maintained or improved
 
   ## Checklist
+
   - [ ] Code follows project style guidelines
   - [ ] Self-review completed
   - [ ] Comments added for complex code
@@ -207,16 +218,19 @@
 ### Day 1-2: Dependency Audit
 
 - [ ] **Run security audit**
+
   ```bash
   yarn audit
   ```
 
 - [ ] **Review outdated packages**
+
   ```bash
   yarn outdated
   ```
 
 - [ ] **Update dev dependencies** (test each update)
+
   ```bash
   # Update safely
   yarn upgrade-interactive --latest
@@ -261,13 +275,13 @@
     parserOptions: {
       ecmaVersion: 2020,
       sourceType: 'module',
-      project: './tsconfig.json'
+      project: './tsconfig.json',
     },
     extends: [
       'eslint:recommended',
       'plugin:@typescript-eslint/recommended',
       'plugin:@typescript-eslint/recommended-requiring-type-checking',
-      'prettier'
+      'prettier',
     ],
     plugins: ['@typescript-eslint'],
     rules: {
@@ -275,9 +289,9 @@
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/no-floating-promises': 'error',
-      'no-console': 'warn'
-    }
-  }
+      'no-console': 'warn',
+    },
+  };
   ```
 
 - [ ] **Add/update Prettier configuration**
@@ -306,6 +320,7 @@
   ```
 
 - [ ] **Set up Husky for Git hooks**
+
   ```bash
   yarn add -D husky lint-staged
   npx husky install
@@ -318,20 +333,14 @@
   ```json
   {
     "lint-staged": {
-      "*.ts": [
-        "eslint --fix",
-        "prettier --write",
-        "git add"
-      ],
-      "*.{json,md}": [
-        "prettier --write",
-        "git add"
-      ]
+      "*.ts": ["eslint --fix", "prettier --write", "git add"],
+      "*.{json,md}": ["prettier --write", "git add"]
     }
   }
   ```
 
 - [ ] **Add commitlint (optional but recommended)**
+
   ```bash
   yarn add -D @commitlint/cli @commitlint/config-conventional
   npx husky add .husky/commit-msg 'npx --no -- commitlint --edit "$1"'
@@ -344,21 +353,7 @@
   {
     "extends": ["@commitlint/config-conventional"],
     "rules": {
-      "type-enum": [
-        2,
-        "always",
-        [
-          "feat",
-          "fix",
-          "docs",
-          "style",
-          "refactor",
-          "perf",
-          "test",
-          "chore",
-          "revert"
-        ]
-      ]
+      "type-enum": [2, "always", ["feat", "fix", "docs", "style", "refactor", "perf", "test", "chore", "revert"]]
     }
   }
   ```
@@ -366,6 +361,7 @@
 ### Day 5: Fix Linting Issues
 
 - [ ] **Run linter and fix auto-fixable issues**
+
   ```bash
   yarn lint:fix
   ```
@@ -376,11 +372,13 @@
   - Create issues for non-critical warnings
 
 - [ ] **Format all code**
+
   ```bash
   yarn format
   ```
 
 - [ ] **Verify build still works**
+
   ```bash
   yarn build
   ```
@@ -405,7 +403,7 @@
   - File: `src/index.ts`
   - All exported items need JSDoc
 
-  ```typescript
+  ````typescript
   /**
    * Generates a new identity key pair for Signal Protocol.
    *
@@ -421,7 +419,7 @@
   export function generateIdentityKeyPair(): Promise<KeyPairType> {
     // ...
   }
-  ```
+  ````
 
 - [ ] **Add JSDoc to public classes**
   - `SignalProtocolAddress`
@@ -488,12 +486,12 @@
 - [ ] **Create browser compatibility matrix**
   - File: `docs/browser-compatibility.md`
 
-  | Browser | Version | Status | Notes |
-  |---------|---------|--------|-------|
-  | Chrome | 90+ | ✅ Supported | |
-  | Firefox | 88+ | ✅ Supported | |
-  | Safari | 14+ | ⚠️ Testing needed | WebCrypto quirks |
-  | Edge | 90+ | ✅ Supported | Chromium-based |
+  | Browser | Version | Status            | Notes            |
+  | ------- | ------- | ----------------- | ---------------- |
+  | Chrome  | 90+     | ✅ Supported      |                  |
+  | Firefox | 88+     | ✅ Supported      |                  |
+  | Safari  | 14+     | ⚠️ Testing needed | WebCrypto quirks |
+  | Edge    | 90+     | ✅ Supported      | Chromium-based   |
 
 - [ ] **Document WebCrypto API requirements**
   - Required APIs: AES-CBC, HMAC-SHA256, getRandomValues
@@ -512,29 +510,34 @@
 ## Phase 1 Completion Checklist
 
 ### Testing
+
 - [ ] All existing tests passing
 - [ ] Coverage >80%
 - [ ] No test flakiness
 - [ ] CI passing on all PRs
 
 ### Build System
+
 - [ ] ESM and CJS builds working
 - [ ] TypeScript declarations generated
 - [ ] Source maps present
 - [ ] Build size documented
 
 ### Code Quality
+
 - [ ] Linter configured and passing
 - [ ] Formatter configured
 - [ ] Git hooks working
 - [ ] No critical ESLint errors
 
 ### Dependencies
+
 - [ ] Security audit clean
 - [ ] All dependencies updated (or documented why not)
 - [ ] Dependency decisions documented
 
 ### Documentation
+
 - [ ] README updated
 - [ ] API documentation started
 - [ ] Examples created
@@ -542,6 +545,7 @@
 - [ ] Migration guide started
 
 ### CI/CD
+
 - [ ] GitHub Actions workflow running
 - [ ] Tests run on all PRs
 - [ ] Build verification on all PRs
