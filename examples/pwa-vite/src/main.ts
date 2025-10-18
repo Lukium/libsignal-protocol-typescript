@@ -1,10 +1,8 @@
-import {
-    KeyHelper,
-    SessionBuilder,
-    SessionCipher,
-    SignalProtocolAddress,
-    type DeviceType,
-} from '@privacyresearch/libsignal-protocol-typescript';
+import { KeyHelper } from '@privacyresearch/libsignal-protocol-typescript/key-helper';
+import { SessionBuilder } from '@privacyresearch/libsignal-protocol-typescript/session-builder';
+import { SessionCipher } from '@privacyresearch/libsignal-protocol-typescript/session-cipher';
+import { SignalProtocolAddress } from '@privacyresearch/libsignal-protocol-typescript/signal-protocol-address';
+import type { DeviceType } from '@privacyresearch/libsignal-protocol-typescript/session-types';
 import { createIndexedDBSignalProtocolStore } from '@example/indexeddb-adapter';
 
 const logElement = document.querySelector<HTMLPreElement>('#log');

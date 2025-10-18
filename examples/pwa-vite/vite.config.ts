@@ -25,7 +25,8 @@ export default defineConfig({
     resolve: {
         alias: {
             '@example/indexeddb-adapter': path.resolve(__dirname, '../storage-adapters/indexeddb-adapter.ts'),
-            '@privacyresearch/libsignal-protocol-typescript': path.resolve(repoRoot, 'src/index.ts'),
+            '@privacyresearch/libsignal-protocol-typescript': path.resolve(repoRoot, 'src'),
+            '@privacyresearch/libsignal-protocol-typescript/index': path.resolve(repoRoot, 'src/index.ts'),
         },
     },
     server: {

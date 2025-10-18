@@ -52,3 +52,5 @@ The IndexedDB adapter is reused from `examples/storage-adapters/indexeddb-adapte
   worker fails loudly so the issue is caught during development.
 - End-to-end verification runs under Playwright (`yarn test:e2e`), which loads this demo via `yarn preview:pwa-vite` and
   asserts that the Service Worker decrypts messages.
+- The source intentionally imports submodules (e.g., `@privacyresearch/libsignal-protocol-typescript/session-cipher`) so
+  bundlers can tree-shake unused helpers—mirror this pattern in your own PWA builds to keep bundles small.

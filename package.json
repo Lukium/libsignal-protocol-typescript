@@ -30,7 +30,8 @@
     "build:pwa-vite": "vite build --config examples/pwa-vite/vite.config.ts",
     "preview:pwa-vite": "yarn build:pwa-vite && vite preview --config examples/pwa-vite/vite.config.ts --host 127.0.0.1 --port 5174",
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
-    "docs:api": "typedoc --options typedoc.json"
+    "docs:api": "typedoc --options typedoc.json",
+    "bundle:size": "node scripts/measure-bundle-size.mjs"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",
@@ -80,6 +81,21 @@
       "import": "./lib/esm/session-record.js",
       "require": "./lib/cjs/session-record.js",
       "types": "./lib/cjs/session-record.d.ts"
+    },
+    "./session-types": {
+      "import": "./lib/esm/session-types.js",
+      "require": "./lib/cjs/session-types.js",
+      "types": "./lib/cjs/session-types.d.ts"
+    },
+    "./key-helper": {
+      "import": "./lib/esm/key-helper.js",
+      "require": "./lib/cjs/key-helper.js",
+      "types": "./lib/cjs/key-helper.d.ts"
+    },
+    "./signal-protocol-address": {
+      "import": "./lib/esm/signal-protocol-address.js",
+      "require": "./lib/cjs/signal-protocol-address.js",
+      "types": "./lib/cjs/signal-protocol-address.d.ts"
     },
     "./fingerprint-generator": {
       "import": "./lib/esm/fingerprint-generator.js",

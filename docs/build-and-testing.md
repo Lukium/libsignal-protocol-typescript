@@ -96,6 +96,14 @@ Near-term optimization tasks:
 2. Audit `session-cipher` for inline helpers that can migrate into lazily-evaluated modules.
 3. Track gzipped totals after each pass until the primary worker bundle drops below the 100 KB goal.
 
+Bundle smoke test:
+
+```bash
+yarn bundle:size
+```
+
+Current `examples/pwa-vite` output (2025-10-19): **104.16 KiB** gzipped across 3 JavaScript chunks. The script exits non-zero while the target is unmet—treat it as a regression gate once further optimizations land.
+
 ## Continuous Integration
 
 - Workflow: `.github/workflows/ci.yml`

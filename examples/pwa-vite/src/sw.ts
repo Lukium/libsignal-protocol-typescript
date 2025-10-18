@@ -1,10 +1,7 @@
-import {
-    KeyHelper,
-    SessionCipher,
-    SignalProtocolAddress,
-    type DeviceType,
-    type MessageType,
-} from '@privacyresearch/libsignal-protocol-typescript';
+import { KeyHelper } from '@privacyresearch/libsignal-protocol-typescript/key-helper';
+import { SessionCipher, type MessageType } from '@privacyresearch/libsignal-protocol-typescript/session-cipher';
+import { SignalProtocolAddress } from '@privacyresearch/libsignal-protocol-typescript/signal-protocol-address';
+import type { DeviceType } from '@privacyresearch/libsignal-protocol-typescript/session-types';
 import { createIndexedDBSignalProtocolStore, type IndexedDBSignalProtocolStore } from '@example/indexeddb-adapter';
 
 declare const self: ServiceWorkerGlobalScope;

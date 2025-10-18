@@ -11,7 +11,8 @@
     "baseUrl": ".",
     "paths": {
       "@example/indexeddb-adapter": ["../storage-adapters/indexeddb-adapter"],
-      "@privacyresearch/libsignal-protocol-typescript": ["../../src/index"]
+      "@privacyresearch/libsignal-protocol-typescript": ["../../src/index"],
+      "@privacyresearch/libsignal-protocol-typescript/*": ["../../src/*"]
     },
     "types": ["vite/client"]
   },

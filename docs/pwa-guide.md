@@ -117,8 +117,10 @@ Use `navigator.serviceWorker.register('/sw.js', { type: 'module' })` from the ma
 ## 5. Bundle Size Considerations
 
 - Import from the ESM build (`import { SessionBuilder } from '@privacyresearch/libsignal-protocol-typescript'`) to leverage tree-shaking.
+- Prefer subpath imports (e.g., `@privacyresearch/libsignal-protocol-typescript/session-cipher`) to keep bundlers from pulling unused helpers.
 - Exclude optional test utilities using bundler aliasing (`resolve.alias` in Vite/Webpack).
 - Monitor bundle size; aim for <100 KB gzipped by deferring unused helpers (Phase 2 task).
+- Use `yarn bundle:size` to rebuild the demo and report current gzipped totals.
 
 ## 6. Security Notes
 
