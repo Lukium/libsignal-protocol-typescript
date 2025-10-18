@@ -1,4 +1,10 @@
-import { SessionRecord, keyPairArrayBufferToString, keyPairStirngToArrayBuffer } from '../session-record';
+import {
+    SessionRecord,
+    keyPairArrayBufferToString,
+    keyPairStirngToArrayBuffer,
+    sessionTypeArrayBufferToString,
+    sessionTypeStringToArrayBuffer,
+} from '../session-record';
 import { BaseKeyType, ChainType, SessionType } from '../session-types';
 import * as util from '../helpers';
 
@@ -220,5 +226,48 @@ describe('SessionRecord edge cases', () => {
             };
         }
         expect(() => record.removeOldChains(session)).toThrow('invalid index for chain');
+    });
+
+    test('migration handles missing registration id with open session', () => {
+        const record = new SessionRecord();
+        record.updateSessionState(createSession());
+        const parsed = JSON.parse(record.serialize());
+        const sessionKey = Object.keys(parsed.sessions)[0];
+        parsed.sessions[sessionKey].registrationId = undefined;
+        parsed.version = undefined;
+        const legacy = JSON.stringify(parsed);
+        expect(() => SessionRecord.deserialize(legacy)).not.toThrow();
+    });
+
+    test('updateSessionState rejects missing base key', () => {
+        const record = new SessionRecord();
+        const session = createSession({
+            indexInfo: {
+                baseKey: undefined,
+                baseKeyType: BaseKeyType.THEIRS,
+                remoteIdentityKey: baseKey,
+                closed: -1,
+            },
+        });
+        expect(() => record.updateSessionState(session)).toThrow('invalid index for session');
+    });
+
+    test('session type conversions round trip complex structure', () => {
+        const complex = createSession({
+            pendingPreKey: { baseKey, preKeyId: 7, signedKeyId: 11 },
+            oldRatchetList: [{ ephemeralKey: otherKey, added: 4 }],
+            chains: {
+                foo: {
+                    chainType: ChainType.RECEIVING,
+                    chainKey: { counter: 3, key: otherKey },
+                    messageKeys: { 7: baseKey },
+                },
+            },
+        });
+        const asString = sessionTypeArrayBufferToString(complex);
+        const restored = sessionTypeStringToArrayBuffer(asString);
+        expect(restored.pendingPreKey?.preKeyId).toBe(7);
+        expect(restored.chains.foo.chainKey.counter).toBe(3);
+        expect(util.arrayBufferToString(restored.chains.foo.messageKeys[7])).toBe(util.arrayBufferToString(baseKey));
     });
 });

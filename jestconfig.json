@@ -8,7 +8,13 @@
   "testEnvironment": "./src/__test-utils__/custom-jest-environment.js",
   "maxWorkers": 1,
   "collectCoverage": true,
-  "collectCoverageFrom": ["src/**/*.ts", "!src/**/*.test.ts", "!src/__test__/**", "!src/__test-utils__/**"],
+  "collectCoverageFrom": [
+    "src/**/*.ts",
+    "!src/**/*.test.ts",
+    "!src/__test__/**",
+    "!src/__test-utils__/**",
+    "!src/protobuf/**"
+  ],
   "coverageDirectory": "coverage",
   "coverageReporters": ["text", "lcov", "html"],
   "coverageThreshold": {
