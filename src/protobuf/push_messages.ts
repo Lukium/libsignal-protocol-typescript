@@ -1,5 +1,6 @@
 import { Root, Type, Writer } from 'protobufjs/light';
 import type { INamespace } from 'protobufjs';
+import { fromByteArray as base64FromUint8Array, toByteArray as base64ToUint8Array } from 'base64-js';
 import pushJson from './push_messages.json';
 
 const root = Root.fromJSON(pushJson as INamespace);
@@ -37,33 +38,10 @@ const toOptionalSafeInteger = (value: unknown): number | undefined => {
     return num;
 };
 
-const bytesFromBase64 = (b64: string): Uint8Array => {
-    if (typeof atob === 'function') {
-        const binary = atob(b64);
-        const bytes = new Uint8Array(binary.length);
-        for (let i = 0; i < binary.length; i += 1) {
-            bytes[i] = binary.charCodeAt(i);
-        }
-        return bytes;
-    }
+const bytesFromBase64 = (b64: string): Uint8Array => base64ToUint8Array(b64);
 
-    const buffer = Buffer.from(b64, 'base64');
-    return new Uint8Array(buffer.buffer, buffer.byteOffset, buffer.byteLength);
-};
-
-const base64FromBytes = (bytes: Uint8Array | undefined): string | undefined => {
-    if (!bytes) {
-        return undefined;
-    }
-    if (typeof btoa === 'function') {
-        let binary = '';
-        bytes.forEach((b) => {
-            binary += String.fromCharCode(b);
-        });
-        return btoa(binary);
-    }
-    return Buffer.from(bytes).toString('base64');
-};
+const base64FromBytes = (bytes: Uint8Array | undefined): string | undefined =>
+    bytes ? base64FromUint8Array(bytes) : undefined;
 
 interface Codec<T> {
     create(base?: Partial<T>): T;
