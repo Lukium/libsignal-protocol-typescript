@@ -220,7 +220,7 @@
 - [ ] **Run security audit**
 
   ```bash
-  yarn audit
+  corepack yarn npm audit
   ```
 
 - [ ] **Review outdated packages**
@@ -250,9 +250,8 @@
     - Document if replacement needed
 
   - [ ] `@privacyresearch/libsignal-protocol-protobuf-ts`
-    - Check if protobuf definitions are current
-    - Compare with official Signal protobuf
-    - Document update plan
+    - ✅ Updated `ts-proto` → `protobufjs@7.x` (lockfile patched)
+    - ❌ Bundle still at v0.0.9; plan to regenerate or replace
 
   - [ ] `base64-js`
     - Consider native base64 APIs

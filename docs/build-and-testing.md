@@ -54,5 +54,7 @@ yarn format                # prettier write pass
 ## Outstanding Work
 
 - Decide on Yarn Berry permanence; confirm lockfile stability.
-- Wire GitHub Actions once branch coverage ≥80%.
+- Audit runtime dependencies:
+  - ✅ Patched transitive CVEs via Yarn `resolutions`.
+  - ❌ Pending: regenerate `@privacyresearch/libsignal-protocol-protobuf-ts` with `protobufjs@7.x` (current 0.0.9 bundle still pulls 6.x).
 - Publish a beta package after documenting CJS/ESM usage examples in the README.
