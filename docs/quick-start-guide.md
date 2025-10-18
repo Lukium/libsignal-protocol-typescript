@@ -53,7 +53,7 @@ yarn test --coverage
 - ✅ TypeScript strict mode enabled (shared tsconfig)
 - 🔄 Protocol compliance verified (extend integration vectors)
 - 🔄 PWA optimizations complete (browser storage adapters outstanding → IndexedDB adapter shipped)
-- 🔄 Bundle size <100KB (measure after tree-shaking pass)
+- 🔄 Bundle size <100KB *(Phase 2 ceiling adjusted to ≤110 KB; sub-100 KB slated for Phase 3)*
 
 ### Phase 3 Goals
 
@@ -83,9 +83,9 @@ yarn test --coverage
 ## Testing Strategy
 
 1. ✅ Fix existing tests (Week 1)
-2. 🔄 Add protocol compliance tests (Week 5-6)
-3. 🔄 Add browser tests (Week 7-8)
-4. 🔄 Add performance benchmarks (Week 9)
+2. ✅ Add protocol compliance tests (Week 5-6 – multi-device IndexedDB harness)
+3. ✅ Add browser tests (Week 7-8 – Playwright smoke test)
+4. ✅ Add performance benchmarks (Week 9 – `yarn benchmark`)
 
 Current coverage: 92% statements / 81% branches  
 Target: Maintain ≥90% statements / ≥80% branches
@@ -134,6 +134,12 @@ Target: Maintain ≥90% statements / ≥80% branches
 ### Issue: Bundle Too Large
 
 **Solution**: Tree-shaking, code splitting, lazy loading
+
+### Quick commands
+
+- `yarn example:pwa-vite` – run the Vite + Service Worker demo (after `yarn build`)
+- `yarn test:e2e` – execute Playwright smoke tests
+- `yarn benchmark` – capture baseline performance metrics
 
 ## Quick Commands
 

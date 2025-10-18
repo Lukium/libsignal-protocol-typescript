@@ -17,7 +17,7 @@
 - [x] **Upgrade test vectors**
   - Add fresh fixtures for session-cipher error branches and archival flows
   - Expand coverage for `session-record.ts` edge cases (target >90% branches)
-- [ ] **Introduce integration harness**
+- [x] **Introduce integration harness**
   - Create `src/__test__/integration/` with multi-device flows
   - Automate scenario for pre-key rotation + identity change detection
 - [x] **Document coverage deltas**
@@ -48,7 +48,7 @@
 - [ ] **Bundle size reduction**
   - Target <110 KB gzipped for primary ESM bundle (Phase 2). Sub-100 KB deferred to Phase 3.
   - Document before/after sizes in `docs/build-and-testing.md`
-- [ ] **Dual build validation**
+- [ ] **Dual build validation** *(Node ESM loader still requires extension mapping; bundler paths verified in demos.)*
   - Add smoke tests executing built artifacts (`node` + `browser` env via `esbuild`)
   - Confirm `.d.ts` maps reference correct sources
 - [x] **Release tooling**
@@ -57,7 +57,7 @@
 
 ## Week 7: API Experience & Documentation
 
-- [ ] **API reference site**
+- [x] **API reference site**
   - Generate docs (e.g., TypeDoc) under `docs/api/`
   - Publish via GitHub Pages (or similar) with navigation from `docs/README.md`
 - [ ] **Guide expansion**
