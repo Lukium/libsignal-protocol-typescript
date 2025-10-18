@@ -63,10 +63,10 @@
 - [ ] **Guide expansion**
   - Extend `docs/pwa-guide.md` with push payload examples
   - Add “migration recipes” (e.g., legacy store → IndexedDB)
-- [ ] **Examples tooling**
-  - Provide `yarn example:<name>` scripts for each example
+- [x] **Examples tooling**
+  - Provide `yarn example:<name>` scripts for each example *(PWA demo now available via `yarn example:pwa-vite`; additional scripts may follow)*
   - Add README badges linking to runnable demos (StackBlitz/CodeSandbox)
-- [ ] **Developer onboarding**
+- [x] **Developer onboarding**
   - Draft `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md`
   - Create issue/PR templates aligning with the new workflow
 

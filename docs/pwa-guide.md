@@ -70,6 +70,18 @@ self.addEventListener('push', async (event) => {
 });
 ```
 
+Example push payload (JSON):
+
+```json
+{
+  "ciphertext": "BASE64_ENCRYPTED_BYTES",
+  "timestamp": 1739898720,
+  "sender": "alice.1"
+}
+```
+
+When a push arrives, fetch the ciphertext with `event.data?.arrayBuffer()`, decrypt via `SessionCipher.decryptWhisperMessage`, and post the plaintext to all clients.
+
 ```ts
 // vite.config.ts
 import { defineConfig } from 'vite';
@@ -107,6 +119,8 @@ export default {
 ```
 
 Use `navigator.serviceWorker.register('/sw.js', { type: 'module' })` from the main thread and Vite will emit both the app bundle and the worker chunk. The library’s runtime now lazily falls back to `msrcrypto` only when `globalThis.crypto` is absent, so modern browsers avoid shipping the legacy asm.js payload. The alias above guarantees the worker build fails fast if the environment is missing WebCrypto support.
+
+Launch the demo locally with `yarn example:pwa-vite` after running `yarn build`.
 
 ## 4. Offline Support
 

@@ -32,7 +32,8 @@
     "test:e2e": "PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers playwright test",
     "docs:api": "typedoc --options typedoc.json",
     "bundle:size": "node scripts/measure-bundle-size.mjs",
-    "release:beta": "yarn lint && yarn test && yarn bundle:size && yarn build"
+    "release:beta": "yarn lint && yarn test && yarn bundle:size && yarn build",
+    "example:pwa-vite": "yarn dev:pwa-vite"
   },
   "devDependencies": {
     "@commitlint/cli": "^20.1.0",

@@ -66,6 +66,7 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 - Browser automation + API documentation commands
 - Release workflow (`yarn release:beta`) and bundle-size guard rails
 - GitHub Pages steps for publishing the API (see [api-publishing.md](./api-publishing.md))
+- Example scripts (e.g., `yarn example:pwa-vite` to boot the Vite demo)
 
 **Share this** with anyone wiring the library into CI or release tooling.
 
