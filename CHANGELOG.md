@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## Unreleased
 
+- Bumped package scope to `@lukium` and added browser esbuild smoke testing to release flow.
+
+## 0.1.0-beta.1 (2025-10-19)
+
+- Ported the project to `@lukium/libsignal-protocol-typescript`.
+- Added optional `setLogger`/`getLogger` hooks and browser-compatible bundle validation (`yarn smoke:browser`).
+- Documented the security review checklist and updated all guides for the new scope and commands.
 - Added IndexedDB multi-device integration harness exercising SessionBuilder/SessionCipher real flows.
 - Shipped Vite PWA demo with Playwright automation and README guidance.
 - Introduced TypeDoc configuration and `yarn docs:api` command for regenerating API docs.
