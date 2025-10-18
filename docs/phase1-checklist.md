@@ -249,9 +249,8 @@
     - Verify security
     - Document if replacement needed
 
-  - [x] `@privacyresearch/libsignal-protocol-protobuf-ts`
-    - ✅ Updated `ts-proto` → `protobufjs@7.x` (lockfile patched)
-    - ❌ Bundle still at v0.0.9; plan to regenerate or replace
+  - [x] `protobufjs`
+    - ✅ Adopted as runtime for in-repo protobuf codecs (replacing external bundle)
 
   - [x] `base64-js`
     - Consider native base64 APIs

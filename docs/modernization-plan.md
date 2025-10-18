@@ -1,19 +1,20 @@
 # Signal Protocol TypeScript Library - Modernization Plan
 
 **Version:** 1.0
-**Date:** 2025-10-17
-**Status:** Planning Phase
+**Date:** 2025-10-18
+**Status:** Execution (Phase 2)
 
 ## Executive Summary
 
 This document outlines the comprehensive modernization plan for the forked `libsignal-protocol-typescript` library. The primary goals are to modernize the codebase against the latest Signal Protocol specifications, ensure functionality for Progressive Web Application (PWA) deployment, and address the significant gap created by Signal's deprecation of their JavaScript implementation.
 
-### Progress Snapshot (2025-10-17)
+### Progress Snapshot (2025-10-18)
 
-- ✅ Jest environment repaired; 210 specs passing with 92% statement / 81% branch coverage (threshold restored to 80%).
+- ✅ Jest environment repaired; 223 specs passing with 92% statement / 80% branch coverage (threshold restored to 80%).
 - ✅ Dual CJS/ESM build emitting declarations and source maps through Yarn Berry scripts.
 - ✅ CI/CD live on GitHub Actions (Node 18 & 20: lint → typecheck → test → build, coverage artifact uploaded; Jest still pinned to maxWorkers=1).
-- ✅ Dependency audit (transitive CVEs resolved via Yarn resolutions; protobuf bundle update pending)
+- ✅ Dependency audit (transitive CVEs resolved via Yarn resolutions; protobuf bundle refreshed from tracked `proto/` sources)
+- ✅ Session cipher and curve negative-path tests expanded to stabilize regenerated protobufs.
 - ❌ PWA storage adapters, bundle-size reduction, and PQXDH support remain future milestones.
 
 ### Key Findings
@@ -55,7 +56,7 @@ Given the lack of official browser support, we will **continue maintaining and m
 #### Production Dependencies
 
 - `@privacyresearch/curve25519-typescript` ^0.0.12
-- `@privacyresearch/libsignal-protocol-protobuf-ts` ^0.0.9
+- `protobufjs` ^7.5.4 (runtime for in-repo protobuf codecs)
 - `base64-js` ^1.5.1
 
 #### Key Issues
@@ -66,7 +67,7 @@ Given the lack of official browser support, we will **continue maintaining and m
 
 ### 1.4 Current Test Status
 
-**Passing** – 187 specs across 14 suites succeed using the repaired Jest environment (`TestEnvironment` wrapper in `src/__test-utils__/custom-jest-environment.js`). Latest coverage snapshot: 88% statements / 69% branches / 93% functions / 88% lines. The remaining gap is concentrated in `session-cipher.ts`, `session-builder.ts`, and `session-record.ts`.
+**Passing** – 223 specs across 17 suites succeed using the repaired Jest environment (`TestEnvironment` wrapper in `src/__test-utils__/custom-jest-environment.js`). Latest coverage snapshot: 92% statements / 80% branches / 94% functions / 92% lines. The remaining gap is concentrated in `session-cipher.ts`, `session-builder.ts`, and `session-record.ts`.
 
 ### 1.5 Core Implementation Files
 
@@ -301,7 +302,7 @@ Phase 3: Enhancement (Weeks 9-12)
 - [ ] Update dev dependencies to latest stable versions
 - [ ] Evaluate production dependencies:
   - `@privacyresearch/curve25519-typescript` - Keep or replace?
-  - `@privacyresearch/libsignal-protocol-protobuf-ts` - Update protobuf definitions
+  - Protobuf codecs - Regenerate from upstream `wire.proto` / `push_messages.proto`
   - `base64-js` - Consider native base64 APIs
 - [ ] Document dependency decisions
 

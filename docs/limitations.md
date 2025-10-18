@@ -7,7 +7,7 @@ This document captures the major gaps and caveats that apply to `@privacyresearc
 ## Known Issues
 
 - **Legacy Crypto Implementations**: Curve25519 operations still rely on the asm.js build of `msrcrypto`. An updated WebAssembly-backed implementation is planned but not yet available.
-- **Outdated Protobuf Bundle**: Messaging protobufs (`@privacyresearch/libsignal-protocol-protobuf-ts`) match the 0.0.9 schema. Regeneration against current Signal specs is queued for after the dependency audit.
+- **Schema Alignment**: Protobuf codecs now derive from upstream Signal `wire.proto`; monitor for new message fields (e.g., Kyber updates) and regenerate JSON descriptors as needed.
 - **Session Edge Cases**: Certain archival/error paths (`session-cipher`, `session-record`) remain under-tested; additional vectors are needed for rare failure branches identified during coverage reviews.
 - **Console Noise**: Internal curve validation logs warning/error messages when malformed keys are encountered. These mirror legacy behaviour and may be noisy in production logs until a structured logger is introduced.
 

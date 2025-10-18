@@ -1,6 +1,6 @@
 # Dependency Decisions
 
-_Last reviewed: 2025-10-17_
+_Last reviewed: 2025-10-18_
 
 This document captures the current dependency set for `@privacyresearch/libsignal-protocol-typescript`, along with the rationale for keeping each package during Phase 1. All version numbers reflect the values in `package.json` at the time of review. A `yarn npm audit` check reports **no known vulnerabilities**.
 
@@ -9,8 +9,8 @@ This document captures the current dependency set for `@privacyresearch/libsigna
 | Package | Current Version | Decision | Notes |
 | ------- | --------------- | -------- | ----- |
 | `@privacyresearch/curve25519-typescript` | ^0.0.12 | ✅ Keep | Provides the asm.js Curve25519 bindings required by the legacy Signal implementation. No newer release is published; replacing it would require a full WASM migration, which is out of Phase 1 scope but will be tracked for Phase 2 research. |
-| `@privacyresearch/libsignal-protocol-protobuf-ts` | ^0.0.9 | ✅ Keep (monitor) | Supplies the generated protobuf message types. The bundled definitions are slightly behind the latest spec; we plan to regenerate the bundle once upstream protocol updates are finalized. A follow-up issue will capture the regeneration work. |
 | `base64-js` | ^1.5.1 | ✅ Keep | Lightweight browser-compatible Base64 utilities. Native `atob`/`btoa` lack typed-array support and fail in Node 18 without polyfills; keeping this dependency avoids cross-runtime discrepancies. |
+| `protobufjs` | ^7.5.x | ✅ Keep | Powers the regenerated Signal Protocol protobuf codecs (Signal + push content) compiled from upstream schemas. Normalization helper added to coerce `Long` outputs to native numbers. |
 
 ### Runtime Update Check (2025-10-17)
 
@@ -19,8 +19,8 @@ Latest versions captured with `yarn npm info <package> --fields version`.
 | Package | Latest Version | Status |
 | ------- | -------------- | ------ |
 | `@privacyresearch/curve25519-typescript` | 0.0.12 | Up-to-date |
-| `@privacyresearch/libsignal-protocol-protobuf-ts` | 0.0.9 | Up-to-date (regeneration planned) |
 | `base64-js` | 1.5.1 | Up-to-date |
+| `protobufjs` | 7.5.4 | Up-to-date |
 
 ## Development Dependencies
 
@@ -50,9 +50,10 @@ Version data captured via `yarn npm info <package> --fields version` on 2025-10-
 | `@types/jest` | ^29.5.14 | 30.0.0 | Blocked on Jest 30 migration. |
 | `eslint-plugin-prettier` | 5.5.4 | 5.5.4 | Up-to-date; re-check on next minor. |
 | `@types/base64-js` | ^1.3.2 | 1.5.0 | Update with next TypeScript minor when type tightening is validated. |
+| `protobufjs` | 7.5.4 | 7.5.4 | Up-to-date; regenerate codecs from `proto/*.proto` when upstream schemas change. |
 
 ## Next Actions
 
 - Track automated update checks (`yarn up --mode update-lockfile`) once lint/test automation is stable.
-- File follow-up issues for regenerating the protobuf bundle and evaluating a WASM-backed Curve25519 implementation.
+- Track upstream Signal proto changes and rerun `pbjs` generation (sources now tracked under `proto/`) as part of release prep. Document regeneration steps in the repo.
 - Re-run `yarn npm audit` as part of the weekly maintenance rotation.

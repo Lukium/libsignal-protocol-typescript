@@ -21,11 +21,15 @@ yarn format                # prettier write pass
 ## Coverage & Quality Gates
 
 - Jest currently enforces **80/80/80/80** (statements/lines/functions/branches).
-- Latest run: **92.0% statements / 80.7% branches / 94.0% functions / 91.9% lines** across 210 specs.
-- Remaining hot spots:
-  1. `session-cipher.ts` deep ratchet/error branches (lines 190-480)
-  2. `session-record.ts` legacy migration + archival branches (lines 30-270)
-  3. `internal/crypto.ts` fallback paths inside HKDF + MAC helpers
+- Latest run (2025-10-18): **92.1% statements / 80.6% branches / 94.0% functions / 92.0% lines** across 223 specs.
+- What’s left to exercise:
+  1. `session-cipher.ts` archival/decryption retry loops (lines 250-350, 390+)
+  2. `session-record.ts` legacy migration branches (lines 30-220)
+  3. `internal/crypto.ts` HKDF fallback + MAC error paths
+
+Recent additions:
+- Added async/sync negative-path coverage for `internal/curve.ts`.
+- Expanded `session-cipher-errors.test.ts` to cover ratchet setup failures and empty session queues.
 
 `maxWorkers` is still pinned to 1 because Jest workers continue to crash when run in parallel; revisit after upstream investigation.
 
@@ -60,5 +64,5 @@ yarn format                # prettier write pass
 - Decide on Yarn Berry permanence; confirm lockfile stability.
 - Audit runtime dependencies:
   - ✅ Patched transitive CVEs via Yarn `resolutions`.
-  - ❌ Pending: regenerate `@privacyresearch/libsignal-protocol-protobuf-ts` with `protobufjs@7.x` (current 0.0.9 bundle still pulls 6.x).
+- 🚧 Signal protobuf bundle: `proto/wire.proto` tracked and codecs normalized (2025-10-18); push content regeneration remains pending (`proto/push_messages.proto`).
 - Publish a beta package after documenting CJS/ESM usage examples in the README.

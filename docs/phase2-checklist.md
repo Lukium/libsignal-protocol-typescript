@@ -10,16 +10,17 @@
 ## Week 4: Protocol Fidelity & Test Coverage
 
 - [ ] **Regenerate protobuf bundle**
-  - File: `@privacyresearch/libsignal-protocol-protobuf-ts`
-  - Use latest upstream schemas (`protobufjs@7.x`)
+  - Files: `proto/wire.proto`, `proto/push_messages.proto`
+  - Use latest upstream schemas (`protobufjs` JSON descriptors + wrappers)
   - Update TypeScript typings and ensure compatibility with existing code
-- [ ] **Upgrade test vectors**
+  - _Status 2025-10-18_: `wire.proto` refreshed and codecs normalized; push content still outstanding.
+- [x] **Upgrade test vectors**
   - Add fresh fixtures for session-cipher error branches and archival flows
   - Expand coverage for `session-record.ts` edge cases (target >90% branches)
 - [ ] **Introduce integration harness**
   - Create `src/__test__/integration/` with multi-device flows
   - Automate scenario for pre-key rotation + identity change detection
-- [ ] **Document coverage deltas**
+- [x] **Document coverage deltas**
   - Update `docs/build-and-testing.md` with new hot spots
   - Flag any remaining uncovered lines for Phase 3 refactors
 
