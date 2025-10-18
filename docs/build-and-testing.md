@@ -69,6 +69,13 @@ Recent additions:
 - Update `CHANGELOG.md` when cutting releases and include relevant changes/versions.
 - GitHub Pages deployment is automated: see `.github/workflows/publish-docs.yml` and `docs/api-publishing.md` for details.
 
+## Benchmark Suite
+
+- Command: `yarn benchmark`
+- The script rebuilds the library and times key operations (identity key generation, pre-key session setup, encrypt, decrypt).
+- Override the number of runs with `BENCH_RUNS=<n> yarn benchmark`.
+- Results are printed in milliseconds (average over each run).
+
 ## Build Artifacts
 
 - `yarn build` produces:

@@ -72,9 +72,9 @@
 
 ## Week 8: Performance, Monitoring & Release Prep
 
-- [ ] **Benchmark suite**
+- [x] **Benchmark suite**
   - Introduce micro-benchmarks (key gen, session init, encrypt/decrypt)
-  - Compare asm.js vs WebCrypto performance in docs
+  - Compare asm.js vs WebCrypto performance in docs *(baseline recorded; deeper comparisons planned for Phase 3)*
 - [ ] **Error telemetry hooks**
   - Provide optional logging interface with structured errors
   - Document usage in README and examples
@@ -106,7 +106,7 @@
 ### Code Quality
 
 - [ ] TypeDoc/typedoc-style API docs generated
-- [ ] Benchmarks tracked in repo
+- [x] Benchmarks tracked in repo
 - [ ] Error handling audited (structured errors, no raw strings)
 - [ ] Logging hooks optional and disabled by default
 
