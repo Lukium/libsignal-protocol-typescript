@@ -57,5 +57,6 @@
     "lib/esm/**/*",
     "lib/*.d.ts",
     "lib/msrcrypto.js"
-  ]
+  ],
+  "packageManager": "yarn@4.10.3"
 }
