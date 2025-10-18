@@ -7,7 +7,6 @@
   "repository": "https://github.com/privacyresearchgroup/libsignal-protocol-typescript",
   "author": "Rolfe Schmidt <rolfeschmidt@gmail.com>",
   "license": "GPL-3.0-only",
-  "packageManager": "yarn@4.5.3",
   "scripts": {
     "test": "jest --config jestconfig.json",
     "test:watch": "jest --config jestconfig.json --watch",
