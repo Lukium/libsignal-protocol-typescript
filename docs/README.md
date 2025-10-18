@@ -56,6 +56,16 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 
 **Share this** with anyone wiring the library into CI or release tooling.
 
+### [Dependency Decisions](./dependencies.md)
+
+**Current status log** for runtime and development dependencies:
+
+- Audit results and security notes
+- Version rationale for each package
+- Follow-up tasks for updates or replacements
+
+**Review this** before modifying dependencies or running upgrade campaigns.
+
 ## Key Findings Summary
 
 ### Critical Discovery

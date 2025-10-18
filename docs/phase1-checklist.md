@@ -179,7 +179,7 @@
   act -j quality
   ```
 
-- [ ] **Create PR template**
+- [x] **Create PR template**
   - File: `.github/PULL_REQUEST_TEMPLATE.md`
 
   ```markdown
@@ -217,16 +217,16 @@
 
 ### Day 1-2: Dependency Audit
 
-- [ ] **Run security audit**
+- [x] **Run security audit**
 
   ```bash
   corepack yarn npm audit
   ```
 
-- [ ] **Review outdated packages**
+- [x] **Review outdated packages**
 
   ```bash
-  yarn outdated
+  yarn npm info <package> --fields version
   ```
 
 - [ ] **Update dev dependencies** (test each update)
@@ -257,7 +257,7 @@
     - Consider native base64 APIs
     - Document decision to keep or replace
 
-- [ ] **Document dependency decisions**
+- [x] **Document dependency decisions**
   - File: `docs/dependencies.md`
   - List each dependency
   - Explain why kept or replaced
@@ -308,7 +308,7 @@
   }
   ```
 
-- [ ] **Add Prettier ignore file**
+- [x] **Add Prettier ignore file**
   - File: `.prettierignore`
 
   ```
@@ -318,7 +318,7 @@
   *.md
   ```
 
-- [ ] **Set up Husky for Git hooks**
+- [x] **Set up Husky for Git hooks**
 
   ```bash
   yarn add -D husky lint-staged
@@ -326,7 +326,7 @@
   npx husky add .husky/pre-commit "yarn lint-staged"
   ```
 
-- [ ] **Configure lint-staged**
+- [x] **Configure lint-staged**
   - Add to `package.json`:
 
   ```json
@@ -338,14 +338,14 @@
   }
   ```
 
-- [ ] **Add commitlint (optional but recommended)**
+- [x] **Add commitlint (optional but recommended)**
 
   ```bash
   yarn add -D @commitlint/cli @commitlint/config-conventional
   npx husky add .husky/commit-msg 'npx --no -- commitlint --edit "$1"'
   ```
 
-- [ ] **Create commitlint config**
+- [x] **Create commitlint config**
   - File: `.commitlintrc.json`
 
   ```json
