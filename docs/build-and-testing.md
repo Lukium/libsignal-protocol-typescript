@@ -42,7 +42,7 @@ yarn format                # prettier write pass
 - Workflow: `.github/workflows/ci.yml`
 - Matrix: Node.js 18.x and 20.x
 - Steps: `yarn install --immutable` → `yarn lint` → `yarn typecheck` → `yarn test --coverage` → `yarn build`
-- Corepack: workflow runs `corepack enable` followed by `corepack prepare yarn@4.5.3 --activate` to match the repo's `packageManager`
+- Yarn: workflow installs Yarn 4.5.3 (`npm install --global yarn@4.5.3`) to satisfy the `packageManager` field
 - Artifact: `coverage/lcov.info` uploaded from the Node 20 run for downstream reporting
 - Caveat: Jest still runs with `maxWorkers: 1` due to upstream worker crash; keep this config until the Jest issue is resolved.
 
