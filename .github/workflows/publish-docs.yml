@@ -17,7 +17,7 @@ jobs:
           node-version: 18
           cache: 'yarn'
       - run: corepack enable
-      - run: corepack prepare yarn@4.10.3 --activate
+      - run: corepack use yarn@4.10.3
       - run: yarn install --immutable
       - run: yarn docs:api
       - name: Deploy to GitHub Pages
