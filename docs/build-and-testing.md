@@ -33,12 +33,34 @@ Recent additions:
 
 `maxWorkers` is still pinned to 1 because Jest workers continue to crash when run in parallel; revisit after upstream investigation.
 
+## Integration Harness
+
+- Location: `src/__test__/integration/multi-device-indexeddb.test.ts`
+- Scenario coverage:
+  - Ratchet state sharing across devices using the IndexedDB store
+  - Pre-key rotation catch-up on newly synced devices
+  - Identity key change detection (ensures `Identity key changed` errors propagate)
+  - Session persistence after IndexedDB reopen cycles
+- Backend: exercises the first-party IndexedDB adapter from `examples/storage-adapters/indexeddb-adapter.ts`
+- Run isolated: `yarn test -- src/__test__/integration/multi-device-indexeddb.test.ts`
+- Harness assumes `fake-indexeddb` (via Jest’s Node environment) and mirrors the PWA storage surface; keep this suit green before wiring Playwright/browser automation in Phase 2.
+
+## Browser Automation
+
+- Framework: Playwright (`@playwright/test`)
+- Config: `playwright.config.ts` spins up the Vite demo (`examples/pwa-vite`) via `yarn preview:pwa-vite`
+- Test entry: `tests/playwright/pwa-vite.spec.ts`
+- Install browsers once per environment: `PLAYWRIGHT_BROWSERS_PATH=.playwright-browsers npx playwright install chromium`
+- Execute suite: `yarn test:e2e`
+- Validates that the Service Worker negotiates a session, decrypts worker responses, and posts results back to the main thread.
+
 ## Build Artifacts
 
 - `yarn build` produces:
   - `lib/cjs/**` – CommonJS + `.d.ts` + sourcemaps
   - `lib/esm/**` – ES2020 modules + `.d.ts` + sourcemaps
   - `lib/msrcrypto.js` – legacy fallback injected at runtime
+- Package metadata declares `"sideEffects": ["lib/msrcrypto.js"]` so bundlers can tree-shake everything else by default, and subpath exports (`./session-cipher`, `./fingerprint-generator`, etc.) let bundlers import only the modules required for a given bundle.
 - Current bundle footprint (2025-10-17):
   - `lib/cjs` ≈ **344 KB** on disk
   - `lib/esm` ≈ **328 KB** on disk
@@ -49,6 +71,22 @@ Recent additions:
   node -e "const lib = require('./lib/cjs'); console.log(Object.keys(lib))"
   node -e "import('./lib/esm/index.js').then(m => console.log(Object.keys(m)))"
   ```
+
+### Bundle Hot Spots (2025-10-19)
+
+| Module                             | Raw size | Gzipped | Notes                                |
+| ---------------------------------- | -------- | ------- | ------------------------------------ |
+| `lib/esm/session-cipher.js`        | 22,174 B | 4,676 B | Core Double Ratchet implementation   |
+| `lib/esm/session-builder.js`       | 12,339 B | 2,855 B | X3DH handshake logic                 |
+| `lib/esm/session-record.js`        | 14,416 B | 2,937 B | Session persistence helpers          |
+| `lib/esm/internal/crypto.js`       | 4,763 B  | 1,474 B | WebCrypto + HKDF wrapper             |
+| `lib/esm/protobuf/push_messages.js`| 15,157 B | 3,374 B | Generated codec; candidates for split|
+
+Near-term optimization tasks:
+
+1. Split optional helpers/protobuf codecs behind secondary entry points so bundlers can omit them when not needed.
+2. Audit `session-cipher` for inline helpers that can migrate into lazily-evaluated modules.
+3. Track gzipped totals after each pass until the primary worker bundle drops below the 100 KB goal.
 
 ## Continuous Integration
 

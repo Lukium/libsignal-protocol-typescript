@@ -1,3 +1,8 @@
 node_modules
 lib
 AGENTS.md
+playwright-report
+test-results
+.playwright-browsers
+coverage
+.yarn/global

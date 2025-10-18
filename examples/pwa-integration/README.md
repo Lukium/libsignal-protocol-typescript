@@ -3,7 +3,8 @@
 This example illustrates how to wire the library into a Progressive Web App with
 Service Worker + IndexedDB storage. It does not ship a bundled build; instead it
 provides TypeScript sources you can adapt to your own tooling (Vite, Webpack,
-etc.).
+etc.). If you want a runnable Vite setup out of the box, see
+`../pwa-vite/`.
 
 ## Files
 

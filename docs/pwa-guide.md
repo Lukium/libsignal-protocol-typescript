@@ -23,14 +23,90 @@ This guide explains how to embed `@privacyresearch/libsignal-protocol-typescript
 examples/storage-adapters/
 ├── indexeddb-adapter.ts    # Ready-made store factory (createIndexedDBSignalProtocolStore)
 └── README.md               # Usage instructions and helper APIs
+
+examples/pwa-vite/
+├── src/main.ts             # Main thread wiring (Vite demo)
+├── src/sw.ts               # Service Worker with pre-key handling
+└── vite.config.ts          # ES module worker + msrcrypto shim configuration
 ```
 
 ## 3. Service Worker Integration
 
-- Register the Service Worker with `navigator.serviceWorker.register('/sw.js')` during app bootstrap.
-- Inside `sw.js`, import a build or use `importScripts` for the compiled CommonJS bundle. Prefer ES module workers (`type: 'module'`) for modern browsers.
+- Register the Service Worker with `navigator.serviceWorker.register('/sw.js', { type: 'module' })` during app bootstrap.
+- Use ES module workers so you can `import` from the package without falling back to `importScripts`.
 - Listen for `push` events to fetch incoming encrypted messages. Decrypt using the same IndexedDB store (accessible via `self.indexedDB`).
 - Post decrypted payloads back to the client via `clients.matchAll()` and `client.postMessage`.
+- When the browser provides `globalThis.crypto` (all evergreen browsers do), the library no longer pulls in the legacy `msrcrypto` fallback. If you intentionally bundle the fallback, keep it behind a feature flag so worker builds stay lean.
+
+### 3.1 Vite-first worker setup
+
+The quickest way to validate Service Worker compatibility is to wire an ES module worker in Vite. The snippet below targets Vite 5+ and keeps the legacy `msrcrypto` shim out of the worker bundle.
+
+```ts
+// sw.ts
+import { SessionBuilder, SessionCipher, SignalProtocolAddress } from '@privacyresearch/libsignal-protocol-typescript';
+import { createIndexedDBSignalProtocolStore } from '@privacyresearch/libsignal-protocol-typescript/examples/storage-adapters/indexeddb-adapter';
+
+declare const self: ServiceWorkerGlobalScope;
+
+self.addEventListener('activate', (event) => {
+    event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('push', async (event) => {
+    event.waitUntil(
+        (async () => {
+            const store = await createIndexedDBSignalProtocolStore({ dbName: 'libsignal-worker' });
+            const address = new SignalProtocolAddress('alice', 1);
+            const cipher = new SessionCipher(store, address);
+            const payload = event.data?.arrayBuffer();
+            if (!payload) return;
+            const plaintext = await cipher.decryptWhisperMessage(await payload, 'binary');
+            const clients = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+            clients.forEach((client) => client.postMessage({ type: 'signal:message', payload: plaintext }));
+            store.close();
+        })()
+    );
+});
+```
+
+```ts
+// vite.config.ts
+import { defineConfig } from 'vite';
+
+export default defineConfig({
+    worker: {
+        format: 'es',
+        rollupOptions: {
+            // The library now hydrates `globalThis.crypto` first, so we can skip bundling msrcrypto in workers.
+            external: ['@privacyresearch/libsignal-protocol-typescript/lib/msrcrypto.js'],
+        },
+    },
+    resolve: {
+        alias: {
+            // Optional: provide an explicit shim if a dependency tries to import the fallback module.
+            '@privacyresearch/libsignal-protocol-typescript/lib/msrcrypto.js': '/src/shims/msrcrypto-empty.ts',
+        },
+    },
+});
+```
+
+```ts
+// src/shims/msrcrypto-empty.ts
+const missing = () => {
+    throw new Error('msrcrypto fallback requested. Ensure globalThis.crypto is available before using libsignal.');
+};
+
+export default {
+    subtle: {
+        digest: missing,
+    },
+    getRandomValues: missing,
+    randomUUID: missing,
+};
+```
+
+Use `navigator.serviceWorker.register('/sw.js', { type: 'module' })` from the main thread and Vite will emit both the app bundle and the worker chunk. The library’s runtime now lazily falls back to `msrcrypto` only when `globalThis.crypto` is absent, so modern browsers avoid shipping the legacy asm.js payload. The alias above guarantees the worker build fails fast if the environment is missing WebCrypto support.
 
 ## 4. Offline Support
 
@@ -55,5 +131,6 @@ examples/storage-adapters/
 - Integrate the provided IndexedDB adapter and wire it into `examples/pwa-integration` (Phase 2 ongoing).
 - Add push notification walkthrough with real device registration IDs.
 - Expand automated browser tests to validate worker + IndexedDB interactions.
+- Run `yarn test:e2e` (Playwright) to verify the Vite demo continues to negotiate sessions end-to-end.
 
 Track progress against the Phase 1/2 checklist and log gaps in `docs/limitations.md`.
