@@ -35,6 +35,10 @@ yarn format                # prettier write pass
   - `lib/cjs/**` – CommonJS + `.d.ts` + sourcemaps
   - `lib/esm/**` – ES2020 modules + `.d.ts` + sourcemaps
   - `lib/msrcrypto.js` – legacy fallback injected at runtime
+- Current bundle footprint (2025-10-17):
+  - `lib/cjs` ≈ **344 KB** on disk
+  - `lib/esm` ≈ **328 KB** on disk
+  - Target (Phase 2): <100 KB gzipped after tree-shaking and optional module splits
 - Ensure only these directories are packaged (`package.json > files`).
 - Smoke tests (manual for now):
   ```bash

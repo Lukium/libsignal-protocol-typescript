@@ -16,9 +16,18 @@ export interface MessageType {
     body?: string;
     registrationId?: number;
 }
+/**
+ * Provides Double Ratchet encryption/decryption utilities for a specific peer.
+ * Uses the supplied store for state persistence and handles both normal and
+ * pre-key whisper messages.
+ */
 export class SessionCipher {
     storage: StorageType;
     remoteAddress: SignalProtocolAddress;
+    /**
+     * @param storage Storage implementation backing session state.
+     * @param remoteAddress Target device address (string or SignalProtocolAddress).
+     */
     constructor(storage: StorageType, remoteAddress: SignalProtocolAddress | string) {
         this.storage = storage;
         this.remoteAddress =
@@ -32,6 +41,10 @@ export class SessionCipher {
         return SessionRecord.deserialize(serialized);
     }
 
+    /**
+     * Encrypts a payload for the remote device, returning either a Signal
+     * message or pre-key message depending on session state.
+     */
     encrypt(buffer: ArrayBuffer): Promise<MessageType> {
         return SessionLock.queueJobForNumber(this.remoteAddress.toString(), () => this.encryptJob(buffer));
     }
@@ -208,6 +221,12 @@ export class SessionCipher {
         ratchet.rootKey = masterKey[0];
     }
 
+    /**
+     * Decrypts an inbound pre-key message, creating or updating session state.
+     *
+     * @param buff Encoded message (binary string or ArrayBuffer).
+     * @param encoding Optional encoding hint (defaults to binary).
+     */
     async decryptPreKeyWhisperMessage(buff: string | ArrayBuffer, encoding?: string): Promise<ArrayBuffer> {
         encoding = encoding || 'binary';
         if (encoding !== 'binary') {
@@ -288,6 +307,12 @@ export class SessionCipher {
         }
     }
 
+    /**
+     * Decrypts a standard whisper message using the latest known session.
+     *
+     * @param buff Encoded message (binary string or ArrayBuffer).
+     * @param encoding Optional encoding hint (defaults to binary).
+     */
     decryptWhisperMessage(buff: string | ArrayBuffer, encoding?: string): Promise<ArrayBuffer> {
         encoding = encoding || 'binary';
         if (encoding !== 'binary') {
@@ -326,6 +351,10 @@ export class SessionCipher {
         return SessionLock.queueJobForNumber(address, job);
     }
 
+    /**
+     * Internal helper that performs the actual Double Ratchet decrypt logic for a
+     * given session state.
+     */
     async doDecryptWhisperMessage(messageBytes: ArrayBuffer, session: SessionType): Promise<ArrayBuffer> {
         const version = new Uint8Array(messageBytes)[0];
         if ((version & 0xf) > 3 || version >> 4 < 3) {

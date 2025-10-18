@@ -66,6 +66,56 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 
 **Review this** before modifying dependencies or running upgrade campaigns.
 
+### [Current Limitations](./limitations.md)
+
+**Snapshot of outstanding gaps** in the implementation:
+
+- Known defects and tech debt carried from the legacy codebase
+- Features deferred to Phase 2/3 (PQXDH, storage adapters, etc.)
+- Browser compatibility caveats and WebCrypto notes
+
+**Consult this** when planning roadmap work or communicating caveats to stakeholders.
+
+### [Migration Guide](./MIGRATION.md)
+
+**Upgrade handbook** for consumers moving from v0.0.16:
+
+- Build/packaging changes (dual CJS/ESM, typings)
+- Tooling updates (TS 5.9, ESLint 9, Husky hooks)
+- Recommended validation steps when adopting the new release
+
+**Share this** with downstream teams integrating the updated package.
+
+### [Official Comparison](./official-comparison.md)
+
+**Reference for stakeholders** evaluating the library against `@signalapp/libsignal-client`:
+
+- Platform support matrix (Node vs browser)
+- API differences and crypto capabilities
+- Guidance on when to choose each implementation
+
+**Use this** when communicating trade-offs with product/security teams.
+
+### [Browser Compatibility](./browser-compatibility.md)
+
+**Matrix and requirements** for supported environments:
+
+- Tested browser versions and status notes
+- WebCrypto APIs required and polyfill guidance
+- PWA-related headers and storage recommendations
+
+**Review this** when targeting new platforms or configuring CI.
+
+### [PWA Integration Guide](./pwa-guide.md)
+
+**Step-by-step guide** for building PWAs with the library:
+
+- IndexedDB-backed `SignalProtocolStore`
+- Service Worker push handling and offline queues
+- Bundle sizing and security considerations
+
+**Follow this** while implementing progressive web experiences.
+
 ## Key Findings Summary
 
 ### Critical Discovery

@@ -1,6 +1,40 @@
-# Signal Protocol Typescript Library (libsignal-protocol-typescript)
+# Signal Protocol TypeScript Library
 
-Signal Protocol Typescript implementation based on [libsignal-protocol-javscript](https://github.com/signalapp/libsignal-protocol-javascript).
+> Modernized fork of the legacy `libsignal-protocol-javascript`, maintained for browser and PWA deployments.
+
+## Modernization Status
+
+- **Phase 1 (Foundation) — In progress.** Jest, TypeScript, and dual CJS/ESM builds are repaired and emitting declarations.
+- **Browser-first focus.** WebCrypto-backed crypto with IndexedDB guidance. See [`docs/browser-compatibility.md`](docs/browser-compatibility.md).
+- **Future milestones.** PQXDH support, regenerated protobufs, and example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
+
+For a complete overview, visit [`docs/README.md`](docs/README.md).
+
+## Installation
+
+```bash
+yarn add @privacyresearch/libsignal-protocol-typescript
+# or
+npm install @privacyresearch/libsignal-protocol-typescript
+```
+
+ES module consumption is recommended:
+
+```ts
+import {
+    KeyHelper,
+    SessionBuilder,
+    SessionCipher,
+    SignalProtocolAddress,
+} from '@privacyresearch/libsignal-protocol-typescript';
+```
+
+## Documentation
+
+- [`docs/MIGRATION.md`](docs/MIGRATION.md) – upgrade notes from v0.0.16.
+- [`docs/pwa-guide.md`](docs/pwa-guide.md) – IndexedDB + Service Worker integration tips.
+- [`docs/browser-compatibility.md`](docs/browser-compatibility.md) – supported browsers and WebCrypto requirements.
+- [`docs/limitations.md`](docs/limitations.md) – known gaps and planned follow-ups.
 
 ## Code layout
 
@@ -76,23 +110,6 @@ npm install @privacyresearch/libsignal-protocol-typescript
 
 Now you can import classes and functions from the library. To make the examples below work, the following import suffices:
 
-```
-
-import {
-    KeyHelper,
-    SignedPublicPreKeyType,
-    SignalProtocolAddress,
-    SessionBuilder,
-    PreKeyType,
-    SessionCipher,
-    MessageType }
-from '@privacyresearch/libsignal-protocol-typescript'
-```
-
-If you prefer to use a prefix like `libsignal` and keep a short import, you can do the following:
-
-```
-import * as libsignal from '@privacyresearch/libsignal-protocol-typescript'
 ```
 
 #### Install time

@@ -8,15 +8,28 @@ import { PreKeyWhisperMessage } from '@privacyresearch/libsignal-protocol-protob
 import { SessionLock } from './session-lock';
 import { uint8ArrayToArrayBuffer } from './helpers';
 
+/**
+ * Handles X3DH session establishment for a remote device. A single builder is
+ * bound to a `SignalProtocolAddress` and uses the provided store for identity
+ * lookups and persistence.
+ */
 export class SessionBuilder {
     remoteAddress: SignalProtocolAddressType;
     storage: StorageType;
 
+    /**
+     * @param storage Backing store implementation for identity and session state.
+     * @param remoteAddress Address of the peer device this builder targets.
+     */
     constructor(storage: StorageType, remoteAddress: SignalProtocolAddressType) {
         this.remoteAddress = remoteAddress;
         this.storage = storage;
     }
 
+    /**
+     * Builds an outbound session using the recipient's device parameters
+     * retrieved from the server.
+     */
     processPreKeyJob = async (device: DeviceType): Promise<SessionType> => {
         const trusted = await this.storage.isTrustedIdentity(
             this.remoteAddress.name,
@@ -73,6 +86,9 @@ export class SessionBuilder {
 
     // Arguments map to the X3DH spec: https://signal.org/docs/specifications/x3dh/#keys
     // We are Alice the initiator.
+    /**
+     * Initiates an X3DH session as Alice using the remote party's published keys.
+     */
     startSessionAsInitiator = async (
         EKa: KeyPairType<ArrayBuffer>,
         IKb: ArrayBuffer,
@@ -157,6 +173,9 @@ export class SessionBuilder {
 
     // Arguments map to the X3DH spec: https://signal.org/docs/specifications/x3dh/#keys
     // We are Bob now.
+    /**
+     * Responds to a received PreKeyWhisperMessage and derives a new session as Bob.
+     */
     startSessionWthPreKeyMessage = async (
         OPKb: KeyPairType<ArrayBuffer> | undefined,
         SPKb: KeyPairType<ArrayBuffer>,
@@ -231,6 +250,10 @@ export class SessionBuilder {
         return session;
     };
 
+    /**
+     * Derives the next sending chain for the current ratchet using the peer's
+     * latest ephemeral key.
+     */
     async calculateSendingRatchet(session: SessionType, remoteKey: ArrayBuffer): Promise<void> {
         const ratchet = session.currentRatchet;
         if (!ratchet.ephemeralKeyPair) {
@@ -254,6 +277,9 @@ export class SessionBuilder {
         ratchet.rootKey = masterKey[0];
     }
 
+    /**
+     * Queues session creation for a device ensuring serialization via SessionLock.
+     */
     async processPreKey(device: DeviceType): Promise<SessionType> {
         // return this.processPreKeyJob(device)
         const runJob = async () => {
@@ -263,6 +289,9 @@ export class SessionBuilder {
         return SessionLock.queueJobForNumber(this.remoteAddress.toString(), runJob);
     }
 
+    /**
+     * Processes a received pre-key message (version 3) and updates session state.
+     */
     async processV3(record: SessionRecord, message: PreKeyWhisperMessage): Promise<number | void> {
         const trusted = this.storage.isTrustedIdentity(
             this.remoteAddress.name,

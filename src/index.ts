@@ -14,12 +14,21 @@ import * as Internal from './internal';
 
 export { setWebCrypto, setCurve } from './internal';
 
-// returns a promise of something with the shape of the old libsignal
-// eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
-export default async () => {
+/**
+ * Builds a compatibility wrapper that mirrors the legacy
+ * `libsignal-protocol-javascript` default export. Consumers that still rely
+ * on the older CommonJS shape can `await` this function and interact with the
+ * returned object instead of migrating immediately.
+ *
+ * @returns A promise resolving to an object with a `Curve` instance bound to the
+ * underlying curve25519 wrapper.
+ */
+const createLegacyWrapper = async () => {
     const cw = await Curve25519Wrapper.create();
 
     return {
         Curve: new Curve(new Internal.Curve(cw)),
     };
 };
+
+export default createLegacyWrapper;

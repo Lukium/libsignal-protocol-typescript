@@ -41,11 +41,7 @@ const typeCheckedConfigs = compat.config({
 });
 
 const testConfigs = compat.config({
-  extends: [
-    'plugin:@typescript-eslint/recommended',
-    'prettier',
-    'plugin:prettier/recommended',
-  ],
+  extends: ['plugin:@typescript-eslint/recommended', 'prettier', 'plugin:prettier/recommended'],
   parser: '@typescript-eslint/parser',
   parserOptions: {
     ecmaVersion: 2020,
@@ -66,12 +62,12 @@ module.exports = [
       reportUnusedDisableDirectives: false,
     },
   },
-  ...typeCheckedConfigs.map(config => ({
+  ...typeCheckedConfigs.map((config) => ({
     ...config,
     files: ['src/**/*.ts'],
     ignores: ['src/__test__/**', 'src/__test-utils__/**'],
   })),
-  ...testConfigs.map(config => ({
+  ...testConfigs.map((config) => ({
     ...config,
     files: ['src/__test__/**/*.ts', 'src/__test-utils__/**/*.ts'],
   })),

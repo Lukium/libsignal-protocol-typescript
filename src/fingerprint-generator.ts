@@ -3,9 +3,15 @@ import * as utils from './helpers';
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const msrcrypto = require('../lib/msrcrypto');
 
+/**
+ * Generates numeric safety numbers (fingerprints) compatible with Signal's UX.
+ */
 export class FingerprintGenerator implements FingerprintGeneratorType {
     static VERSION = 0;
 
+    /**
+     * Computes the fingerprint display string for a pair of identities.
+     */
     async createFor(
         localIdentifier: string,
         localIdentityKey: ArrayBuffer,

@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
+/**
+ * Public type definitions consumed by applications embedding the library.
+ */
 export interface SignalProtocolAddressType {
     readonly name: string;
     readonly deviceId: number;
@@ -7,6 +10,7 @@ export interface SignalProtocolAddressType {
     equals: (other: SignalProtocolAddressType) => boolean;
 }
 
+/** Generates displayable safety numbers for a pair of identities. */
 export interface FingerprintGeneratorType {
     createFor: (
         localIdentifier: string,
@@ -41,10 +45,15 @@ export interface SignedPublicPreKeyType<T = ArrayBuffer> extends PreKeyType<T> {
 
 export type SessionRecordType = string;
 
+/** Indicates whether the caller is encrypting or decrypting. */
 export enum Direction {
     SENDING = 1,
     RECEIVING = 2,
 }
+/**
+ * Application-provided persistence layer. All methods must be asynchronous and
+ * resolve once the operation is complete.
+ */
 export interface StorageType {
     getIdentityKeyPair: () => Promise<KeyPairType | undefined>;
     getLocalRegistrationId: () => Promise<number | undefined>;

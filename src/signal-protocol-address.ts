@@ -1,6 +1,16 @@
 import { SignalProtocolAddressType } from './';
 
+/**
+ * Represents a unique Signal address (user identifier + device ID).
+ * Compatibility helper for the legacy libsignal API where addresses can be
+ * round-tripped as `"name.deviceId"` strings.
+ */
 export class SignalProtocolAddress implements SignalProtocolAddressType {
+    /**
+     * Parses a string representation (`name.deviceId`) into an address.
+     *
+     * @param s Canonical string representation.
+     */
     static fromString(s: string): SignalProtocolAddress {
         if (!s.match(/.*\.\d+/)) {
             throw new Error(`Invalid SignalProtocolAddress string: ${s}`);
@@ -34,10 +44,16 @@ export class SignalProtocolAddress implements SignalProtocolAddressType {
         return this._deviceId;
     }
 
+    /**
+     * Serialises the address as `name.deviceId`.
+     */
     toString(): string {
         return `${this._name}.${this._deviceId}`;
     }
 
+    /**
+     * Compares two addresses for equality.
+     */
     equals(other: SignalProtocolAddressType): boolean {
         return other.name === this._name && other.deviceId == this._deviceId;
     }
