@@ -45,6 +45,16 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 
 **Use this** to execute Phase 1 tasks.
 
+### [Phase 2 Checklist](./phase2-checklist.md)
+
+**Modernization plan** for Weeks 4-8:
+
+- Regenerate protobufs and expand integration coverage
+- Deliver IndexedDB adapter, PWA sample, and browser automation
+- Shrink bundle footprint below 100 KB gzipped and publish beta release
+
+**Use this** to execute the second milestone once Phase 1 is closed out.
+
 ### [Build & Testing Handbook](./build-and-testing.md)
 
 **Living reference** for developer workflows:

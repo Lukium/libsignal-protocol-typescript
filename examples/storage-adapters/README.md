@@ -1,15 +1,25 @@
 # Storage Adapter Examples
 
-_Status: TODO (Phase 2)_
+This directory contains reusable storage adapters implementing `SignalProtocolStore`.
 
-This directory will collect reusable storage adapters implementing `SignalProtocolStore`. Planned adapters include:
+## IndexedDB Adapter
 
-- `indexeddb-adapter.ts`: IndexedDB implementation for browser/PWA usage.
-- `memory-adapter.ts`: Simple in-memory mock for testing.
+- File: `indexeddb-adapter.ts`
+- Factory: `createIndexedDBSignalProtocolStore(options?)`
+  - Returns a store compatible with the core library plus convenience helpers (`setIdentityKeyPair`, `setLocalRegistrationId`, `clear`, `close`)
+- Tests: `src/__test__/indexeddb-adapter.test.ts` (uses `fake-indexeddb`)
+
+### Usage
+
+```ts
+import { createIndexedDBSignalProtocolStore } from './examples/storage-adapters/indexeddb-adapter';
+
+const store = await createIndexedDBSignalProtocolStore({ dbName: 'my-app', version: 1 });
+await store.setIdentityKeyPair(identityKeyPair);
+await store.setLocalRegistrationId(registrationId);
+```
+
+## Planned Adapters
+
+- `memory-adapter.ts`: Simple in-memory mock for testing (Phase 3).
 - `kv-adapter.ts`: Template for server-side KV stores (Redis, Cloudflare KV, etc.).
-
-Contributions should:
-
-- Export a factory function returning a store compatible with `src/types.ts`.
-- Include Jest tests under `src/__test__` referencing shared fixtures.
-- Document setup steps in this README once implementations are added.

@@ -52,7 +52,7 @@ yarn test --coverage
 
 - ✅ TypeScript strict mode enabled (shared tsconfig)
 - 🔄 Protocol compliance verified (extend integration vectors)
-- 🔄 PWA optimizations complete (browser storage adapters outstanding)
+- 🔄 PWA optimizations complete (browser storage adapters outstanding → IndexedDB adapter shipped)
 - 🔄 Bundle size <100KB (measure after tree-shaking pass)
 
 ### Phase 3 Goals
@@ -65,7 +65,7 @@ yarn test --coverage
 ## PWA Requirements Checklist
 
 - [ ] Service Worker compatible (no DOM dependencies)
-- [ ] IndexedDB storage adapter
+- [x] IndexedDB storage adapter (see `examples/storage-adapters/indexeddb-adapter.ts`)
 - [ ] Bundle size <100KB gzipped
 - [ ] Tree-shakeable exports
 - [ ] Works offline

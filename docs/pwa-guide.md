@@ -12,17 +12,17 @@ This guide explains how to embed `@privacyresearch/libsignal-protocol-typescript
 
 ## 2. Storage Recommendations
 
-- Create an `IndexedDB` object store per logical data type (`identities`, `sessions`, `preKeys`, `signedPreKeys`, `senderKeys`).
-- Implement `SignalProtocolStore` using async IndexedDB calls. Ensure methods such as `saveIdentity` return `Promise<boolean>` and de-duplicate keys by address/device ID.
+- Prefer the shared adapter at `examples/storage-adapters/indexeddb-adapter.ts`, which implements the full `SignalProtocolStore` contract with helper utilities (`setIdentityKeyPair`, `clear`, `close`).
+- If rolling your own schema, create an object store per logical data type (`identities`, `sessions`, `preKeys`, `signedPreKeys`, `senderKeys`).
+- Ensure async persistence (`saveIdentity`, `storeSession`, etc.) resolves to `Promise` values and deduplicates identities by address/device ID.
 - Use `crypto.getRandomValues` for UUIDs and key IDs; avoid `Math.random`.
 
 ### Example Structure
 
 ```
-indexeddb/
-├── schema.ts          # Database versioning & object stores
-├── signal-store.ts    # Implements SignalProtocolStore
-└── migrations.ts      # Handles schema upgrades
+examples/storage-adapters/
+├── indexeddb-adapter.ts    # Ready-made store factory (createIndexedDBSignalProtocolStore)
+└── README.md               # Usage instructions and helper APIs
 ```
 
 ## 3. Service Worker Integration
@@ -52,7 +52,7 @@ indexeddb/
 
 ## 7. Next Steps
 
-- Implement reusable IndexedDB adapter under `examples/storage-adapters/` (Phase 2).
+- Integrate the provided IndexedDB adapter and wire it into `examples/pwa-integration` (Phase 2 ongoing).
 - Add push notification walkthrough with real device registration IDs.
 - Expand automated browser tests to validate worker + IndexedDB interactions.
 

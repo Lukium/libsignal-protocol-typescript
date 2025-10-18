@@ -16,7 +16,7 @@ examples/
 │   ├── service-worker.ts
 │   └── README.md
 └── storage-adapters/
-    ├── indexeddb-adapter.ts
+    ├── indexeddb-adapter.ts  # IndexedDB implementation of SignalProtocolStore
     └── README.md
 ```
 
