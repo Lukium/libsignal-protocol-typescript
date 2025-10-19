@@ -1,12 +1,13 @@
 # Signal Protocol TypeScript Library
 
-> Modernized fork of the legacy `libsignal-protocol-javascript`, maintained for browser and PWA deployments.
+> Modernized fork of the legacy `libsignal-protocol-javascript`, maintained for browser and PWA deployments. The modernization effort is stewarded by @Lukium with heavy assistance from AI tooling (OpenAI’s Codex and Anthropic’s Claude) to accelerate implementation and documentation updates.
 
 ## Modernization Status
 
-- **Phase 1 (Foundation) — In progress.** Jest, TypeScript, and dual CJS/ESM builds are repaired and emitting declarations.
-- **Browser-first focus.** WebCrypto-backed crypto with IndexedDB guidance. See [`docs/browser-compatibility.md`](docs/browser-compatibility.md).
-- **Future milestones.** PQXDH support, regenerated protobufs, and example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
+- **Phase 1 (Foundation) — Completed.** Jest, TypeScript, and dual CJS/ESM builds are repaired and emitting declarations.
+- **Phase 2 (Modernization) — Completed.** Browser-first tooling, IndexedDB adapters, Playwright smoke tests, and logging hooks shipped in `@lukium/libsignal-protocol-typescript@0.1.0-beta.1`.
+- **Phase 3 (Enhancement) — Planned.** PQXDH support, regenerated protobufs, and additional example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
+- **Browser-first focus.** WebCrypto-backed crypto with IndexedDB guidance remains the default; see [`docs/browser-compatibility.md`](docs/browser-compatibility.md) for supported environments.
 
 For a complete overview, visit [`docs/README.md`](docs/README.md).
 
@@ -285,6 +286,6 @@ setCurve(myCurve);
 
 ## License
 
-Copyright 2020 by Privacy Research, LLC
+Copyright © 2020-2025 Lukium. Originally created by Privacy Research, LLC.
 
 Licensed under the GPLv3: http://www.gnu.org/licenses/gpl-3.0.html
