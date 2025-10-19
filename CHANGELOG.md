@@ -6,6 +6,10 @@ All notable changes to this project will be documented in this file.
 
 - Bumped package scope to `@lukium` and added browser esbuild smoke testing to release flow.
 
+## 0.1.0-beta.2 (2025-10-19)
+
+- README refreshed to reflect Phase 2 completion, Lukium stewardship, and updated licensing attribution.
+
 ## 0.1.0-beta.1 (2025-10-19)
 
 - Ported the project to `@lukium/libsignal-protocol-typescript`.
