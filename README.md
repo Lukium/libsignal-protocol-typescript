@@ -1,3 +1,12 @@
+
+![GitHub commit activity](https://img.shields.io/github/commit-activity/m/Lukium/libsignal-protocol-typescript?style=for-the-badge)
+[<image src="https://img.shields.io/npm/v/%40lukium%2Flibsignal-protocol-typescript?style=for-the-badge&label=npm"></image>](https://www.npmjs.com/package/@lukium/libsignal-protocol-typescript)
+![npm downloads](https://img.shields.io/npm/dm/%40lukium%2Flibsignal-protocol-typescript?style=for-the-badge)
+![npm types](https://img.shields.io/npm/types/%40lukium%2Flibsignal-protocol-typescript?style=for-the-badge)
+<br>
+[<image src="https://img.shields.io/discord/629066705057873922?style=for-the-badge&label=discord"></image>](https://discord.gg/lukium)
+
+
 # Signal Protocol TypeScript Library
 
 > Modernized fork of the legacy `libsignal-protocol-javascript`, maintained for browser and PWA deployments. The modernization effort is stewarded by @Lukium with heavy assistance from AI tooling (OpenAI’s Codex and Anthropic’s Claude) to accelerate implementation and documentation updates.
