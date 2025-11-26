@@ -1,9 +1,10 @@
 # Phase 2: Modernization – Implementation Checklist
 
-**Duration**: Weeks 4-8  
+**Duration**: Weeks 4-8
 **Goal**: Deliver a production-ready, browser-first Signal Protocol SDK
+**Status**: ✅ Complete (2025-10-19)
 
-> **Scope note:** Post-quantum (PQXDH) work is **explicitly out of scope** for Phase 2 and remains a Phase 3+ item.
+> **Scope note:** Post-quantum (PQXDH) work is **explicitly out of scope** for Phase 2 and remains a Phase 3+ item.
 
 ---
 
@@ -22,7 +23,7 @@
   - Automate scenario for pre-key rotation + identity change detection
 - [x] **Document coverage deltas**
   - Update `docs/build-and-testing.md` with new hot spots
-  - Flag any remaining uncovered lines for Phase 3 refactors
+  - Flag any remaining uncovered lines for Phase 3 refactors
 
 ## Week 5: Browser & PWA Enhancements
 
@@ -46,8 +47,8 @@
   - Ensure side-effect flags in `package.json` are accurate *(only `lib/msrcrypto.js` marked as a side effect; added `./logger` subpath export to keep optional hooks separate)*
   - Split optional helpers into secondary entry points (e.g., `helpers`, `fingerprint`)
 - [x] **Bundle size reduction**
-  - Target <110 KB gzipped for primary ESM bundle (Phase 2). Sub-100 KB deferred to Phase 3.
-  - Document before/after sizes in `docs/build-and-testing.md` *(current Vite demo: 104.48 KB gzipped)*
+  - Target <110 KB gzipped for primary ESM bundle (Phase 2). Sub-100 KB deferred to Phase 3.
+  - Document before/after sizes in `docs/build-and-testing.md` *(current Vite demo: 104.48 KB gzipped)*
 - [x] **Dual build validation** *(Node ESM loader still requires extension mapping; bundler paths verified in demos.)*
   - Add smoke tests executing built artifacts (`node` + `browser` env via `esbuild`) *(see `yarn smoke:build` + `yarn smoke:browser`)*
   - Confirm `.d.ts` maps reference correct sources *(type declarations resolve to `src/**` when inspected via `lib/**/*.d.ts.map`)*
@@ -62,7 +63,7 @@
   - Publish via GitHub Pages (or similar) with navigation from `docs/README.md`
 - [x] **Guide expansion**
   - Extend `docs/pwa-guide.md` with push payload examples
-  - Add “migration recipes” (e.g., legacy store → IndexedDB)
+  - Add "migration recipes" (e.g., legacy store → IndexedDB)
 - [x] **Examples tooling**
   - Provide `yarn example:<name>` scripts for each example *(PWA demo now available via `yarn example:pwa-vite`; additional scripts may follow)*
   - Add README badges linking to runnable demos (StackBlitz/CodeSandbox)
@@ -74,16 +75,17 @@
 
 - [x] **Benchmark suite**
   - Introduce micro-benchmarks (key gen, session init, encrypt/decrypt)
-  - Compare asm.js vs WebCrypto performance in docs *(baseline recorded; deeper comparisons planned for Phase 3)*
+  - Compare asm.js vs WebCrypto performance in docs *(baseline recorded; deeper comparisons planned for Phase 3)*
 - [x] **Error telemetry hooks**
   - Provide optional logging interface with structured errors *(see `setLogger` in package exports)*
   - Document usage in README and examples
 - [x] **Security review checklist**
   - Create repeatable audit steps (dependency scan, bundle diff) *(see [security-review.md](./security-review.md))*
   - Run `yarn npm audit` sanity checks before release *(last run 2025-10-19: no issues reported)*
-- [ ] **Release candidate tag**
-  - Ship `v0.1.0-beta.1`
-  - Publish release notes summarizing Phase 2 outcomes
+- [x] **Release candidate tag**
+  - Ship `v0.1.0-beta.1` ✅ *Published to npm 2025-10-19*
+  - Ship `v0.1.0-beta.2` ✅ *Published to npm 2025-10-19*
+  - Publish release notes ✅ *See CHANGELOG.md*
 
 ---
 
@@ -94,11 +96,11 @@
 - [x] Integration tests cover multi-device flows *(`yarn test -- src/__test__/integration/multi-device-indexeddb.test.ts`)*
 - [x] Branch coverage ≥85% *(2025-10-18: 97.3% statements / 91.2% branches / 95.0% functions / 97.3% lines)*
 - [x] Browser automation smoke tests passing *(`yarn test:e2e`)*
-- [ ] No open critical test issues
+- [x] No open critical test issues
 
 ### Build System
 
-- [x] Bundles ≤110 KB gzipped (Phase 2)
+- [x] Bundles ≤110 KB gzipped (Phase 2)
 - [x] Optional entry points documented and tested
 - [x] Dual builds validated in Node + browser harnesses
 - [x] Release scripts automated (`yarn release:beta`)
@@ -122,7 +124,7 @@
 - [x] API reference published
 - [x] PWA guide updated with IndexedDB adapter usage
 - [x] Examples README refreshed with scripts
-- [x] Migration guide includes Phase 2 changes
+- [x] Migration guide includes Phase 2 changes
 
 ### Examples & PWA
 
@@ -133,18 +135,18 @@
 
 ### Release Readiness
 
-- [x] `CHANGELOG.md` started with Phase 2 entries
+- [x] `CHANGELOG.md` started with Phase 2 entries
 - [x] `CONTRIBUTING.md` and `CODE_OF_CONDUCT.md` published
-- [ ] Beta release published to npm (tagged `next`)
-- [ ] Post-release checklist drafted for Phase 3 handoff
+- [x] Beta release published to npm ✅ *`@lukium/libsignal-protocol-typescript` v0.1.0-beta.1 and v0.1.0-beta.2*
+- [x] Post-release checklist drafted for Phase 3 handoff ✅ *See [phase3-handoff.md](./phase3-handoff.md)*
 
 ---
 
 ## Success Criteria
 
-Phase 2 is complete when:
+Phase 2 is complete when:
 
-1. ✅ **Modern build & packaging** – Tree-shaken bundles ≤110 KB gzipped with dual outputs validated. *(Phase 3 will chase <100 KB.)*
+1. ✅ **Modern build & packaging** – Tree-shaken bundles ≤110 KB gzipped with dual outputs validated. *(Phase 3 will chase <100 KB.)*
 2. ✅ **Browser-ready tooling** – IndexedDB adapter, PWA example, and browser automation in place.
 3. ✅ **Comprehensive documentation** – API reference, migration recipes, and updated guides published.
 4. ✅ **Release infrastructure** – Benchmarks, changelog, and beta release pipeline operational.
@@ -153,6 +155,6 @@ Phase 2 is complete when:
 
 ## Tracking Guidance
 
-- Create GitHub Project “Phase 2: Modernization” with columns: Backlog → In Progress → Review → Done.
+- Create GitHub Project "Phase 2: Modernization" with columns: Backlog → In Progress → Review → Done.
 - File individual issues for each top-level task with acceptance criteria matching the checklist.
 - Hold bi-weekly review meetings to monitor bundle size, performance metrics, and documentation progress.

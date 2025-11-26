@@ -7,3 +7,4 @@ test-results
 .playwright-browsers
 coverage
 .yarn/global
+CLAUDE.md
