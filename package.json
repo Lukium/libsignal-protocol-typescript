@@ -36,6 +36,7 @@
     "smoke:browser": "node scripts/smoke-browser-build.mjs",
     "release:beta": "yarn lint && yarn test && yarn bundle:size && yarn build && yarn smoke:build && yarn smoke:browser",
     "benchmark": "yarn build && node benchmarks/run.js",
+    "benchmark:memory": "yarn build && node --expose-gc benchmarks/memory-test.js",
     "example:pwa-vite": "yarn dev:pwa-vite",
     "example:basic": "node examples/basic-messaging/demo.mjs"
   },
@@ -47,7 +48,7 @@
     "@types/jest": "^29.5.14",
     "@typescript-eslint/eslint-plugin": "^8.46.1",
     "@typescript-eslint/parser": "^8.46.1",
-    "esbuild": "^0.21.5",
+    "esbuild": "^0.25.0",
     "eslint": "^9.38.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "5.5.4",
@@ -62,7 +63,7 @@
     "typedoc": "0.27.3",
     "typedoc-plugin-markdown": "4.9.0",
     "typescript": "5.9.3",
-    "vite": "^5.4.11"
+    "vite": "^6.0.0"
   },
   "dependencies": {
     "@privacyresearch/curve25519-typescript": "^0.0.12",
