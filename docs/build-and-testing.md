@@ -119,6 +119,30 @@ yarn bundle:size
 
 Current `examples/pwa-vite` output (2025-10-19): **104.16 KiB** gzipped across 3 JavaScript chunks. This satisfies the Phase 2 threshold; keep iterating toward <100 KB in Phase 3.
 
+### Bundle Composition Analysis (2025-11-26)
+
+The PWA demo bundle (104 KB gzipped) consists of:
+- **Curve25519 asm.js** (~40-50 KB gzipped) - Required for all crypto operations
+- **protobufjs/light** (~16 KB gzipped) - Required for message encoding/decoding
+- **Library code** (~30 KB gzipped) - Session management, crypto wrappers
+- **IndexedDB adapter** (~8 KB gzipped) - Storage implementation
+
+#### External Dependencies
+
+| Dependency | Raw size | Notes |
+| ---------- | -------- | ----- |
+| `@privacyresearch/curve25519-typescript` | ~860 KB | asm.js Curve25519 implementation |
+| `protobufjs/light` | ~68 KB (minified) | Protocol buffer runtime (~16 KB gzipped) |
+| `base64-js` | ~2 KB | Base64 encoding utilities |
+
+#### Future Optimization Opportunities
+
+1. **protobufjs/minimal** (~6.5 KB gzipped) - Requires static code generation via `pbjs`, would save ~10 KB but requires significant refactoring
+2. **WASM Curve25519** - Could replace asm.js for potential size/performance improvements
+3. **Custom protobuf codec** - Hand-written encode/decode for the simple message types could eliminate protobufjs dependency entirely
+
+Phase 2 target (≤110 KB) achieved; sub-100 KB remains a stretch goal for future releases.
+
 ## Continuous Integration
 
 - Workflow: `.github/workflows/ci.yml`

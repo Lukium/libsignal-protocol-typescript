@@ -18,6 +18,7 @@ export default defineConfig({
             input: {
                 main: path.resolve(__dirname, 'index.html'),
                 sw: path.resolve(__dirname, 'src/sw.ts'),
+                'test-harness': path.resolve(__dirname, 'test-harness.html'),
             },
             output: {
                 entryFileNames: (chunk) => (chunk.name === 'sw' ? 'sw.js' : 'assets/[name]-[hash].js'),

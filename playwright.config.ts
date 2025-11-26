@@ -20,6 +20,17 @@ export default defineConfig({
             name: 'chromium',
             use: devices['Desktop Chrome'],
         },
+        {
+            name: 'firefox',
+            use: devices['Desktop Firefox'],
+            // Firefox doesn't support ES module Service Workers (type: 'module')
+            // Only run core library tests, skip SW-dependent tests
+            testIgnore: /pwa-vite\.spec\.ts/,
+        },
+        {
+            name: 'webkit',
+            use: devices['Desktop Safari'],
+        },
     ],
     webServer: {
         command: 'yarn preview:pwa-vite',
