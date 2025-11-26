@@ -142,6 +142,29 @@ This directory contains comprehensive documentation for the libsignal-protocol-t
 
 **Follow this** while implementing progressive web experiences.
 
+### [Troubleshooting Guide](./troubleshooting.md)
+
+**Common issues and solutions** for debugging:
+
+- Installation and runtime errors
+- Browser compatibility issues
+- Session management problems
+- Performance optimization tips
+
+**Consult this** when encountering issues or errors.
+
+### [FAQ](./FAQ.md)
+
+**Frequently asked questions** about the library:
+
+- Why not use @signalapp/libsignal-client?
+- Is this production-ready?
+- What about post-quantum support?
+- Protocol explanations (X3DH, Double Ratchet, PreKeys)
+- Performance and bundle size questions
+
+**Read this** for quick answers to common questions.
+
 ## Key Findings Summary
 
 ### Critical Discovery
@@ -200,20 +223,21 @@ Phase 3: Enhancement (Weeks 9-12)
 2. **For implementation**: Follow [phase1-checklist.md](./phase1-checklist.md)
 3. **For quick reference**: Use [quick-start-guide.md](./quick-start-guide.md)
 
-## Current Status (2025-10-19)
+## Current Status (2025-11-26)
 
 | Component     | Status            | Notes                                                              |
 | ------------- | ----------------- | ------------------------------------------------------------------ |
 | Tests         | ✅ Stable         | Jest 29 with custom environment; 273 specs passing                 |
-| Coverage      | ✅ Branch 91%     | 97.3% statements / 91.2% branches / 95.0% functions / 97.3% lines |
+| Coverage      | ✅ Branch 91%     | 97.3% statements / 91.0% branches / 95.1% functions / 97.3% lines |
 | Build         | ✅ Dual output    | `yarn build` emits `lib/cjs` + `lib/esm` with d.ts                 |
-| Dependencies  | ✅ Audited        | `yarn npm audit` clean; dependency decisions refreshed             |
-| Documentation | ✅ Complete       | All guides, API reference, and examples published                  |
+| Dependencies  | ✅ Audited        | `yarn npm audit` clean; esbuild/vite updated for security          |
+| Documentation | ✅ Complete       | All guides, API reference, FAQ, troubleshooting, and examples      |
 | PWA Ready     | ✅ Complete       | IndexedDB adapter, Vite PWA demo, Playwright automation, 104 KB gzipped |
+| Browser Tests | ✅ Complete       | Chromium, Firefox (core), WebKit (CI) tested via Playwright        |
 | CI/CD         | ✅ Running        | GitHub Actions (`.github/workflows/ci.yml`) covers lint/test/build |
 | npm Release   | ✅ Published      | `@lukium/libsignal-protocol-typescript` v0.1.0-beta.2 on npm       |
 
-**Current Phase**: Phase 2 complete. Phase 3 (Enhancement) planning underway.
+**Current Phase**: Phase 3 (Enhancement) nearly complete. Ready for v1.0.0 release.
 
 ## Key Files to Understand
 
@@ -249,13 +273,16 @@ Phase 3: Enhancement (Weeks 9-12)
 - ✅ Bundle ≤110 KB gzipped (104 KB achieved; <100 KB target deferred to Phase 3)
 - ✅ Beta releases published (`v0.1.0-beta.1`, `v0.1.0-beta.2`)
 
-### Phase 3 (Enhancement) 🔄 In Progress
+### Phase 3 (Enhancement) ✅ Nearly Complete
 
 - ✅ Performance benchmarks (baseline recorded)
-- ✅ Comprehensive docs
-- 🔄 Browser tested (Chromium done; Firefox, Safari pending)
-- ❌ Bundle <100 KB gzipped
-- ❌ v1.0.0 released
+- ✅ Memory leak testing (no leaks detected)
+- ✅ Security audit (dependencies updated)
+- ✅ Comprehensive docs (FAQ, troubleshooting, examples)
+- ✅ Browser tested (Chromium, Firefox, WebKit)
+- ✅ Framework examples (React, Vue)
+- 🔄 Bundle <100 KB gzipped (104 KB, deferred optimization)
+- ⏳ v1.0.0 release preparation
 
 ## Resources
 
@@ -300,20 +327,22 @@ For questions about:
 | quick-start-guide.md  | ✅ Complete | 2025-10-19   |
 | phase1-checklist.md   | ✅ Complete | 2025-10-19   |
 | phase2-checklist.md   | ✅ Complete | 2025-10-19   |
-| phase3-handoff.md     | 🆕 New      | 2025-10-19   |
+| phase3-checklist.md   | ✅ Complete | 2025-11-26   |
 | build-and-testing.md  | ✅ Complete | 2025-10-19   |
 | security-review.md    | ✅ Complete | 2025-10-19   |
-| README.md (this file) | ✅ Updated  | 2025-10-19   |
+| browser-compatibility.md | ✅ Updated | 2025-11-26 |
+| troubleshooting.md    | 🆕 New      | 2025-11-26   |
+| FAQ.md                | 🆕 New      | 2025-11-26   |
+| README.md (this file) | ✅ Updated  | 2025-11-26   |
 
-## Next Review
+## Next Steps
 
-- Phase 3 planning and execution
-- Bundle size optimization (<100 KB)
-- Extended browser testing (Firefox, Safari)
-- v1.0.0 release preparation
+- v1.0.0 release preparation (when ready)
+- Bundle size optimization (<100 KB) - deferred to v1.x
+- PQXDH post-quantum support - deferred to v2.0.0
 
 ---
 
 **Prepared by**: Claude Code
-**Last Updated**: 2025-10-19
-**Version**: 2.0
+**Last Updated**: 2025-11-26
+**Version**: 3.0

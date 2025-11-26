@@ -257,7 +257,7 @@
     - Pre-key exhaustion
   - **Also added**: Browser compatibility issues, performance tips, storage migration
 
-- [ ] **Expand FAQ section**
+- [x] **Expand FAQ section** ✅ Completed 2025-11-26
   - Add to `docs/README.md` or create `docs/FAQ.md`
   - Topics:
     - Why not use @signalapp/libsignal-client?
@@ -265,19 +265,21 @@
     - Is this production-ready?
     - What about post-quantum support?
     - How do I report security issues?
+  - **Created**: `docs/FAQ.md` with comprehensive Q&A covering general, technical, protocol, and performance topics
 
-- [ ] **Update API documentation**
+- [x] **Update API documentation** ✅ Completed 2025-11-26
   - Run `yarn docs:api` and review output
   - Ensure all public APIs are documented
   - Add usage examples to JSDoc comments
   - Verify TypeDoc generates clean output
+  - **Result**: Generated to `docs/api/` with 6 minor warnings (expected for internal types)
 
-- [ ] **Review and update all docs**
-  - `docs/README.md` – main hub
+- [x] **Review and update all docs** ✅ Completed 2025-11-26
+  - `docs/README.md` – main hub (updated status, added FAQ/troubleshooting links)
   - `docs/quick-start-guide.md` – getting started
   - `docs/pwa-guide.md` – PWA integration
   - `docs/MIGRATION.md` – migration from beta
-  - `docs/browser-compatibility.md` – browser support
+  - `docs/browser-compatibility.md` – browser support (updated with test results)
   - `docs/limitations.md` – known limitations
 
 ### v1.0.0 Release Preparation
