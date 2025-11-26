@@ -8,3 +8,7 @@ test-results
 coverage
 .yarn/global
 CLAUDE.md
+
+# Generated demo bundles
+examples/cross-browser-chat/bundle.js
+examples/cross-browser-chat/bundle.js.map

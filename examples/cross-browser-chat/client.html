@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signal Protocol - Cross-Browser Chat Demo</title>
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-tertiary: #0f3460;
+            --accent: #e94560;
+            --accent-hover: #ff6b6b;
+            --text-primary: #eee;
+            --text-secondary: #aaa;
+            --success: #4ade80;
+            --warning: #fbbf24;
+            --border: rgba(255,255,255,0.1);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+        }
+
+        header h1 {
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        header p {
+            color: var(--text-secondary);
+        }
+
+        .status-bar {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+
+        .status-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--bg-tertiary);
+            border-radius: 20px;
+            font-size: 14px;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--warning);
+        }
+
+        .status-dot.connected { background: var(--success); }
+        .status-dot.encrypted { background: var(--accent); }
+
+        .panels {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .panels {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: var(--bg-secondary);
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 15px 20px;
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+        }
+
+        .panel-content {
+            padding: 20px;
+        }
+
+        /* Setup Panel */
+        .setup-section {
+            margin-bottom: 20px;
+        }
+
+        .setup-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .setup-section label {
+            display: block;
+            margin-bottom: 8px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .setup-section input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .setup-section input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* Users List */
+        .users-list {
+            list-style: none;
+        }
+
+        .user-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            background: var(--bg-primary);
+            border: 1px solid var(--border);
+        }
+
+        .user-item.me {
+            border-color: var(--accent);
+        }
+
+        .user-item.has-session {
+            border-color: var(--success);
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: var(--bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .user-name {
+            font-weight: 500;
+        }
+
+        .user-status {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .connect-btn {
+            padding: 6px 12px;
+            border: none;
+            border-radius: 6px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .connect-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        .connect-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .connect-btn.connected {
+            background: var(--success);
+        }
+
+        .unread-badge {
+            background: var(--accent);
+            color: white;
+            border-radius: 50%;
+            min-width: 20px;
+            height: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+        }
+
+        .user-item.has-unread {
+            border-color: var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(233, 69, 96, 0.4); }
+            50% { box-shadow: 0 0 0 6px rgba(233, 69, 96, 0); }
+        }
+
+        /* Chat Panel */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 500px;
+        }
+
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .message.sent {
+            align-self: flex-end;
+            background: var(--accent);
+            border-bottom-right-radius: 4px;
+        }
+
+        .message.received {
+            align-self: flex-start;
+            background: var(--bg-tertiary);
+            border-bottom-left-radius: 4px;
+        }
+
+        .message.system {
+            align-self: center;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 13px;
+            padding: 8px;
+        }
+
+        .message-sender {
+            font-size: 12px;
+            color: rgba(255,255,255,0.7);
+            margin-bottom: 4px;
+        }
+
+        .message-text {
+            word-break: break-word;
+        }
+
+        .message-meta {
+            font-size: 11px;
+            color: rgba(255,255,255,0.5);
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .encrypted-badge {
+            background: rgba(0,0,0,0.2);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+        }
+
+        .chat-input {
+            display: flex;
+            gap: 10px;
+            padding: 15px 20px;
+            border-top: 1px solid var(--border);
+            background: var(--bg-tertiary);
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .chat-input input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .chat-input button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 24px;
+            background: var(--accent);
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .chat-input button:hover {
+            background: var(--accent-hover);
+        }
+
+        .chat-input button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Protocol Log */
+        .protocol-log {
+            margin-top: 20px;
+        }
+
+        .log-entries {
+            max-height: 200px;
+            overflow-y: auto;
+            padding: 15px;
+            background: var(--bg-primary);
+            border-radius: 8px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 12px;
+            line-height: 1.6;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .log-entry.info { color: var(--text-secondary); }
+        .log-entry.success { color: var(--success); background: rgba(74, 222, 128, 0.1); }
+        .log-entry.crypto { color: var(--accent); background: rgba(233, 69, 96, 0.1); }
+        .log-entry.error { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+
+        .no-session-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .no-session-overlay p {
+            color: var(--text-secondary);
+        }
+
+        .chat-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Signal Protocol Chat Demo</h1>
+            <p>End-to-end encrypted messaging between browsers</p>
+            <div class="status-bar">
+                <div class="status-item">
+                    <div class="status-dot" id="wsStatus"></div>
+                    <span id="wsStatusText">Connecting...</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="keysStatus"></div>
+                    <span id="keysStatusText">Keys: Not Generated</span>
+                </div>
+                <div class="status-item">
+                    <div class="status-dot" id="sessionStatus"></div>
+                    <span id="sessionStatusText">Session: None</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="panels">
+            <div class="panel">
+                <div class="panel-header">Setup & Users</div>
+                <div class="panel-content">
+                    <div class="setup-section">
+                        <label for="username">Your Username</label>
+                        <input type="text" id="username" placeholder="Enter username..." value="">
+                    </div>
+
+                    <div class="setup-section">
+                        <label>Connected Users</label>
+                        <ul class="users-list" id="usersList">
+                            <li class="user-item">
+                                <span style="color: var(--text-secondary)">No users connected</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel">
+                <div class="panel-header">
+                    Encrypted Chat
+                    <span id="chatPartner" style="font-weight: normal; color: var(--text-secondary)"></span>
+                </div>
+                <div class="chat-wrapper">
+                    <div class="chat-container">
+                        <div class="messages" id="messages">
+                            <div class="message system">
+                                Select a user and click "Connect" to start an encrypted conversation
+                            </div>
+                        </div>
+                        <div class="chat-input">
+                            <input type="text" id="messageInput" placeholder="Type a message..." disabled>
+                            <button id="sendBtn" disabled>Send</button>
+                        </div>
+                    </div>
+                    <div class="no-session-overlay" id="noSessionOverlay">
+                        <div>
+                            <p>No active session</p>
+                            <p style="font-size: 13px; margin-top: 8px;">Select a user from the list and click "Connect" to establish an encrypted session</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel protocol-log">
+            <div class="panel-header">Protocol Log</div>
+            <div class="log-entries" id="protocolLog">
+                <div class="log-entry info">[System] Initializing Signal Protocol...</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="bundle.js"></script>
+    <script>
+        // Global state
+        let ws = null;
+        let myClientId = null;
+        let myUsername = 'Anonymous';
+        let store = null;
+        let sessions = new Map(); // clientId -> { cipher, established }
+        let activeSessionClientId = null;
+        let otherClients = [];
+        let messageHistories = new Map(); // clientId -> Array of {text, type, sender, encrypted, timestamp}
+
+        // DOM elements
+        const wsStatusDot = document.getElementById('wsStatus');
+        const wsStatusText = document.getElementById('wsStatusText');
+        const keysStatusDot = document.getElementById('keysStatus');
+        const keysStatusText = document.getElementById('keysStatusText');
+        const sessionStatusDot = document.getElementById('sessionStatus');
+        const sessionStatusText = document.getElementById('sessionStatusText');
+        const usernameInput = document.getElementById('username');
+        const usersList = document.getElementById('usersList');
+        const messagesDiv = document.getElementById('messages');
+        const messageInput = document.getElementById('messageInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const protocolLog = document.getElementById('protocolLog');
+        const chatPartner = document.getElementById('chatPartner');
+        const noSessionOverlay = document.getElementById('noSessionOverlay');
+
+        // Logging
+        function log(message, type = 'info') {
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            protocolLog.appendChild(entry);
+            protocolLog.scrollTop = protocolLog.scrollHeight;
+            console.log(`[${type.toUpperCase()}]`, message);
+        }
+
+        // Add message to chat history
+        function addMessage(text, type, sender = null, encrypted = false, clientId = null) {
+            const timestamp = new Date();
+            const messageData = { text, type, sender, encrypted, timestamp };
+
+            // For non-system messages, store in the appropriate history
+            if (type !== 'system' && clientId) {
+                if (!messageHistories.has(clientId)) {
+                    messageHistories.set(clientId, []);
+                }
+                messageHistories.get(clientId).push(messageData);
+            }
+
+            // Only render if this is a system message or for the active conversation
+            if (type === 'system' || clientId === activeSessionClientId) {
+                renderMessage(messageData);
+            }
+        }
+
+        // Render a single message to the DOM
+        function renderMessage(messageData) {
+            const { text, type, sender, encrypted, timestamp } = messageData;
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+
+            if (type !== 'system' && sender) {
+                const senderDiv = document.createElement('div');
+                senderDiv.className = 'message-sender';
+                senderDiv.textContent = sender;
+                msg.appendChild(senderDiv);
+            }
+
+            const textDiv = document.createElement('div');
+            textDiv.className = 'message-text';
+            textDiv.textContent = text;
+            msg.appendChild(textDiv);
+
+            if (type !== 'system') {
+                const metaDiv = document.createElement('div');
+                metaDiv.className = 'message-meta';
+                metaDiv.innerHTML = `
+                    <span>${timestamp.toLocaleTimeString()}</span>
+                    ${encrypted ? '<span class="encrypted-badge">E2E Encrypted</span>' : ''}
+                `;
+                msg.appendChild(metaDiv);
+            }
+
+            messagesDiv.appendChild(msg);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        // Render all messages for a specific conversation
+        function renderConversation(clientId) {
+            // Clear messages area
+            messagesDiv.innerHTML = '';
+
+            if (!clientId) {
+                // No active conversation, show welcome message
+                const msg = document.createElement('div');
+                msg.className = 'message system';
+                msg.textContent = 'Select a user and click "Connect" to start an encrypted conversation';
+                messagesDiv.appendChild(msg);
+                return;
+            }
+
+            const history = messageHistories.get(clientId) || [];
+            if (history.length === 0) {
+                const session = sessions.get(clientId);
+                const msg = document.createElement('div');
+                msg.className = 'message system';
+                msg.textContent = `Encrypted session established with ${session?.username || 'user'}. Start chatting!`;
+                messagesDiv.appendChild(msg);
+            } else {
+                for (const messageData of history) {
+                    renderMessage(messageData);
+                }
+            }
+        }
+
+        // Track PreKey counter for generating unique PreKeys
+        let preKeyCounter = 1;
+        let currentIdentityKeyPair = null;
+        let currentRegistrationId = null;
+        let currentSignedPreKey = null;
+
+        // Generate a new PreKey and register updated bundle with server
+        async function generateAndRegisterNewPreKey() {
+            preKeyCounter++;
+            const preKey = await SignalProtocol.KeyHelper.generatePreKey(preKeyCounter);
+            await store.storePreKey(preKey.keyId, preKey.keyPair);
+
+            log(`Generated new PreKey (ID: ${preKeyCounter})`, 'crypto');
+
+            // Create and register updated pre-key bundle
+            const bundle = {
+                identityKey: currentIdentityKeyPair.pubKey,
+                registrationId: currentRegistrationId,
+                preKey: {
+                    keyId: preKey.keyId,
+                    publicKey: preKey.keyPair.pubKey
+                },
+                signedPreKey: {
+                    keyId: currentSignedPreKey.keyId,
+                    publicKey: currentSignedPreKey.keyPair.pubKey,
+                    signature: currentSignedPreKey.signature
+                }
+            };
+
+            const serializableBundle = serializeBundle(bundle);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'REGISTER_PREKEY_BUNDLE',
+                    bundle: serializableBundle
+                }));
+                log('Updated pre-key bundle registered with server', 'success');
+            }
+        }
+
+        // Initialize the Signal Protocol store and keys
+        async function initializeSignalProtocol() {
+            log('Generating identity keys...', 'crypto');
+
+            // Create in-memory store
+            store = SignalProtocol.createMemoryStore();
+
+            // Generate identity key pair
+            currentIdentityKeyPair = await SignalProtocol.KeyHelper.generateIdentityKeyPair();
+            store.setIdentityKeyPair(currentIdentityKeyPair);
+
+            // Generate registration ID
+            currentRegistrationId = SignalProtocol.KeyHelper.generateRegistrationId();
+            store.setLocalRegistrationId(currentRegistrationId);
+
+            log(`Identity key generated (Registration ID: ${currentRegistrationId})`, 'success');
+
+            // Generate pre-keys
+            const preKey = await SignalProtocol.KeyHelper.generatePreKey(preKeyCounter);
+            await store.storePreKey(preKey.keyId, preKey.keyPair);
+
+            currentSignedPreKey = await SignalProtocol.KeyHelper.generateSignedPreKey(currentIdentityKeyPair, 1);
+            await store.storeSignedPreKey(currentSignedPreKey.keyId, currentSignedPreKey.keyPair);
+
+            log('Pre-keys generated and stored', 'success');
+
+            // Update UI
+            keysStatusDot.classList.add('connected');
+            keysStatusText.textContent = 'Keys: Generated';
+
+            // Create and register pre-key bundle
+            const bundle = {
+                identityKey: currentIdentityKeyPair.pubKey,
+                registrationId: currentRegistrationId,
+                preKey: {
+                    keyId: preKey.keyId,
+                    publicKey: preKey.keyPair.pubKey
+                },
+                signedPreKey: {
+                    keyId: currentSignedPreKey.keyId,
+                    publicKey: currentSignedPreKey.keyPair.pubKey,
+                    signature: currentSignedPreKey.signature
+                }
+            };
+
+            // Convert ArrayBuffers to base64 for transmission
+            const serializableBundle = serializeBundle(bundle);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'REGISTER_PREKEY_BUNDLE',
+                    bundle: serializableBundle
+                }));
+                log('Pre-key bundle registered with server', 'success');
+            }
+
+            return bundle;
+        }
+
+        // Serialize bundle (ArrayBuffer -> base64)
+        function serializeBundle(bundle) {
+            return {
+                identityKey: arrayBufferToBase64(bundle.identityKey),
+                registrationId: bundle.registrationId,
+                preKey: {
+                    keyId: bundle.preKey.keyId,
+                    publicKey: arrayBufferToBase64(bundle.preKey.publicKey)
+                },
+                signedPreKey: {
+                    keyId: bundle.signedPreKey.keyId,
+                    publicKey: arrayBufferToBase64(bundle.signedPreKey.publicKey),
+                    signature: arrayBufferToBase64(bundle.signedPreKey.signature)
+                }
+            };
+        }
+
+        // Deserialize bundle (base64 -> ArrayBuffer)
+        function deserializeBundle(bundle) {
+            return {
+                identityKey: base64ToArrayBuffer(bundle.identityKey),
+                registrationId: bundle.registrationId,
+                preKey: {
+                    keyId: bundle.preKey.keyId,
+                    publicKey: base64ToArrayBuffer(bundle.preKey.publicKey)
+                },
+                signedPreKey: {
+                    keyId: bundle.signedPreKey.keyId,
+                    publicKey: base64ToArrayBuffer(bundle.signedPreKey.publicKey),
+                    signature: base64ToArrayBuffer(bundle.signedPreKey.signature)
+                }
+            };
+        }
+
+        function arrayBufferToBase64(buffer) {
+            const bytes = new Uint8Array(buffer);
+            let binary = '';
+            for (let i = 0; i < bytes.byteLength; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return btoa(binary);
+        }
+
+        function base64ToArrayBuffer(base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+                bytes[i] = binary.charCodeAt(i);
+            }
+            return bytes.buffer;
+        }
+
+        // Establish session with another user
+        async function establishSession(targetClientId, targetUsername, bundle) {
+            log(`Establishing session with ${targetUsername}...`, 'crypto');
+
+            const address = new SignalProtocol.SignalProtocolAddress(String(targetClientId), 1);
+            const builder = new SignalProtocol.SessionBuilder(store, address);
+
+            const deserializedBundle = deserializeBundle(bundle);
+            await builder.processPreKey(deserializedBundle);
+
+            const cipher = new SignalProtocol.SessionCipher(store, address);
+
+            sessions.set(targetClientId, {
+                cipher,
+                username: targetUsername,
+                established: true,
+                unreadCount: 0
+            });
+
+            log(`X3DH session established with ${targetUsername}`, 'success');
+
+            // Set as active session
+            setActiveSession(targetClientId);
+
+            return cipher;
+        }
+
+        function setActiveSession(clientId) {
+            activeSessionClientId = clientId;
+            const session = sessions.get(clientId);
+
+            if (session) {
+                sessionStatusDot.classList.add('encrypted');
+                sessionStatusText.textContent = `Session: ${session.username}`;
+                chatPartner.textContent = `with ${session.username}`;
+                noSessionOverlay.style.display = 'none';
+                messageInput.disabled = false;
+                sendBtn.disabled = false;
+                // Clear unread indicator when switching to a conversation
+                session.unreadCount = 0;
+            } else {
+                sessionStatusDot.classList.remove('encrypted');
+                sessionStatusText.textContent = 'Session: None';
+                chatPartner.textContent = '';
+                noSessionOverlay.style.display = 'flex';
+                messageInput.disabled = true;
+                sendBtn.disabled = true;
+            }
+
+            // Render the conversation for the selected user
+            renderConversation(clientId);
+            updateUsersList();
+        }
+
+        // Send encrypted message
+        async function sendMessage(text) {
+            if (!activeSessionClientId || !sessions.has(activeSessionClientId)) {
+                log('No active session to send message', 'error');
+                return;
+            }
+
+            const session = sessions.get(activeSessionClientId);
+            const encoder = new TextEncoder();
+            const plaintext = encoder.encode(text).buffer;
+
+            log(`Encrypting message with Double Ratchet...`, 'crypto');
+
+            try {
+                // Create a fresh cipher that loads the current session state from the store
+                const address = new SignalProtocol.SignalProtocolAddress(String(activeSessionClientId), 1);
+                const cipher = new SignalProtocol.SessionCipher(store, address);
+
+                const ciphertext = await cipher.encrypt(plaintext);
+
+                // Update the cached cipher with the fresh one
+                session.cipher = cipher;
+
+                log(`Message encrypted (type: ${ciphertext.type === 3 ? 'PreKeyWhisper' : 'Whisper'}, ${ciphertext.body.length} bytes)`, 'success');
+
+                // Send to server
+                ws.send(JSON.stringify({
+                    type: 'ENCRYPTED_MESSAGE',
+                    toClientId: activeSessionClientId,
+                    ciphertext: {
+                        type: ciphertext.type,
+                        body: ciphertext.body,
+                        registrationId: ciphertext.registrationId
+                    }
+                }));
+
+                addMessage(text, 'sent', 'You', true, activeSessionClientId);
+            } catch (err) {
+                log(`Encryption failed: ${err.message}`, 'error');
+                console.error('Encryption error:', err);
+            }
+        }
+
+        // Receive and decrypt message
+        async function receiveMessage(fromClientId, fromUsername, ciphertext) {
+            log(`Received encrypted message from ${fromUsername}`, 'crypto');
+
+            let session = sessions.get(fromClientId);
+            let isNewSession = false;
+
+            // If we don't have a session, we might receive a PreKeyWhisper that establishes one
+            if (!session) {
+                log(`No session with ${fromUsername}, creating from incoming PreKeyWhisper...`, 'crypto');
+                isNewSession = true;
+            }
+
+            // Always create a fresh cipher for the address - it will load session from store
+            const address = new SignalProtocol.SignalProtocolAddress(String(fromClientId), 1);
+            const cipher = new SignalProtocol.SessionCipher(store, address);
+
+            try {
+                let plaintext;
+                let wasPreKeyMessage = false;
+                if (ciphertext.type === 3) {
+                    log('Decrypting PreKeyWhisperMessage...', 'crypto');
+                    plaintext = await cipher.decryptPreKeyWhisperMessage(ciphertext.body, 'binary');
+                    wasPreKeyMessage = true;
+                } else {
+                    log('Decrypting WhisperMessage...', 'crypto');
+                    plaintext = await cipher.decryptWhisperMessage(ciphertext.body, 'binary');
+                }
+
+                const decoder = new TextDecoder();
+                const text = decoder.decode(new Uint8Array(plaintext));
+
+                log(`Message decrypted successfully`, 'success');
+
+                // After successful decryption, update/create the session entry with fresh cipher
+                // The cipher now has the session loaded from the store after decryption
+                if (!session) {
+                    session = { cipher, username: fromUsername, established: true, unreadCount: 0 };
+                    sessions.set(fromClientId, session);
+                } else {
+                    // Update cipher in case session state changed
+                    session.cipher = cipher;
+                }
+
+                // If we decrypted a PreKeyWhisperMessage, the PreKey was consumed
+                // Generate a new PreKey and register it with the server
+                if (wasPreKeyMessage) {
+                    await generateAndRegisterNewPreKey();
+                }
+
+                // Add message to history (will only render if this is the active conversation)
+                addMessage(text, 'received', fromUsername, true, fromClientId);
+
+                // If this isn't the active session, increment unread count
+                if (activeSessionClientId !== fromClientId) {
+                    session.unreadCount = (session.unreadCount || 0) + 1;
+                    log(`New message from ${fromUsername} (${session.unreadCount} unread)`, 'info');
+                }
+
+                // Update UI if new session was created or if we have unread messages
+                if (isNewSession || activeSessionClientId !== fromClientId) {
+                    updateUsersList();
+                }
+            } catch (err) {
+                log(`Decryption failed: ${err.message}`, 'error');
+                console.error('Decryption error:', err);
+            }
+        }
+
+        // Update users list UI
+        function updateUsersList() {
+            usersList.innerHTML = '';
+
+            // Add ourselves first
+            const meItem = document.createElement('li');
+            meItem.className = 'user-item me';
+            meItem.innerHTML = `
+                <div class="user-info">
+                    <div class="user-avatar">${myUsername.charAt(0).toUpperCase()}</div>
+                    <div>
+                        <div class="user-name">${myUsername} (You)</div>
+                        <div class="user-status">Client ID: ${myClientId}</div>
+                    </div>
+                </div>
+            `;
+            usersList.appendChild(meItem);
+
+            // Add other clients
+            for (const client of otherClients) {
+                if (client.clientId === myClientId) continue;
+
+                const session = sessions.get(client.clientId);
+                const hasSession = !!session;
+                const isActive = activeSessionClientId === client.clientId;
+                const unreadCount = session?.unreadCount || 0;
+                const hasUnread = unreadCount > 0 && !isActive;
+
+                const item = document.createElement('li');
+                item.className = `user-item ${hasSession ? 'has-session' : ''} ${hasUnread ? 'has-unread' : ''}`;
+
+                const unreadBadge = hasUnread ? `<span class="unread-badge">${unreadCount}</span>` : '';
+
+                item.innerHTML = `
+                    <div class="user-info">
+                        <div class="user-avatar">${client.username.charAt(0).toUpperCase()}</div>
+                        <div>
+                            <div class="user-name">${client.username}${unreadBadge}</div>
+                            <div class="user-status">${hasSession ? 'Session active' : (client.hasPreKeyBundle ? 'Ready to connect' : 'No keys')}</div>
+                        </div>
+                    </div>
+                    <button class="connect-btn ${isActive ? 'connected' : ''}"
+                            data-client-id="${client.clientId}"
+                            ${!client.hasPreKeyBundle ? 'disabled' : ''}>
+                        ${isActive ? 'Active' : (hasSession ? 'Chat' : 'Connect')}
+                    </button>
+                `;
+                usersList.appendChild(item);
+            }
+
+            // Add click handlers
+            usersList.querySelectorAll('.connect-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const clientId = parseInt(e.target.dataset.clientId);
+                    await connectToUser(clientId);
+                });
+            });
+        }
+
+        async function connectToUser(clientId) {
+            const client = otherClients.find(c => c.clientId === clientId);
+            if (!client) return;
+
+            if (sessions.has(clientId)) {
+                // Already have a session, just switch to it
+                setActiveSession(clientId);
+                return;
+            }
+
+            // Request their pre-key bundle
+            log(`Requesting pre-key bundle from ${client.username}...`, 'info');
+            ws.send(JSON.stringify({
+                type: 'REQUEST_PREKEY_BUNDLE',
+                targetClientId: clientId
+            }));
+        }
+
+        // WebSocket connection
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            ws = new WebSocket(`${protocol}//${window.location.host}`);
+
+            ws.onopen = () => {
+                log('Connected to relay server', 'success');
+                wsStatusDot.classList.add('connected');
+                wsStatusText.textContent = 'Server: Connected';
+            };
+
+            ws.onclose = () => {
+                log('Disconnected from server', 'error');
+                wsStatusDot.classList.remove('connected');
+                wsStatusText.textContent = 'Server: Disconnected';
+
+                // Reconnect after 2 seconds
+                setTimeout(connectWebSocket, 2000);
+            };
+
+            ws.onerror = (err) => {
+                log('WebSocket error', 'error');
+                console.error(err);
+            };
+
+            ws.onmessage = async (event) => {
+                const data = JSON.parse(event.data);
+
+                switch (data.type) {
+                    case 'WELCOME':
+                        myClientId = data.clientId;
+                        log(`Assigned client ID: ${myClientId}`, 'info');
+
+                        // Generate random username
+                        myUsername = `User${myClientId}`;
+                        usernameInput.value = myUsername;
+
+                        // Initialize Signal Protocol
+                        await initializeSignalProtocol();
+
+                        // Send username
+                        ws.send(JSON.stringify({
+                            type: 'SET_USERNAME',
+                            username: myUsername
+                        }));
+                        break;
+
+                    case 'CLIENT_LIST':
+                        otherClients = data.clients;
+                        log(`Client list updated: ${data.clients.length} users online`, 'info');
+                        updateUsersList();
+                        break;
+
+                    case 'PREKEY_BUNDLE':
+                        log(`Received pre-key bundle from ${data.fromUsername}`, 'success');
+                        await establishSession(data.fromClientId, data.fromUsername, data.bundle);
+                        updateUsersList();
+                        break;
+
+                    case 'ENCRYPTED_MESSAGE':
+                        await receiveMessage(data.fromClientId, data.fromUsername, data.ciphertext);
+                        break;
+
+                    case 'ERROR':
+                        log(`Server error: ${data.message}`, 'error');
+                        break;
+                }
+            };
+        }
+
+        // Event listeners
+        usernameInput.addEventListener('change', () => {
+            myUsername = usernameInput.value || `User${myClientId}`;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({
+                    type: 'SET_USERNAME',
+                    username: myUsername
+                }));
+            }
+            updateUsersList();
+        });
+
+        sendBtn.addEventListener('click', async () => {
+            const text = messageInput.value.trim();
+            if (text) {
+                await sendMessage(text);
+                messageInput.value = '';
+            }
+        });
+
+        messageInput.addEventListener('keypress', async (e) => {
+            if (e.key === 'Enter') {
+                const text = messageInput.value.trim();
+                if (text) {
+                    await sendMessage(text);
+                    messageInput.value = '';
+                }
+            }
+        });
+
+        // Start
+        connectWebSocket();
+    </script>
+</body>
+</html>
