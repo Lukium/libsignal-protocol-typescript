@@ -150,5 +150,8 @@
   "sideEffects": [
     "lib/msrcrypto.js"
   ],
+  "engines": {
+    "node": ">=20"
+  },
   "packageManager": "yarn@4.10.3"
 }

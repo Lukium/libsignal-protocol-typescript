@@ -27,7 +27,7 @@
 > | | |
 > | --- | --- |
 > | **Current / latest stable** | **`0.1.0-beta.2`** — canonical Signal identity (single Curve25519 key, **XEdDSA**) on the bundled asm.js curve. Universal browser support. |
-> | **Next release line (`0.2.0-beta.x`+, in progress)** | Native **WebCrypto** `X25519` + `Ed25519`. Adopts a **two-key, Olm-style identity** (separate Ed25519 signing + X25519 DH keys). **Breaking**: identity key format and `KeyHelper` API change; requires Chrome 137+ / Firefox 130+ / Safari 17+. |
+> | **Next release line (`0.2.0-beta.x`+, published under the `beta` npm tag)** | Native **WebCrypto** `X25519` + `Ed25519`. Adopts a **two-key, Olm-style identity** (separate Ed25519 signing + X25519 DH keys). **Breaking**: identity key format and `KeyHelper` API change; requires Chrome 137+ / Firefox 130+ / Safari 17+ (and **Node ≥ 20** for non-browser use). Install with `@beta` or an exact version. |
 >
 > **Want the current behavior? Pin to `0.1.0-beta.2`** — it will not receive the breaking change:
 >
@@ -45,6 +45,19 @@
 > (different identity-key format) nor with the real Signal network. See
 > [Cryptographic Backend (Curve25519)](#cryptographic-backend-curve25519) for the
 > full rationale, comparison chart, and migration notes.
+>
+> ### 📌 Planned `latest` switch — pin now if you need the non-WebCrypto build
+>
+> The WebCrypto line currently ships under the **`beta`** tag while it is
+> validated inside the AllTheServices KMS. **In the near future — once it is
+> integrated into the KMS and tested — the `latest` tag will move to the
+> WebCrypto (`0.2.x`) line.** At that point a plain
+> `npm install @lukium/libsignal-protocol-typescript` (no version) will resolve
+> to the WebCrypto build, which is a **breaking change** for existing consumers.
+>
+> **If you want the original single-key (XEdDSA / asm.js, non-WebCrypto) build,
+> pin `0.1.0-beta.2` now** (see the exact-pin snippet above) so a future `latest`
+> bump cannot break you.
 
 ## Modernization Status
 
