@@ -27,7 +27,7 @@ examples/storage-adapters/
 examples/pwa-vite/
 ├── src/main.ts             # Main thread wiring (Vite demo)
 ├── src/sw.ts               # Service Worker with pre-key handling
-└── vite.config.ts          # ES module worker + msrcrypto shim configuration
+└── vite.config.ts          # ES module worker configuration
 ```
 
 ## 3. Service Worker Integration
@@ -36,11 +36,11 @@ examples/pwa-vite/
 - Use ES module workers so you can `import` from the package without falling back to `importScripts`.
 - Listen for `push` events to fetch incoming encrypted messages. Decrypt using the same IndexedDB store (accessible via `self.indexedDB`).
 - Post decrypted payloads back to the client via `clients.matchAll()` and `client.postMessage`.
-- When the browser provides `globalThis.crypto` (all evergreen browsers do), the library no longer pulls in the legacy `msrcrypto` fallback. If you intentionally bundle the fallback, keep it behind a feature flag so worker builds stay lean.
+- The library requires native `globalThis.crypto` with `X25519`/`Ed25519` support (all evergreen browsers and Node >= 20 provide it). There is no `msrcrypto`/asm.js fallback to bundle, so worker builds stay lean by default.
 
 ### 3.1 Vite-first worker setup
 
-The quickest way to validate Service Worker compatibility is to wire an ES module worker in Vite. The snippet below targets Vite 5+ and keeps the legacy `msrcrypto` shim out of the worker bundle.
+The quickest way to validate Service Worker compatibility is to wire an ES module worker in Vite. The snippet below targets Vite 5+. The library uses native WebCrypto (`X25519`/`Ed25519`) directly, so there is no asm.js payload to keep out of the worker bundle.
 
 ```ts
 // sw.ts
@@ -96,37 +96,14 @@ import { defineConfig } from 'vite';
 
 export default defineConfig({
     worker: {
+        // The library uses native WebCrypto (X25519/Ed25519) directly, so there is
+        // no asm.js fallback module to externalize or alias.
         format: 'es',
-        rollupOptions: {
-            // The library now hydrates `globalThis.crypto` first, so we can skip bundling msrcrypto in workers.
-            external: ['@lukium/libsignal-protocol-typescript/lib/msrcrypto.js'],
-        },
-    },
-    resolve: {
-        alias: {
-            // Optional: provide an explicit shim if a dependency tries to import the fallback module.
-            '@lukium/libsignal-protocol-typescript/lib/msrcrypto.js': '/src/shims/msrcrypto-empty.ts',
-        },
     },
 });
 ```
 
-```ts
-// src/shims/msrcrypto-empty.ts
-const missing = () => {
-    throw new Error('msrcrypto fallback requested. Ensure globalThis.crypto is available before using libsignal.');
-};
-
-export default {
-    subtle: {
-        digest: missing,
-    },
-    getRandomValues: missing,
-    randomUUID: missing,
-};
-```
-
-Use `navigator.serviceWorker.register('/sw.js', { type: 'module' })` from the main thread and Vite will emit both the app bundle and the worker chunk. The library’s runtime now lazily falls back to `msrcrypto` only when `globalThis.crypto` is absent, so modern browsers avoid shipping the legacy asm.js payload. The alias above guarantees the worker build fails fast if the environment is missing WebCrypto support.
+Use `navigator.serviceWorker.register('/sw.js', { type: 'module' })` from the main thread and Vite will emit both the app bundle and the worker chunk. The library relies on native `globalThis.crypto` (`X25519`/`Ed25519`), so there is no asm.js payload to ship — just ensure the target environment provides native WebCrypto curve support (modern browsers or Node >= 20).
 
 Launch the demo locally with `yarn example:pwa-vite` after running `yarn build`.
 

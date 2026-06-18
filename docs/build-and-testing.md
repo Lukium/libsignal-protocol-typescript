@@ -2,7 +2,7 @@
 
 ## Current Toolchain
 
-- **Runtime**: Node.js 18+ (WebCrypto available natively)
+- **Runtime**: Node.js 20+ (required for native `globalThis.crypto` with `X25519`/`Ed25519`; no asm.js fallback)
 - **Package manager**: Yarn 4 (node-modules linker, `.yarnrc.yml` committed)
 - **Compiler**: TypeScript 5.8 via layered configs (`tsconfig.base.json`, `tsconfig.cjs.json`, `tsconfig.esm.json`)
 - **Test runner**: Jest 29 with ts-jest and a custom `TestEnvironment` shim (`src/__test-utils__/custom-jest-environment.js`)
@@ -82,8 +82,8 @@ Recent additions:
 - `yarn build` produces:
   - `lib/cjs/**` – CommonJS + `.d.ts` + sourcemaps
   - `lib/esm/**` – ES2020 modules + `.d.ts` + sourcemaps
-  - `lib/msrcrypto.js` – legacy fallback injected at runtime
-- Package metadata declares `"sideEffects": ["lib/msrcrypto.js"]` so bundlers can tree-shake everything else by default, and subpath exports (`./session-cipher`, `./fingerprint-generator`, `./logger`, etc.) let bundlers import only the modules required for a given bundle.
+  - (As of 0.2.0 there is no `lib/msrcrypto.js` artifact — curve crypto runs on native WebCrypto.)
+- Package metadata declares `"sideEffects": false` so bundlers can tree-shake by default, and subpath exports (`./session-cipher`, `./fingerprint-generator`, `./logger`, etc.) let bundlers import only the modules required for a given bundle.
 - Current bundle footprint (2025-10-17):
   - `lib/cjs` ≈ **344 KB** on disk
   - `lib/esm` ≈ **328 KB** on disk
@@ -121,8 +121,10 @@ Current `examples/pwa-vite` output (2025-10-19): **104.16 KiB** gzipped across
 
 ### Bundle Composition Analysis (2025-11-26)
 
-The PWA demo bundle (104 KB gzipped) consists of:
-- **Curve25519 asm.js** (~40-50 KB gzipped) - Required for all crypto operations
+> **0.2.0 note:** The Curve25519 asm.js dependency was removed in favor of native WebCrypto (`X25519`/`Ed25519`), which eliminates the largest single contributor (~40-50 KB gzipped) to the figures below. The snapshot is retained for historical comparison; rerun `yarn bundle:size` to capture current totals.
+
+The PWA demo bundle previously consisted of:
+- **Curve25519 asm.js** (~40-50 KB gzipped) - Removed in 0.2.0; curve ops now use native WebCrypto (zero bundle cost)
 - **protobufjs/light** (~16 KB gzipped) - Required for message encoding/decoding
 - **Library code** (~30 KB gzipped) - Session management, crypto wrappers
 - **IndexedDB adapter** (~8 KB gzipped) - Storage implementation
@@ -131,22 +133,22 @@ The PWA demo bundle (104 KB gzipped) consists of:
 
 | Dependency | Raw size | Notes |
 | ---------- | -------- | ----- |
-| `@privacyresearch/curve25519-typescript` | ~860 KB | asm.js Curve25519 implementation |
 | `protobufjs/light` | ~68 KB (minified) | Protocol buffer runtime (~16 KB gzipped) |
 | `base64-js` | ~2 KB | Base64 encoding utilities |
+
+(`@privacyresearch/curve25519-typescript` was removed in 0.2.0; curve crypto now runs on native `SubtleCrypto`.)
 
 #### Future Optimization Opportunities
 
 1. **protobufjs/minimal** (~6.5 KB gzipped) - Requires static code generation via `pbjs`, would save ~10 KB but requires significant refactoring
-2. **WASM Curve25519** - Could replace asm.js for potential size/performance improvements
-3. **Custom protobuf codec** - Hand-written encode/decode for the simple message types could eliminate protobufjs dependency entirely
+2. **Custom protobuf codec** - Hand-written encode/decode for the simple message types could eliminate protobufjs dependency entirely
 
-Phase 2 target (≤110 KB) achieved; sub-100 KB remains a stretch goal for future releases.
+Sub-100 KB gzipped is now well within reach following the native-WebCrypto curve migration.
 
 ## Continuous Integration
 
 - Workflow: `.github/workflows/ci.yml`
-- Matrix: Node.js 18.x and 20.x
+- Matrix: Node.js 20.x (minimum supported; native `globalThis.crypto` required)
 - Steps: `corepack enable` → `corepack prepare yarn@4.5.2 --activate` → `yarn install --immutable` → `yarn lint` → `yarn typecheck` → `yarn test --coverage` → `yarn build`
 - Corepack: Actions activates Yarn 4.5.2 so the CI environment matches local installs before running any Yarn command
 - Artifact: `coverage/lcov.info` uploaded from the Node 20 run for downstream reporting

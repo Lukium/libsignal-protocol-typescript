@@ -158,3 +158,7 @@ Phase 2 is complete when:
 - Create GitHub Project "Phase 2: Modernization" with columns: Backlog → In Progress → Review → Done.
 - File individual issues for each top-level task with acceptance criteria matching the checklist.
 - Hold bi-weekly review meetings to monitor bundle size, performance metrics, and documentation progress.
+
+## Addendum (0.2.0, 2026-06-17)
+
+> **Historical note — Phase 2 record left intact.** The msrcrypto audit, the "verify bundling without `msrcrypto` fallback" task, and the "asm.js vs WebCrypto" benchmark items above reflect Phase 2. In v0.2.0 the asm.js `@privacyresearch/curve25519-typescript` dependency and the bundled `lib/msrcrypto.js` polyfill were **removed** in favor of native WebCrypto (`X25519` + `Ed25519` via `SubtleCrypto`); native WebCrypto (modern browsers or Node >= 20) is now required, with no asm.js fallback.

@@ -900,3 +900,7 @@ The plan is ambitious but achievable over 12 weeks with dedicated effort. The ph
 4. Schedule weekly progress reviews
 
 ---
+
+## Addendum (0.2.0, 2026-06-17)
+
+> **Historical note — not a rewrite of the plan above.** In v0.2.0 the elliptic-curve crypto was migrated from the bundled asm.js `@privacyresearch/curve25519-typescript` dependency to native WebCrypto (`X25519` key agreement + `Ed25519` signatures via `SubtleCrypto`). The asm.js curve dependency and the bundled `lib/msrcrypto.js` polyfill were **removed** — there is no longer an asm.js fallback. This supersedes the "keep asm.js / evaluate WASM" direction recorded in the Phase 2/3 sections above. Native WebCrypto is now required (modern browsers or Node >= 20). The identity model is now two keys (Ed25519 signing + X25519 DH), Olm-style, replacing single-key XEdDSA; the symmetric layer (AES-CBC + HMAC-SHA256) is unchanged.

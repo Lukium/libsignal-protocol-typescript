@@ -580,3 +580,7 @@ Use GitHub Projects or Issues to track progress:
 **Last Updated**: 2025-10-17
 **Status**: Not Started
 **Expected Completion**: Week 3 end
+
+## Addendum (0.2.0, 2026-06-17)
+
+> **Historical note — Phase 1 record left intact.** The "keep `@privacyresearch/curve25519-typescript`" dependency decision and the WebCrypto polyfill/fallback references captured above reflect Phase 1. In v0.2.0 the asm.js curve dependency and the bundled `lib/msrcrypto.js` polyfill were **removed** in favor of native WebCrypto (`X25519` + `Ed25519` via `SubtleCrypto`); native WebCrypto (modern browsers or Node >= 20) is now required, with no asm.js fallback.

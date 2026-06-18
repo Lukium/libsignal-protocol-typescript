@@ -8,7 +8,8 @@ This guide helps consumers of the legacy `@privacyresearch/libsignal-protocol-ty
 
 - **Dual module builds**: The package now ships both ESM and CJS bundles (`lib/esm`, `lib/cjs`). Node consumers should prefer the default `require` entry; ESM-aware bundlers can target the `"module"` export.
 - **Type declarations**: `.d.ts` files are emitted alongside both builds. Ensure your bundler picks up the `types` export from `package.json`.
-- **Node version**: CI validates Node 18 and 20. Earlier Node versions are not officially tested.
+- **Node version**: **Node >= 20 is now required** — the library relies on the standard `globalThis.crypto` (`X25519`/`Ed25519`) and no longer ships an asm.js fallback. CI validates Node 20. Browser consumers need a modern engine with native WebCrypto curve support (X25519: Chrome/Edge 133+, Firefox 130+, Safari 17+; Ed25519: Chrome 137+, Firefox 129+, Safari 17+).
+- **Native WebCrypto curves (0.2.0)**: Elliptic-curve crypto migrated to native WebCrypto. The `@privacyresearch/curve25519-typescript` dependency and the bundled `lib/msrcrypto.js` polyfill were removed; there is no asm.js fallback.
 
 ## 2. Tooling Changes
 
@@ -23,6 +24,16 @@ No public APIs were intentionally removed in Phase 1. Notable clarifications:
 
 - `SessionCipher.saveIdentity` now awaits the underlying store call. Implementations of `SignalProtocolStore` **must** return a `Promise<boolean>` as documented in `src/types.ts`.
 - Internal helpers continue to return `ArrayBuffer` without `SharedArrayBuffer` special-casing; ensure your environment supports standard WebCrypto buffers.
+
+### 0.2.0 breaking changes (native WebCrypto curves)
+
+The migration to native WebCrypto removed several legacy exports and seams:
+
+- **`Curve` / `AsyncCurve` facade classes removed.** Use the `KeyHelper`, `SessionBuilder`, and `SessionCipher` APIs, which call native `SubtleCrypto` (`X25519` + `Ed25519`) internally.
+- **`setCurve()` injection seam removed.** Replace it with `setWebCryptoSubtle(subtle)` to inject a custom `SubtleCrypto`; `setWebCrypto(cryptoLike)` still exists to override the whole Crypto object.
+- **Legacy default export removed.** The `import libsignal from '@lukium/libsignal-protocol-typescript'` shape (the `createLegacyWrapper` form) is gone — import named exports instead (`import { SessionCipher } from '@lukium/libsignal-protocol-typescript'`).
+- **Identity model is now two keys** (Ed25519 signing + X25519 DH), Olm-style, replacing the single-key XEdDSA model.
+- The symmetric layer (AES-CBC + HMAC-SHA256) is unchanged.
 
 ## 4. Breaking Configuration Updates
 
@@ -54,7 +65,7 @@ No public APIs were intentionally removed in Phase 1. Notable clarifications:
 
 ## 7. Future Work (Phase 3+)
 
-- PQXDH support and WASM Curve25519 evaluation.
+- PQXDH support. (Native-WebCrypto curve migration shipped in 0.2.0, replacing the asm.js evaluation.)
 - Bundle trimming below 100 KB gzipped and broader browser coverage.
 - Migration recipes for custom storage backends and advanced examples (React/Vue).
 
@@ -67,3 +78,6 @@ No public APIs were intentionally removed in Phase 1. Notable clarifications:
 | `SessionBuilder` / `SessionCipher` | ✅ Unchanged | Awaitable store interactions now enforced. |
 | `SessionLock` | ✅ Unchanged | Internal helper, no public API shift. |
 | `SignalProtocolStore` contract (`StorageType`) | ✅ Unchanged | Added documentation to clarify promise-based methods. |
+| `Curve` / `AsyncCurve` | ❌ Removed (0.2.0) | Facade classes dropped; curve ops now run on native `SubtleCrypto` (`X25519`/`Ed25519`). |
+| `setCurve()` | ❌ Removed (0.2.0) | Replaced by `setWebCryptoSubtle(subtle)`; `setWebCrypto(cryptoLike)` still available. |
+| Default export (`import libsignal from ...`) | ❌ Removed (0.2.0) | Legacy `createLegacyWrapper` shape dropped; use named exports. |
