@@ -14,6 +14,9 @@ export default defineConfig({
         },
     },
     build: {
+        // The demo (like the WebCrypto backend it showcases) targets modern
+        // browsers; esnext allows the top-level await Vite emits in its preload.
+        target: 'esnext',
         rollupOptions: {
             input: {
                 main: path.resolve(__dirname, 'index.html'),

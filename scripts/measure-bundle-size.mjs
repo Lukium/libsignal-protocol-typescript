@@ -13,7 +13,7 @@ try {
 
 const buildLib = spawnSync('yarn', ['build'], {
     stdio: 'inherit',
-    shell: false,
+    shell: true, // Windows: resolve the yarn.CMD shim (shell:false skips PATHEXT)
 });
 
 if (buildLib.status !== 0) {
@@ -22,7 +22,7 @@ if (buildLib.status !== 0) {
 
 const buildDemo = spawnSync('yarn', ['build:pwa-vite'], {
     stdio: 'inherit',
-    shell: false,
+    shell: true, // Windows: resolve the yarn.CMD shim (shell:false skips PATHEXT)
 });
 
 if (buildDemo.status !== 0) {
