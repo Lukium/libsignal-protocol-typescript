@@ -102,11 +102,21 @@ class InMemorySignalProtocolStore {
 
     async removeAllSessions(identifier) {
         for (const key of this.store.keys()) {
-            if (key.startsWith(`session:${identifier}`)) {
+            if (key.startsWith('session:') && sessionKeyBelongsTo(key.slice('session:'.length), identifier)) {
                 this.store.delete(key);
             }
         }
     }
+}
+
+// True when a session address is exactly the identity or one of its
+// `identity.deviceId` device entries — avoids `alice` matching `alicebob.1`.
+function sessionKeyBelongsTo(address, identifier) {
+    if (address === identifier) {
+        return true;
+    }
+    const prefix = `${identifier}.`;
+    return address.startsWith(prefix) && /^\d+$/.test(address.slice(prefix.length));
 }
 
 function cloneBuffer(buffer) {
@@ -153,6 +163,8 @@ async function bootstrapUser(name, deviceId) {
 
     const device = {
         identityKey: identity.pubKey,
+        // Two-key identity: the Ed25519 signing key verifies the signed pre-key.
+        identitySigningKey: identity.signingPubKey,
         signedPreKey: {
             keyId: signedPreKey.keyId,
             publicKey: signedPreKey.keyPair.pubKey,

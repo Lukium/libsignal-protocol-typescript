@@ -19,6 +19,15 @@ const ARCHIVED_STATES_MAX_LENGTH = 40;
 const OLD_RATCHETS_MAX_LENGTH = 10;
 const SESSION_RECORD_VERSION = 'v1';
 
+// Defensive caps applied when deserializing a record from (possibly corrupt or
+// malicious) local storage, before any nested base64 decoding runs. These are
+// well above anything the library produces at runtime (ARCHIVED_STATES_MAX_LENGTH
+// sessions; per-chain message keys are bounded by the 2000-future-message guard).
+const MAX_SERIALIZED_RECORD_BYTES = 8 * 1024 * 1024;
+const MAX_SESSIONS_PER_RECORD = 200;
+const MAX_CHAINS_PER_SESSION = 60;
+const MAX_MESSAGE_KEYS_PER_CHAIN = 2200;
+
 export class SessionRecord implements RecordType {
     private static migrations = [
         {
@@ -71,24 +80,57 @@ export class SessionRecord implements RecordType {
         this.registrationId = registrationId;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    private static assertWithinLimits(sessions: any): void {
+        if (sessions === undefined || sessions === null || typeof sessions !== 'object' || Array.isArray(sessions)) {
+            throw new Error('Error deserializing SessionRecord');
+        }
+        const sessionKeys = Object.keys(sessions);
+        if (sessionKeys.length > MAX_SESSIONS_PER_RECORD) {
+            throw new Error('SessionRecord has too many sessions');
+        }
+        for (const k of sessionKeys) {
+            const session = sessions[k];
+            if (!session || typeof session !== 'object' || typeof session.chains !== 'object' || !session.chains) {
+                throw new Error('SessionRecord has a malformed session');
+            }
+            const chainKeys = Object.keys(session.chains);
+            if (chainKeys.length > MAX_CHAINS_PER_SESSION) {
+                throw new Error('SessionRecord session has too many chains');
+            }
+            for (const ck of chainKeys) {
+                const messageKeys = session.chains[ck]?.messageKeys;
+                if (
+                    messageKeys &&
+                    typeof messageKeys === 'object' &&
+                    Object.keys(messageKeys).length > MAX_MESSAGE_KEYS_PER_CHAIN
+                ) {
+                    throw new Error('SessionRecord chain has too many message keys');
+                }
+            }
+        }
+    }
+
     static deserialize(serialized: string): SessionRecord {
+        if (typeof serialized !== 'string' || serialized.length > MAX_SERIALIZED_RECORD_BYTES) {
+            throw new Error('Error deserializing SessionRecord');
+        }
         const data = JSON.parse(serialized);
+        if (data === null || typeof data !== 'object') {
+            throw new Error('Error deserializing SessionRecord');
+        }
         if (data.version !== SESSION_RECORD_VERSION) {
             SessionRecord.migrate(data);
         }
+
+        // Validate counts/shape on the raw parsed structure (cheap key counts)
+        // before the expensive nested base64 decoding below.
+        SessionRecord.assertWithinLimits(data.sessions);
 
         const record = new SessionRecord();
         record.sessions = {};
         for (const k of Object.keys(data.sessions)) {
             record.sessions[k] = sessionTypeStringToArrayBuffer(data.sessions[k]);
-        }
-        if (
-            record.sessions === undefined ||
-            record.sessions === null ||
-            typeof record.sessions !== 'object' ||
-            Array.isArray(record.sessions)
-        ) {
-            throw new Error('Error deserializing SessionRecord');
         }
         return record;
     }
@@ -246,9 +288,12 @@ export class SessionRecord implements RecordType {
     removeOldSessions(): void {
         // Retain only the last 20 sessions
         const { sessions } = this;
-        let oldestBaseKey: string | null = null;
-        let oldestSession: SessionType | null = null;
         while (Object.keys(sessions).length > ARCHIVED_STATES_MAX_LENGTH) {
+            // Recompute the oldest closed session each iteration; reusing values
+            // from a prior pass would re-target an already-deleted key and loop
+            // forever once more than one session needs trimming.
+            let oldestBaseKey: string | null = null;
+            let oldestSession: SessionType | null = null;
             for (const key in sessions) {
                 const session = sessions[key];
                 if (
@@ -261,6 +306,9 @@ export class SessionRecord implements RecordType {
             }
             if (oldestBaseKey) {
                 delete sessions[oldestBaseKey];
+            } else {
+                // Only open sessions remain; nothing left to trim safely.
+                break;
             }
         }
     }

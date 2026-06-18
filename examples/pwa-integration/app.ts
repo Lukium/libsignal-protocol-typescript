@@ -8,7 +8,12 @@ const logEl = document.getElementById('log') as HTMLDivElement;
 
 const log = (message: string) => {
     const time = new Date().toLocaleTimeString();
-    logEl.innerHTML += `[${time}] ${message}<br />`;
+    // Append a text node per entry rather than concatenating innerHTML: log
+    // messages can carry service-worker or error text that must never be
+    // interpreted as markup.
+    const entry = document.createElement('div');
+    entry.textContent = `[${time}] ${message}`;
+    logEl.appendChild(entry);
     logEl.scrollTop = logEl.scrollHeight;
 };
 

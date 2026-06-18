@@ -18,6 +18,35 @@ import { WebSocketServer } from 'ws';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PORT = process.env.PORT || 3000;
+// Bind to localhost by default; set HOST=0.0.0.0 to opt into LAN exposure.
+const HOST = process.env.HOST || '127.0.0.1';
+
+// Defensive limits for this demo relay (it is not a production server).
+const MAX_WS_PAYLOAD_BYTES = 256 * 1024; // ws frames larger than this are rejected
+const MAX_USERNAME_LENGTH = 32;
+const MAX_CIPHERTEXT_BODY_LENGTH = 128 * 1024;
+const MAX_BUNDLE_JSON_LENGTH = 16 * 1024;
+// Conservative username charset: letters, digits, space, and a few separators.
+const USERNAME_PATTERN = /^[\w .@-]{1,32}$/;
+
+function sanitizeUsername(value) {
+    if (typeof value !== 'string') {
+        return null;
+    }
+    const trimmed = value.trim();
+    if (!USERNAME_PATTERN.test(trimmed)) {
+        return null;
+    }
+    return trimmed.slice(0, MAX_USERNAME_LENGTH);
+}
+
+function jsonByteLength(value) {
+    try {
+        return Buffer.byteLength(JSON.stringify(value));
+    } catch {
+        return Infinity;
+    }
+}
 
 // Store connected clients and their pre-key bundles
 const clients = new Map(); // clientId -> { ws, preKeyBundle, username }
@@ -50,8 +79,9 @@ const httpServer = createServer((req, res) => {
     }
 });
 
-// Create WebSocket server
-const wss = new WebSocketServer({ server: httpServer });
+// Create WebSocket server with a hard frame-size cap so a single client cannot
+// force the relay to buffer arbitrarily large payloads.
+const wss = new WebSocketServer({ server: httpServer, maxPayload: MAX_WS_PAYLOAD_BYTES });
 
 wss.on('connection', (ws) => {
     const clientId = ++clientIdCounter;
@@ -93,15 +123,33 @@ function handleMessage(fromClientId, message) {
     const sender = clients.get(fromClientId);
     if (!sender) return;
 
+    if (!message || typeof message.type !== 'string') {
+        return;
+    }
+
     switch (message.type) {
-        case 'SET_USERNAME':
-            sender.username = message.username;
-            console.log(`[Server] Client ${fromClientId} set username: ${message.username}`);
+        case 'SET_USERNAME': {
+            const username = sanitizeUsername(message.username);
+            if (!username) {
+                sender.ws.send(JSON.stringify({ type: 'ERROR', message: 'Invalid username' }));
+                return;
+            }
+            sender.username = username;
+            console.log(`[Server] Client ${fromClientId} set username: ${username}`);
             broadcastClientList();
             break;
+        }
 
         case 'REGISTER_PREKEY_BUNDLE':
             // Client is registering their pre-key bundle (public keys only)
+            if (
+                message.bundle === null ||
+                typeof message.bundle !== 'object' ||
+                jsonByteLength(message.bundle) > MAX_BUNDLE_JSON_LENGTH
+            ) {
+                sender.ws.send(JSON.stringify({ type: 'ERROR', message: 'Invalid pre-key bundle' }));
+                return;
+            }
             sender.preKeyBundle = message.bundle;
             console.log(`[Server] Client ${fromClientId} (${sender.username}) registered pre-key bundle`);
             broadcastClientList();
@@ -127,8 +175,18 @@ function handleMessage(fromClientId, message) {
             }
             break;
 
-        case 'ENCRYPTED_MESSAGE':
+        case 'ENCRYPTED_MESSAGE': {
             // Relay encrypted message to target (server CANNOT read this!)
+            const ciphertext = message.ciphertext;
+            if (
+                ciphertext === null ||
+                typeof ciphertext !== 'object' ||
+                (typeof ciphertext.body === 'string' && ciphertext.body.length > MAX_CIPHERTEXT_BODY_LENGTH) ||
+                jsonByteLength(ciphertext) > MAX_WS_PAYLOAD_BYTES
+            ) {
+                sender.ws.send(JSON.stringify({ type: 'ERROR', message: 'Invalid ciphertext payload' }));
+                return;
+            }
             const recipientId = message.toClientId;
             const recipient = clients.get(recipientId);
             if (recipient) {
@@ -146,6 +204,7 @@ function handleMessage(fromClientId, message) {
                 }));
             }
             break;
+        }
 
         default:
             console.log(`[Server] Unknown message type from ${fromClientId}:`, message.type);
@@ -172,8 +231,10 @@ function broadcastClientList() {
     }
 }
 
-// Bind to 0.0.0.0 to allow access from Windows host in WSL2
-httpServer.listen(PORT, '0.0.0.0', () => {
+// Bind to localhost by default; set HOST=0.0.0.0 to expose on the LAN (e.g. to
+// reach the demo from a Windows host in WSL2). Exposing it shares the relay with
+// anyone on your network, so opt in deliberately.
+httpServer.listen(PORT, HOST, () => {
     console.log(`
 ╔════════════════════════════════════════════════════════════════╗
 ║     Signal Protocol Cross-Browser Chat Demo                    ║

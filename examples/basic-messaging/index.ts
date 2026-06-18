@@ -88,11 +88,21 @@ class InMemorySignalProtocolStore implements StorageType {
 
     async removeAllSessions(identifier: string): Promise<void> {
         for (const key of this.store.keys()) {
-            if (key.startsWith(`session:${identifier}`)) {
+            if (key.startsWith('session:') && sessionKeyBelongsTo(key.slice('session:'.length), identifier)) {
                 this.store.delete(key);
             }
         }
     }
+}
+
+// True when a session address is exactly the identity or one of its
+// `identity.deviceId` device entries — avoids `alice` matching `alicebob.1`.
+function sessionKeyBelongsTo(address: string, identifier: string): boolean {
+    if (address === identifier) {
+        return true;
+    }
+    const prefix = `${identifier}.`;
+    return address.startsWith(prefix) && /^\d+$/.test(address.slice(prefix.length));
 }
 
 function cloneBuffer(buffer: ArrayBuffer): ArrayBuffer {
@@ -139,6 +149,8 @@ async function bootstrapUser(name: string, deviceId: number) {
 
     const device: DeviceType = {
         identityKey: identity.pubKey,
+        // Two-key identity: the Ed25519 signing key verifies the signed pre-key.
+        identitySigningKey: identity.signingPubKey,
         signedPreKey: {
             keyId: signedKeyId,
             publicKey: signedPreKey.keyPair.pubKey,
@@ -156,6 +168,7 @@ async function bootstrapUser(name: string, deviceId: number) {
 
 type DeviceType = {
     identityKey: ArrayBuffer;
+    identitySigningKey: ArrayBuffer;
     signedPreKey: SignedPublicPreKeyType;
     preKey?: PreKeyType;
     registrationId?: number;

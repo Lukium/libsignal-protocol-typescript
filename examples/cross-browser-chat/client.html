@@ -911,6 +911,37 @@
             }
         }
 
+        // Build a user-info block from DOM nodes. Usernames are attacker-controlled
+        // (they come from other clients via the relay), so every dynamic value is
+        // assigned with textContent — never innerHTML — to prevent script injection.
+        function buildUserInfo(avatarChar, displayName, statusText, extraNameNode) {
+            const info = document.createElement('div');
+            info.className = 'user-info';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'user-avatar';
+            avatar.textContent = avatarChar;
+
+            const textWrap = document.createElement('div');
+
+            const nameEl = document.createElement('div');
+            nameEl.className = 'user-name';
+            nameEl.textContent = displayName;
+            if (extraNameNode) {
+                nameEl.appendChild(extraNameNode);
+            }
+
+            const statusEl = document.createElement('div');
+            statusEl.className = 'user-status';
+            statusEl.textContent = statusText;
+
+            textWrap.appendChild(nameEl);
+            textWrap.appendChild(statusEl);
+            info.appendChild(avatar);
+            info.appendChild(textWrap);
+            return info;
+        }
+
         // Update users list UI
         function updateUsersList() {
             usersList.innerHTML = '';
@@ -918,15 +949,9 @@
             // Add ourselves first
             const meItem = document.createElement('li');
             meItem.className = 'user-item me';
-            meItem.innerHTML = `
-                <div class="user-info">
-                    <div class="user-avatar">${myUsername.charAt(0).toUpperCase()}</div>
-                    <div>
-                        <div class="user-name">${myUsername} (You)</div>
-                        <div class="user-status">Client ID: ${myClientId}</div>
-                    </div>
-                </div>
-            `;
+            meItem.appendChild(
+                buildUserInfo((myUsername || '?').charAt(0).toUpperCase(), `${myUsername} (You)`, `Client ID: ${myClientId}`)
+            );
             usersList.appendChild(meItem);
 
             // Add other clients
@@ -942,22 +967,31 @@
                 const item = document.createElement('li');
                 item.className = `user-item ${hasSession ? 'has-session' : ''} ${hasUnread ? 'has-unread' : ''}`;
 
-                const unreadBadge = hasUnread ? `<span class="unread-badge">${unreadCount}</span>` : '';
+                let badge = null;
+                if (hasUnread) {
+                    badge = document.createElement('span');
+                    badge.className = 'unread-badge';
+                    badge.textContent = unreadCount;
+                }
 
-                item.innerHTML = `
-                    <div class="user-info">
-                        <div class="user-avatar">${client.username.charAt(0).toUpperCase()}</div>
-                        <div>
-                            <div class="user-name">${client.username}${unreadBadge}</div>
-                            <div class="user-status">${hasSession ? 'Session active' : (client.hasPreKeyBundle ? 'Ready to connect' : 'No keys')}</div>
-                        </div>
-                    </div>
-                    <button class="connect-btn ${isActive ? 'connected' : ''}"
-                            data-client-id="${client.clientId}"
-                            ${!client.hasPreKeyBundle ? 'disabled' : ''}>
-                        ${isActive ? 'Active' : (hasSession ? 'Chat' : 'Connect')}
-                    </button>
-                `;
+                const statusText = hasSession
+                    ? 'Session active'
+                    : client.hasPreKeyBundle
+                      ? 'Ready to connect'
+                      : 'No keys';
+                item.appendChild(
+                    buildUserInfo((client.username || '?').charAt(0).toUpperCase(), client.username, statusText, badge)
+                );
+
+                const btn = document.createElement('button');
+                btn.className = `connect-btn ${isActive ? 'connected' : ''}`;
+                btn.dataset.clientId = client.clientId;
+                if (!client.hasPreKeyBundle) {
+                    btn.disabled = true;
+                }
+                btn.textContent = isActive ? 'Active' : hasSession ? 'Chat' : 'Connect';
+                item.appendChild(btn);
+
                 usersList.appendChild(item);
             }
 

@@ -70,16 +70,20 @@ describe('IndexedDB SignalProtocolStore adapter', () => {
     it('stores sessions and supports removeAllSessions', async () => {
         const name = dbName();
         const store = await createIndexedDBSignalProtocolStore({ dbName: name });
-        const sessionKey = 'bob.1';
 
-        await store.storeSession(sessionKey, 'record-1');
-        await store.storeSession(`${sessionKey}:2`, 'record-2');
+        // Sessions are keyed by full `name.deviceId` addresses.
+        await store.storeSession('bob.1', 'record-1');
+        await store.storeSession('bob.2', 'record-2');
+        // A different identity that merely shares a name prefix must not be
+        // swept up by removeAllSessions('bob').
+        await store.storeSession('bobby.1', 'record-3');
 
-        await expect(store.loadSession(sessionKey)).resolves.toBe('record-1');
-        await store.removeAllSessions(sessionKey);
+        await expect(store.loadSession('bob.1')).resolves.toBe('record-1');
+        await store.removeAllSessions('bob');
 
-        await expect(store.loadSession(sessionKey)).resolves.toBeUndefined();
-        await expect(store.loadSession(`${sessionKey}:2`)).resolves.toBeUndefined();
+        await expect(store.loadSession('bob.1')).resolves.toBeUndefined();
+        await expect(store.loadSession('bob.2')).resolves.toBeUndefined();
+        await expect(store.loadSession('bobby.1')).resolves.toBe('record-3');
 
         store.close();
         await destroyIndexedDBDatabase({ dbName: name });

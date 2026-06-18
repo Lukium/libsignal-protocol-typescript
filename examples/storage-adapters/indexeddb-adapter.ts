@@ -52,11 +52,24 @@ interface KeyPairRecord {
 }
 
 const identityKeyIdFor = (identifier: string): string => {
-    const separatorIndex = identifier.indexOf('.');
-    if (separatorIndex === -1) {
-        return identifier;
+    // Identity is keyed by the address *name*. Addresses serialize as
+    // `name.deviceId`, and names may themselves contain dots (e.g.
+    // `alice.example.com`). Strip a trailing `.<digits>` device id if present,
+    // otherwise treat the whole value as the name. Splitting on the first dot
+    // would alias `alice.example.com.1` to `alice`, confusing trust decisions.
+    const match = /^(.*)\.\d+$/.exec(identifier);
+    return match ? match[1] : identifier;
+};
+
+// Whether a stored session key belongs to the given identity: the exact address
+// or one of its `<identity>.<deviceId>` device entries. A raw `startsWith` would
+// let `alice` match an unrelated `alicebob.1`.
+const sessionKeyBelongsTo = (key: string, identifier: string): boolean => {
+    if (key === identifier) {
+        return true;
     }
-    return identifier.slice(0, separatorIndex);
+    const prefix = `${identifier}.`;
+    return key.startsWith(prefix) && /^\d+$/.test(key.slice(prefix.length));
 };
 
 async function openDatabase(options: IndexedDBStoreOptions): Promise<IDBDatabase> {
@@ -266,7 +279,7 @@ export async function createIndexedDBSignalProtocolStore(
             )) as IDBValidKey[];
             await withStore(db, STORE_SESSIONS, 'readwrite', (store) => {
                 keys.forEach((key) => {
-                    if (typeof key === 'string' && key.startsWith(identifier)) {
+                    if (typeof key === 'string' && sessionKeyBelongsTo(key, identifier)) {
                         store.delete(key);
                     }
                 });

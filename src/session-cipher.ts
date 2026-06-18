@@ -6,7 +6,7 @@ import * as base64 from 'base64-js';
 import * as util from './helpers';
 import * as Internal from './internal';
 
-import { SessionRecord } from './session-record';
+import { SessionRecord, sessionTypeArrayBufferToString, sessionTypeStringToArrayBuffer } from './session-record';
 import { SessionLock } from './session-lock';
 import { SessionBuilder } from './session-builder';
 import { uint8ArrayToArrayBuffer } from './helpers';
@@ -16,6 +16,52 @@ export interface MessageType {
     type: number;
     body?: string;
     registrationId?: number;
+}
+
+// Hard caps on inbound message size. Inbound bytes are attacker-controlled and
+// are converted, protobuf-decoded, and run through MAC-input allocation BEFORE
+// the MAC is verified, so an unbounded payload lets a malicious peer/relay force
+// large allocations and crypto work pre-authentication. These limits are far
+// larger than any legitimate Double Ratchet payload (Signal sends bulk data
+// out-of-band as attachments) while still bounding the work per message.
+const MAX_SIGNAL_MESSAGE_BYTES = 1024 * 1024; // 1 MiB ciphertext envelope
+// A pre-key message wraps a whisper message plus identity/base key material.
+const MAX_PREKEY_SIGNAL_MESSAGE_BYTES = MAX_SIGNAL_MESSAGE_BYTES + 4 * 1024;
+// version byte (1) + 8-byte truncated MAC tag is the minimum framing.
+const MIN_SIGNAL_MESSAGE_BYTES = 1 + 8;
+
+// Valid X25519 public-key encodings carried on the wire: 33-byte DJB form
+// (0x05 prefix) or raw 32-byte. Rejecting other lengths up front stops a
+// malformed/oversized key field from reaching ratchet or crypto work.
+function isPlausiblePublicKey(key: Uint8Array | null | undefined): boolean {
+    return !!key && (key.length === 32 || key.length === 33);
+}
+
+// protobuf yields plain JS numbers for counters and key IDs; reject anything that
+// is not a finite, non-negative, safe integer before it reaches ratchet/session
+// logic (guards against NaN/negative/fractional/huge values from a hostile peer).
+function isSafeNonNegativeInteger(value: number | null | undefined): boolean {
+    return typeof value === 'number' && Number.isInteger(value) && value >= 0 && value <= Number.MAX_SAFE_INTEGER;
+}
+
+// Deep-copy a session via the existing (de)serialization helpers so ratchet
+// advancement can run against a throwaway copy and be discarded if the message
+// turns out to be forged/invalid.
+function cloneSession(session: SessionType): SessionType {
+    return sessionTypeStringToArrayBuffer(sessionTypeArrayBufferToString(session));
+}
+
+// Copy advanced ratchet state from a verified working copy back onto the live
+// session object, preserving its identity (callers hold this reference and
+// persist it after decrypt returns).
+function commitSession(target: SessionType, source: SessionType): void {
+    target.indexInfo = source.indexInfo;
+    target.registrationId = source.registrationId;
+    target.currentRatchet = source.currentRatchet;
+    target.oldRatchetList = source.oldRatchetList;
+    target.chains = source.chains;
+    // A successful decrypt clears any pending pre-key (the handshake completed).
+    delete target.pendingPreKey;
 }
 /**
  * Provides Double Ratchet encryption/decryption utilities for a specific peer.
@@ -234,6 +280,12 @@ export class SessionCipher {
             throw new Error(`unsupported encoding: ${encoding}`);
         }
 
+        // Reject by size BEFORE converting the (attacker-controlled) string so a
+        // huge input cannot force the conversion loop/allocation.
+        const byteLength = typeof buff === 'string' ? buff.length : buff.byteLength;
+        if (byteLength < MIN_SIGNAL_MESSAGE_BYTES || byteLength > MAX_PREKEY_SIGNAL_MESSAGE_BYTES) {
+            throw new Error('PreKeyWhisperMessage has an invalid size');
+        }
         const buffer = typeof buff === 'string' ? util.binaryStringToArrayBuffer(buff) : buff;
         const view = new Uint8Array(buffer);
         const version = view[0];
@@ -248,6 +300,22 @@ export class SessionCipher {
         const job = async () => {
             let record = await this.getRecord(address);
             const preKeyProto = PreKeyWhisperMessage.decode(messageData);
+            // Validate key field sizes before any session/crypto work in processV3.
+            if (
+                (preKeyProto.identityKey && !isPlausiblePublicKey(preKeyProto.identityKey)) ||
+                (preKeyProto.baseKey && !isPlausiblePublicKey(preKeyProto.baseKey))
+            ) {
+                throw new Error('PreKeyWhisperMessage has an invalid key field');
+            }
+            // Validate numeric fields before they reach processV3 (prekey lookups)
+            // or session creation. Each is optional in use, so only check when set.
+            if (
+                (preKeyProto.registrationId !== undefined && !isSafeNonNegativeInteger(preKeyProto.registrationId)) ||
+                (preKeyProto.preKeyId !== undefined && !isSafeNonNegativeInteger(preKeyProto.preKeyId)) ||
+                (preKeyProto.signedPreKeyId !== undefined && !isSafeNonNegativeInteger(preKeyProto.signedPreKeyId))
+            ) {
+                throw new Error('PreKeyWhisperMessage has an invalid numeric field');
+            }
             if (!record) {
                 if (preKeyProto.registrationId === undefined) {
                     throw new Error('No registrationId');
@@ -322,6 +390,12 @@ export class SessionCipher {
         if (encoding !== 'binary') {
             throw new Error(`unsupported encoding: ${encoding}`);
         }
+        // Reject by size BEFORE converting the (attacker-controlled) string so a
+        // huge input cannot force the conversion loop/allocation.
+        const byteLength = typeof buff === 'string' ? buff.length : buff.byteLength;
+        if (byteLength < MIN_SIGNAL_MESSAGE_BYTES || byteLength > MAX_SIGNAL_MESSAGE_BYTES) {
+            throw new Error('WhisperMessage has an invalid size');
+        }
         const buffer = typeof buff === 'string' ? util.binaryStringToArrayBuffer(buff) : buff;
         const address = this.remoteAddress.toString();
         const job = async () => {
@@ -358,16 +432,18 @@ export class SessionCipher {
     /**
      * Internal helper that performs the actual Double Ratchet decrypt logic for a
      * given session state.
+     *
+     * Ratchet advancement and message-key consumption run against a private clone
+     * of the session; the advanced state is committed back onto the caller's
+     * `session` object only after the MAC verifies and the plaintext is recovered.
+     * This guarantees a forged or otherwise invalid message can never mutate the
+     * live session — important because decryptWithSessionList() tries candidate
+     * sessions by reference and persists the record after a later session succeeds.
      */
-    // SECURITY / KNOWN LIMITATION (tracked for a follow-up): this advances the
-    // ratchet and consumes a message key (maybeStepRatchet / fillMessageKeys /
-    // delete chain.messageKeys) BEFORE verifyMAC. On the single-session path a
-    // MAC failure is harmless (the mutated record is not persisted), but
-    // decryptWithSessionList() tries sessions by reference, so a forged message
-    // can damage one session's state before a later session decrypts and the
-    // record is stored. The safe shape is to derive candidate state on a cloned
-    // session, verify the MAC, then commit. See docs/limitations.md.
     async doDecryptWhisperMessage(messageBytes: ArrayBuffer, session: SessionType): Promise<ArrayBuffer> {
+        if (messageBytes.byteLength < MIN_SIGNAL_MESSAGE_BYTES || messageBytes.byteLength > MAX_SIGNAL_MESSAGE_BYTES) {
+            throw new Error('WhisperMessage has an invalid size');
+        }
         const version = new Uint8Array(messageBytes)[0];
         if ((version & 0xf) > 3 || version >> 4 < 3) {
             // min version > 3 or max version < 3
@@ -377,6 +453,22 @@ export class SessionCipher {
         const mac = messageBytes.slice(messageBytes.byteLength - 8, messageBytes.byteLength);
 
         const message = WhisperMessage.decode(new Uint8Array(messageProto));
+        if (message.ratchetKey && !isPlausiblePublicKey(message.ratchetKey)) {
+            throw new Error('WhisperMessage has an invalid ratchet key');
+        }
+        // Validate the numeric counters up front — before remoteRatchetKey /
+        // cloneSession / maybeStepRatchet — so a malformed message with a valid
+        // ratchet key cannot force any cloned ratchet work before being rejected.
+        if (message.previousCounter !== undefined && !isSafeNonNegativeInteger(message.previousCounter)) {
+            throw new Error('WhisperMessage has an invalid previous counter');
+        }
+        if (message.counter === undefined) {
+            throw new Error('SignalMessage missing counter');
+        }
+        if (!isSafeNonNegativeInteger(message.counter)) {
+            throw new Error('WhisperMessage has an invalid counter');
+        }
+        const counter = message.counter;
         const remoteRatchetKey = message.ratchetKey ? uint8ArrayToArrayBuffer(message.ratchetKey) : undefined;
 
         if (session === undefined) {
@@ -384,41 +476,42 @@ export class SessionCipher {
                 new Error('No session found to decrypt message from ' + this.remoteAddress.toString())
             );
         }
-        if (session.indexInfo.closed != -1) {
+
+        // Advance the ratchet on a throwaway clone so an invalid message cannot
+        // damage the live session before the MAC is verified.
+        const working = cloneSession(session);
+
+        if (working.indexInfo.closed != -1) {
             //  console.log('decrypting message for closed session')
         }
 
-        await this.maybeStepRatchet(session, remoteRatchetKey, message.previousCounter);
+        await this.maybeStepRatchet(working, remoteRatchetKey, message.previousCounter);
 
         if (!message.ratchetKey) {
             throw new Error('SignalMessage missing ratchet key');
         }
-        const ratchetKeyString = message.ratchetKey ? base64.fromByteArray(message.ratchetKey) : undefined;
-        const chain = ratchetKeyString ? session.chains[ratchetKeyString] : undefined;
+        const ratchetKeyString = base64.fromByteArray(message.ratchetKey);
+        const chain = working.chains[ratchetKeyString];
         if (!chain) {
             getLogger().warn('No chain found for ratchet key', {
                 ratchetKey: ratchetKeyString,
-                sessionBaseKey: session.indexInfo.baseKey,
+                sessionBaseKey: working.indexInfo.baseKey,
             });
             throw new Error('No receiving chain available for ratchet key');
         }
-        if (chain?.chainType === ChainType.SENDING) {
+        if (chain.chainType === ChainType.SENDING) {
             throw new Error('Tried to decrypt on a sending chain');
         }
 
-        if (message.counter === undefined) {
-            throw new Error('SignalMessage missing counter');
-        }
+        await this.fillMessageKeys(chain, counter);
 
-        await this.fillMessageKeys(chain, message.counter);
-
-        const messageKey = chain.messageKeys[message.counter];
+        const messageKey = chain.messageKeys[counter];
         if (messageKey === undefined) {
             const e = new Error('Message key not found. The counter was repeated or the key was not filled.');
             e.name = 'MessageCounterError';
             throw e;
         }
-        delete chain.messageKeys[message.counter];
+        delete chain.messageKeys[counter];
         const keys = await Internal.HKDF(messageKey, new ArrayBuffer(32), 'WhisperMessageKeys');
 
         const ourIdentityKey = await this.storage.getIdentityKeyPair();
@@ -427,7 +520,7 @@ export class SessionCipher {
         }
 
         const macInput = new Uint8Array(messageProto.byteLength + 33 * 2 + 1);
-        macInput.set(new Uint8Array(session.indexInfo.remoteIdentityKey));
+        macInput.set(new Uint8Array(working.indexInfo.remoteIdentityKey));
         macInput.set(new Uint8Array(ourIdentityKey.pubKey), 33);
         macInput[33 * 2] = (3 << 4) | 3;
         macInput.set(new Uint8Array(messageProto), 33 * 2 + 1);
@@ -444,7 +537,10 @@ export class SessionCipher {
             keys[2].slice(0, 16)
         );
 
-        delete session.pendingPreKey;
+        // MAC verified and plaintext recovered — commit the advanced ratchet state
+        // back onto the live session object held by the caller.
+        commitSession(session, working);
+
         return plaintext;
     }
 

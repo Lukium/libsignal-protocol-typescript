@@ -9,8 +9,9 @@ This document captures the major gaps and caveats that apply to `@lukium/libsign
 - **Native WebCrypto required**: As of 0.2.0, Curve25519 operations run on native WebCrypto (`X25519` + `Ed25519` via `SubtleCrypto`); the asm.js `@privacyresearch/curve25519-typescript` dependency and the `lib/msrcrypto.js` fallback were removed. Environments without native curve support (older browsers, Node < 20) are no longer supported — there is no asm.js fallback.
 - **Schema Alignment**: Protobuf codecs now derive from upstream Signal `wire.proto`; monitor for new message fields (e.g., Kyber updates) and regenerate JSON descriptors as needed.
 - **Session Edge Cases**: Certain archival/error paths (`session-cipher`, `session-record`) remain under-tested; additional vectors are needed for rare failure branches identified during coverage reviews.
-- **Decrypt mutates ratchet state before MAC verification** (follow-up): `SessionCipher.doDecryptWhisperMessage` advances the ratchet and consumes a message key before `verifyMAC`. On the single-session path a MAC failure is harmless (the mutated record is not persisted), but `decryptWithSessionList` tries candidate sessions by reference, so a forged message could damage one session's state before a later session decrypts and the record is stored. The planned fix derives candidate state on a cloned session, verifies the MAC, then commits.
 - **Console Noise**: Internal curve validation logs warning/error messages when malformed keys are encountered. These mirror legacy behaviour and may be noisy in production logs until a structured logger is introduced.
+
+> **Resolved (Unreleased):** `SessionCipher.doDecryptWhisperMessage` previously advanced the ratchet and consumed a message key before `verifyMAC`, so a forged message could damage a by-reference session via `decryptWithSessionList`. Decryption now runs ratchet advancement on a private clone and commits the new state back only after the MAC verifies. See `CHANGELOG.md` and `src/__test__/session-cipher-mac-isolation.test.ts`.
 
 ## Missing Features
 

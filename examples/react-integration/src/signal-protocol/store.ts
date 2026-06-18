@@ -1,5 +1,33 @@
 import type { StorageType, KeyPairType, Direction } from '@lukium/libsignal-protocol-typescript';
 
+function cloneBuffer(buffer: ArrayBuffer): ArrayBuffer {
+    return buffer.slice(0);
+}
+
+function buffersEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
+    if (a.byteLength !== b.byteLength) {
+        return false;
+    }
+    const av = new Uint8Array(a);
+    const bv = new Uint8Array(b);
+    for (let i = 0; i < av.length; i += 1) {
+        if (av[i] !== bv[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// True when a session address is exactly the identity or one of its
+// `identity.deviceId` device entries (deviceId all digits).
+function sessionKeyBelongsTo(address: string, identifier: string): boolean {
+    if (address === identifier) {
+        return true;
+    }
+    const prefix = `${identifier}.`;
+    return address.startsWith(prefix) && /^\d+$/.test(address.slice(prefix.length));
+}
+
 /**
  * Creates an in-memory Signal Protocol store.
  * Useful for testing or when persistence is not required.
@@ -16,16 +44,26 @@ export function createMemoryStore(): StorageType {
             return Promise.resolve(store.registrationId as number | undefined);
         },
 
-        isTrustedIdentity(_identifier: string, _identityKey: ArrayBuffer, _direction: Direction): Promise<boolean> {
-            // In a real app, implement trust-on-first-use (TOFU) or
-            // prompt the user to verify identity key changes
-            return Promise.resolve(true);
+        isTrustedIdentity(identifier: string, identityKey: ArrayBuffer, _direction: Direction): Promise<boolean> {
+            // Trust-on-first-use: trust an unseen identity, but reject a key that
+            // differs from the one we already recorded. A real app should surface
+            // a key-change warning to the user rather than silently failing.
+            const stored = store[`identity:${identifier}`] as ArrayBuffer | undefined;
+            if (!stored) {
+                return Promise.resolve(true);
+            }
+            return Promise.resolve(buffersEqual(stored, identityKey));
         },
 
-        saveIdentity(_identifier: string, _identityKey: ArrayBuffer): Promise<boolean> {
-            // Store the identity key for future verification
-            // Return true if the identity changed, false otherwise
-            return Promise.resolve(false);
+        saveIdentity(identifier: string, identityKey: ArrayBuffer): Promise<boolean> {
+            // Persist the identity key for future verification; return true if it
+            // changed an existing entry.
+            const existing = store[`identity:${identifier}`] as ArrayBuffer | undefined;
+            store[`identity:${identifier}`] = cloneBuffer(identityKey);
+            if (!existing) {
+                return Promise.resolve(false);
+            }
+            return Promise.resolve(!buffersEqual(existing, identityKey));
         },
 
         loadPreKey(keyId: number): Promise<KeyPairType | undefined> {
@@ -70,9 +108,15 @@ export function createMemoryStore(): StorageType {
             return Promise.resolve();
         },
 
-        removeAllSessions(_identifier: string): Promise<void> {
-            // Remove all sessions for a given identifier
-            // In this simple implementation, we'd need to track session keys
+        removeAllSessions(identifier: string): Promise<void> {
+            // Remove every device session for an identity. Match the exact address
+            // or `identity.deviceId` keys only — never an unrelated identity that
+            // merely shares a name prefix (e.g. `alice` vs `alicebob.1`).
+            for (const key of Object.keys(store)) {
+                if (key.startsWith('session:') && sessionKeyBelongsTo(key.slice('session:'.length), identifier)) {
+                    delete store[key];
+                }
+            }
             return Promise.resolve();
         },
 

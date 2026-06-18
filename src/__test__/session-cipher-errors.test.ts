@@ -258,7 +258,8 @@ describe('SessionCipher error handling', () => {
 
     test('decryptPreKeyWhisperMessage rejects incompatible versions', async () => {
         const cipher = new SessionCipher(createStorage(), address);
-        const payload = new Uint8Array([0x34]); // min version 4 triggers incompatibility
+        const payload = new Uint8Array(9); // version + MAC framing so the size guard passes
+        payload[0] = 0x34; // min version 4 triggers incompatibility
         await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow(
             'Incompatible version number on PreKeyWhisperMessage'
         );
@@ -274,7 +275,8 @@ describe('SessionCipher error handling', () => {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         delete (decoded as any).registrationId;
         const decodeSpy = jest.spyOn(PreKeyWhisperMessage, 'decode').mockReturnValue(decoded);
-        const payload = new Uint8Array([0x33]);
+        const payload = new Uint8Array(9); // version + MAC framing so the size guard passes
+        payload[0] = 0x33;
         await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow('No registrationId');
         decodeSpy.mockRestore();
     });
@@ -393,7 +395,7 @@ describe('SessionCipher error handling', () => {
             'decryptWithSessionList'
         ).mockResolvedValue({ plaintext: new ArrayBuffer(0), session: promotedSession });
 
-        await cipher.decryptWhisperMessage(new ArrayBuffer(0));
+        await cipher.decryptWhisperMessage(new ArrayBuffer(9));
         expect(record.archiveCurrentState).toHaveBeenCalled();
         expect(record.promoteState).toHaveBeenCalledWith(promotedSession);
         jest.restoreAllMocks();
@@ -406,7 +408,153 @@ describe('SessionCipher error handling', () => {
             'getRecord'
         ).mockResolvedValue(undefined);
 
-        await expect(cipher.decryptWhisperMessage(new ArrayBuffer(0))).rejects.toThrow('No record for device');
+        await expect(cipher.decryptWhisperMessage(new ArrayBuffer(9))).rejects.toThrow('No record for device');
+        jest.restoreAllMocks();
+    });
+
+    test('decryptWhisperMessage rejects oversized payloads before doing any work', () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        // 2 MiB is comfortably above MAX_SIGNAL_MESSAGE_BYTES (1 MiB).
+        expect(() => cipher.decryptWhisperMessage(new ArrayBuffer(2 * 1024 * 1024))).toThrow(
+            'WhisperMessage has an invalid size'
+        );
+    });
+
+    test('decryptPreKeyWhisperMessage rejects oversized payloads before decoding', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const payload = new Uint8Array(2 * 1024 * 1024);
+        payload[0] = 0x33;
+        await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow(
+            'PreKeyWhisperMessage has an invalid size'
+        );
+    });
+
+    test('doDecryptWhisperMessage rejects undersized and oversized payloads', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const { session } = createRecordWithSession();
+        await expect((cipher as any).doDecryptWhisperMessage(new ArrayBuffer(4), session)).rejects.toThrow(
+            'WhisperMessage has an invalid size'
+        );
+        await expect(
+            (cipher as any).doDecryptWhisperMessage(new ArrayBuffer(2 * 1024 * 1024), session)
+        ).rejects.toThrow('WhisperMessage has an invalid size');
+    });
+
+    test('decryptWhisperMessage rejects oversized binary strings before conversion', () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const huge = 'a'.repeat(2 * 1024 * 1024);
+        expect(() => cipher.decryptWhisperMessage(huge)).toThrow('WhisperMessage has an invalid size');
+    });
+
+    test('doDecryptWhisperMessage rejects an implausible ratchet key length', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const { session } = createRecordWithSession();
+        const decodeSpy = jest.spyOn(WhisperMessage, 'decode').mockReturnValue({
+            ratchetKey: new Uint8Array(5),
+            previousCounter: 0,
+            counter: 1,
+        } as unknown as WhisperMessage);
+        const payload = new Uint8Array(40);
+        payload[0] = 0x33;
+        await expect((cipher as any).doDecryptWhisperMessage(payload.buffer, session)).rejects.toThrow(
+            'WhisperMessage has an invalid ratchet key'
+        );
+        decodeSpy.mockRestore();
+    });
+
+    test('decryptPreKeyWhisperMessage rejects an implausible key field length', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const decoded = PreKeyWhisperMessage.create({
+            registrationId: 9,
+            baseKey: new Uint8Array(32).fill(3),
+            identityKey: new Uint8Array(5).fill(4), // implausible DH public key length
+            message: new Uint8Array([0x05]),
+        });
+        const decodeSpy = jest.spyOn(PreKeyWhisperMessage, 'decode').mockReturnValue(decoded);
+        const payload = new Uint8Array(40);
+        payload[0] = 0x33;
+        await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow(
+            'PreKeyWhisperMessage has an invalid key field'
+        );
+        decodeSpy.mockRestore();
+    });
+
+    test('decryptPreKeyWhisperMessage rejects an invalid numeric field', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const decoded = PreKeyWhisperMessage.create({
+            registrationId: 9,
+            baseKey: new Uint8Array(32).fill(3),
+            identityKey: new Uint8Array(32).fill(4),
+            message: new Uint8Array([0x05]),
+        });
+        (decoded as unknown as { preKeyId: number }).preKeyId = 1.5; // fractional id
+        const decodeSpy = jest.spyOn(PreKeyWhisperMessage, 'decode').mockReturnValue(decoded);
+        const payload = new Uint8Array(40);
+        payload[0] = 0x33;
+        await expect(cipher.decryptPreKeyWhisperMessage(payload.buffer)).rejects.toThrow(
+            'PreKeyWhisperMessage has an invalid numeric field'
+        );
+        decodeSpy.mockRestore();
+    });
+
+    test('doDecryptWhisperMessage rejects an invalid previous counter', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        const { session } = createRecordWithSession();
+        const decodeSpy = jest.spyOn(WhisperMessage, 'decode').mockReturnValue({
+            ratchetKey: new Uint8Array(32),
+            previousCounter: -1,
+            counter: 1,
+        } as unknown as WhisperMessage);
+        const payload = new Uint8Array(40);
+        payload[0] = 0x33;
+        await expect((cipher as any).doDecryptWhisperMessage(payload.buffer, session)).rejects.toThrow(
+            'WhisperMessage has an invalid previous counter'
+        );
+        decodeSpy.mockRestore();
+    });
+
+    test('doDecryptWhisperMessage rejects an invalid counter', async () => {
+        const cipher = new SessionCipher(createStorage(), address);
+        jest.spyOn(
+            SessionCipher.prototype as unknown as { maybeStepRatchet: (...args: unknown[]) => Promise<void> },
+            'maybeStepRatchet'
+        ).mockResolvedValue(undefined);
+        const ratchetKey = new Uint8Array(32);
+        const ratchetKeyString = base64.fromByteArray(ratchetKey);
+        const session: SessionType = {
+            registrationId: 1,
+            currentRatchet: {
+                rootKey: createBuffer(1, 32),
+                lastRemoteEphemeralKey: createBuffer(2, 32),
+                previousCounter: 0,
+                ephemeralKeyPair: createKeyPair(),
+            },
+            indexInfo: {
+                remoteIdentityKey: createBuffer(3, 32),
+                baseKey: createBuffer(4, 32),
+                baseKeyType: BaseKeyType.OURS,
+                closed: -1,
+            },
+            chains: {
+                [ratchetKeyString]: {
+                    chainType: ChainType.RECEIVING,
+                    chainKey: { counter: 0, key: createBuffer(6, 32) },
+                    messageKeys: {},
+                },
+            },
+            oldRatchetList: [],
+        };
+        const decodeSpy = jest.spyOn(WhisperMessage, 'decode').mockReturnValue({
+            ratchetKey,
+            previousCounter: 0,
+            counter: -1,
+        } as unknown as WhisperMessage);
+        const payload = new Uint8Array(40);
+        payload[0] = 0x33;
+        await expect((cipher as any).doDecryptWhisperMessage(payload.buffer, session)).rejects.toThrow(
+            'WhisperMessage has an invalid counter'
+        );
+        decodeSpy.mockRestore();
         jest.restoreAllMocks();
     });
 

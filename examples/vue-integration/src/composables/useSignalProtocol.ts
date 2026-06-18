@@ -38,6 +38,34 @@ const SignalProtocolKey: InjectionKey<SignalProtocolState> = Symbol('SignalProto
 /**
  * Creates an in-memory Signal Protocol store.
  */
+function cloneBuffer(buffer: ArrayBuffer): ArrayBuffer {
+    return buffer.slice(0);
+}
+
+function buffersEqual(a: ArrayBuffer, b: ArrayBuffer): boolean {
+    if (a.byteLength !== b.byteLength) {
+        return false;
+    }
+    const av = new Uint8Array(a);
+    const bv = new Uint8Array(b);
+    for (let i = 0; i < av.length; i += 1) {
+        if (av[i] !== bv[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// True when a session address is exactly the identity or one of its
+// `identity.deviceId` device entries (deviceId all digits).
+function sessionKeyBelongsTo(address: string, identifier: string): boolean {
+    if (address === identifier) {
+        return true;
+    }
+    const prefix = `${identifier}.`;
+    return address.startsWith(prefix) && /^\d+$/.test(address.slice(prefix.length));
+}
+
 function createMemoryStore(): StorageType & {
     setIdentityKeyPair: (kp: KeyPairType) => void;
     setLocalRegistrationId: (id: number) => void;
@@ -47,8 +75,17 @@ function createMemoryStore(): StorageType & {
     return {
         getIdentityKeyPair: () => Promise.resolve(data.identityKeyPair as KeyPairType | undefined),
         getLocalRegistrationId: () => Promise.resolve(data.registrationId as number | undefined),
-        isTrustedIdentity: (_id: string, _key: ArrayBuffer, _dir: Direction) => Promise.resolve(true),
-        saveIdentity: () => Promise.resolve(false),
+        // Trust-on-first-use: trust an unseen identity, reject a changed key. A
+        // real app should warn the user on a key change rather than fail silently.
+        isTrustedIdentity: (id: string, key: ArrayBuffer, _dir: Direction) => {
+            const stored = data[`identity:${id}`] as ArrayBuffer | undefined;
+            return Promise.resolve(stored ? buffersEqual(stored, key) : true);
+        },
+        saveIdentity: (id: string, key: ArrayBuffer) => {
+            const existing = data[`identity:${id}`] as ArrayBuffer | undefined;
+            data[`identity:${id}`] = cloneBuffer(key);
+            return Promise.resolve(existing ? !buffersEqual(existing, key) : false);
+        },
         loadPreKey: (id: number) => Promise.resolve(data[`preKey:${id}`] as KeyPairType | undefined),
         storePreKey: (id: number, kp: KeyPairType) => {
             data[`preKey:${id}`] = kp;
@@ -76,7 +113,16 @@ function createMemoryStore(): StorageType & {
             delete data[`session:${addr}`];
             return Promise.resolve();
         },
-        removeAllSessions: () => Promise.resolve(),
+        removeAllSessions: (identifier: string) => {
+            // Remove only this identity's device sessions, never an unrelated
+            // identity that shares a name prefix.
+            for (const key of Object.keys(data)) {
+                if (key.startsWith('session:') && sessionKeyBelongsTo(key.slice('session:'.length), identifier)) {
+                    delete data[key];
+                }
+            }
+            return Promise.resolve();
+        },
         setIdentityKeyPair: (kp: KeyPairType) => {
             data.identityKeyPair = kp;
         },
@@ -198,7 +244,10 @@ export function provideSignalProtocol(options?: ProvideSignalProtocolOptions): S
         const regId = await store.getLocalRegistrationId();
         if (!idKeyPair || !regId) throw new Error('Identity not initialized');
 
-        const preKey = await KeyHelper.generatePreKey(Math.floor(Math.random() * 0xffffff));
+        // Use a CSPRNG for the pre-key id so ids don't predictably collide.
+        const preKeyIdBuf = new Uint32Array(1);
+        crypto.getRandomValues(preKeyIdBuf);
+        const preKey = await KeyHelper.generatePreKey((preKeyIdBuf[0] % 0xffffff) + 1);
         const signedPreKey = await KeyHelper.generateSignedPreKey(idKeyPair, 1);
 
         await store.storePreKey(preKey.keyId, preKey.keyPair);

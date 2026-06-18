@@ -100,6 +100,52 @@ describe('SessionRecord', () => {
         expect(record.getOpenSession()).toBeDefined();
     });
 
+    test('removeOldSessions trims several sessions in a single pass without looping', () => {
+        // Populate the record directly so one removeOldSessions() call must trim
+        // multiple sessions at once. This is the path that previously hung: the
+        // oldest-tracking vars were hoisted out of the while loop, so after the
+        // first delete it kept re-targeting the already-removed key forever.
+        // (updateSessionState only ever trims one at a time, so it never hit it.)
+        const record = new SessionRecord();
+        for (let i = 0; i < 45; i += 1) {
+            record.sessions['sess-' + i] = createSession({
+                indexInfo: {
+                    baseKey: toAB(new Array(32).fill(7)),
+                    baseKeyType: BaseKeyType.THEIRS,
+                    remoteIdentityKey: baseKey,
+                    closed: i,
+                },
+            });
+        }
+        record.removeOldSessions();
+        const remaining = Object.values(record.sessions)
+            .map((s) => s.indexInfo.closed)
+            .sort((a, b) => a - b);
+        expect(remaining).toHaveLength(40);
+        // The five oldest (closed = 0..4) are dropped; the newest is retained.
+        expect(remaining[0]).toBe(5);
+        expect(remaining[remaining.length - 1]).toBe(44);
+    });
+
+    test('removeOldSessions stops when only open sessions remain', () => {
+        // A corrupted store could hold more than the retention limit of *open*
+        // sessions; removeOldSessions must not spin trying to trim them.
+        const record = new SessionRecord();
+        for (let i = 0; i < 45; i += 1) {
+            record.sessions['open-' + i] = createSession({
+                indexInfo: {
+                    baseKey: toAB(new Array(32).fill(7)),
+                    baseKeyType: BaseKeyType.THEIRS,
+                    remoteIdentityKey: baseKey,
+                    closed: -1,
+                },
+            });
+        }
+        record.removeOldSessions();
+        // Nothing is closed, so nothing can be trimmed — but it must terminate.
+        expect(Object.keys(record.sessions)).toHaveLength(45);
+    });
+
     test('archiveCurrentState closes open session', () => {
         const record = new SessionRecord();
         const session = createSession();
@@ -250,6 +296,30 @@ describe('SessionRecord edge cases', () => {
             },
         });
         expect(() => record.updateSessionState(session)).toThrow('invalid index for session');
+    });
+
+    test('deserialize rejects an oversized serialized record', () => {
+        const big = '{"version":"v1","sessions":{}}'.padEnd(8 * 1024 * 1024 + 10, ' ');
+        expect(() => SessionRecord.deserialize(big)).toThrow('Error deserializing SessionRecord');
+    });
+
+    test('deserialize rejects records with too many sessions', () => {
+        const sessions: Record<string, unknown> = {};
+        for (let i = 0; i < 201; i += 1) {
+            sessions[`s${i}`] = { indexInfo: { closed: i }, chains: {} };
+        }
+        const payload = JSON.stringify({ version: 'v1', sessions });
+        expect(() => SessionRecord.deserialize(payload)).toThrow('too many sessions');
+    });
+
+    test('deserialize rejects a chain with too many message keys', () => {
+        const messageKeys: Record<number, string> = {};
+        for (let i = 0; i < 2201; i += 1) {
+            messageKeys[i] = 'AAAA';
+        }
+        const sessions = { s0: { indexInfo: { closed: -1 }, chains: { c: { messageKeys } } } };
+        const payload = JSON.stringify({ version: 'v1', sessions });
+        expect(() => SessionRecord.deserialize(payload)).toThrow('too many message keys');
     });
 
     test('session type conversions round trip complex structure', () => {

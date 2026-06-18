@@ -96,9 +96,13 @@ function createMemoryStore() {
             delete data[`session:${identifier}`];
         },
         async removeAllSessions(identifier) {
-            // Remove all sessions for a given identifier prefix
+            // Remove only this identity's device sessions (exact address or
+            // `identity.deviceId`), never an unrelated identity sharing a prefix.
             for (const key of Object.keys(data)) {
-                if (key.startsWith(`session:${identifier}`)) {
+                if (!key.startsWith('session:')) continue;
+                const addr = key.slice('session:'.length);
+                const prefix = `${identifier}.`;
+                if (addr === identifier || (addr.startsWith(prefix) && /^\d+$/.test(addr.slice(prefix.length)))) {
                     delete data[key];
                 }
             }

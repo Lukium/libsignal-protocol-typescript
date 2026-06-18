@@ -161,8 +161,12 @@ export function SignalProtocolProvider({ children, storageAdapter }: SignalProto
             throw new Error('Identity not initialized');
         }
 
-        // Generate a pre-key and signed pre-key for the bundle
-        const preKey = await KeyHelper.generatePreKey(Math.floor(Math.random() * 0xffffff));
+        // Generate a pre-key and signed pre-key for the bundle. Use a CSPRNG for
+        // the id so ids don't predictably collide/overwrite (Math.random is not
+        // suitable even though this is not key material).
+        const preKeyIdBuf = new Uint32Array(1);
+        crypto.getRandomValues(preKeyIdBuf);
+        const preKey = await KeyHelper.generatePreKey((preKeyIdBuf[0] % 0xffffff) + 1);
         const signedPreKey = await KeyHelper.generateSignedPreKey(identityKeyPair, 1);
 
         await store.storePreKey(preKey.keyId, preKey.keyPair);
