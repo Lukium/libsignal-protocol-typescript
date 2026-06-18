@@ -1,12 +1,23 @@
 /* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { SignalProtocolAddress } from '../signal-protocol-address';
-import { StorageType, Direction, SessionRecordType, PreKeyPairType, SignedPreKeyPairType } from '../types';
+import {
+    StorageType,
+    Direction,
+    SessionRecordType,
+    PreKeyPairType,
+    SignedPreKeyPairType,
+    IdentityKeyPairType,
+} from '../types';
 import * as util from '../helpers';
 
 // Type guards
 export function isKeyPairType(kp: any): kp is KeyPairType {
     return !!(kp?.privKey && kp?.pubKey);
+}
+
+export function isIdentityKeyPairType(kp: any): kp is IdentityKeyPairType {
+    return !!(kp?.privKey && kp?.pubKey && kp?.signingPrivKey && kp?.signingPubKey);
 }
 
 export function isPreKeyType(pk: any): pk is PreKeyPairType {
@@ -35,7 +46,15 @@ function isArrayBuffer(thing: StoreValue): boolean {
     return !!thing && t !== 'string' && t !== 'number' && 'byteLength' in (thing as any);
 }
 
-type StoreValue = KeyPairType | string | number | KeyPairType | PreKeyType | SignedPreKeyType | ArrayBuffer | undefined;
+type StoreValue =
+    | KeyPairType
+    | IdentityKeyPairType
+    | string
+    | number
+    | PreKeyType
+    | SignedPreKeyType
+    | ArrayBuffer
+    | undefined;
 
 export class SignalProtocolStore implements StorageType {
     private _store: Record<string, StoreValue>;
@@ -62,9 +81,9 @@ export class SignalProtocolStore implements StorageType {
         this._store[key] = value;
     }
 
-    async getIdentityKeyPair(): Promise<KeyPairType | undefined> {
+    async getIdentityKeyPair(): Promise<IdentityKeyPairType | undefined> {
         const kp = this.get('identityKey', undefined);
-        if (isKeyPairType(kp) || typeof kp === 'undefined') {
+        if (isIdentityKeyPairType(kp) || typeof kp === 'undefined') {
             return kp;
         }
         throw new Error('Item stored as identity key of unknown type.');

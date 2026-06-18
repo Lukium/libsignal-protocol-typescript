@@ -2,6 +2,28 @@ import * as Internal from '.';
 import * as util from '../helpers';
 import { KeyPairType } from '../types';
 import { AsyncCurve as AsyncCurveType } from '@privacyresearch/curve25519-typescript';
+import * as WebCryptoCurve from './webcrypto-curve';
+
+// X25519 public keys are carried in the legacy 33-byte "DJB" form (0x05 prefix);
+// the native WebCrypto backend works with raw 32-byte keys, so we add/strip the
+// prefix at this boundary. Ed25519 signing keys are kept raw (no prefix).
+function prefixDjbKey(raw32: ArrayBuffer): ArrayBuffer {
+    const out = new ArrayBuffer(33);
+    const v = new Uint8Array(out);
+    v[0] = 5;
+    v.set(new Uint8Array(raw32), 1);
+    return out;
+}
+function stripDjbKey(pub: ArrayBuffer): ArrayBuffer {
+    const u8 = new Uint8Array(pub);
+    if (u8.length === 33 && u8[0] === 5) {
+        return pub.slice(1);
+    }
+    if (u8.length === 32) {
+        return pub;
+    }
+    throw new Error(`Invalid public key length: ${u8.length}`);
+}
 
 const resolveWebCrypto = (): globalThis.Crypto => {
     if (typeof globalThis !== 'undefined' && globalThis.crypto) {
@@ -101,23 +123,36 @@ export class Crypto {
 
     // Curve25519 crypto
 
-    createKeyPair(privKey?: ArrayBuffer): Promise<KeyPairType> {
-        if (!privKey) {
-            privKey = this.getRandomBytes(32);
-        }
-        return this._curve.createKeyPair(privKey);
+    // X25519 key agreement (DH). Public keys returned in 33-byte DJB form.
+    async createKeyPair(privKey?: ArrayBuffer): Promise<KeyPairType> {
+        const seed = privKey ?? this.getRandomBytes(32);
+        const kp = await WebCryptoCurve.x25519CreateKeyPair(seed);
+        return { pubKey: prefixDjbKey(kp.pubKey), privKey: kp.privKey };
+    }
+
+    // Ed25519 signing key pair (for the identity signing key). Raw 32-byte keys.
+    createSigningKeyPair(seed?: ArrayBuffer): Promise<KeyPairType> {
+        return seed ? WebCryptoCurve.ed25519CreateKeyPair(seed) : WebCryptoCurve.ed25519GenerateKeyPair();
     }
 
     ECDHE(pubKey: ArrayBuffer, privKey: ArrayBuffer): Promise<ArrayBuffer> {
-        return this._curve.ECDHE(pubKey, privKey);
+        return WebCryptoCurve.x25519SharedSecret(stripDjbKey(pubKey), privKey);
     }
 
     Ed25519Sign(privKey: ArrayBuffer, message: ArrayBuffer): Promise<ArrayBuffer> {
-        return this._curve.Ed25519Sign(privKey, message);
+        return WebCryptoCurve.ed25519Sign(privKey, message);
     }
 
-    Ed25519Verify(pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer): Promise<boolean> {
-        return this._curve.Ed25519Verify(pubKey, msg, sig);
+    // NOTE: preserves the library's historical async verify contract — resolves
+    // `false` on a VALID signature and THROWS on an invalid one. Callers
+    // (session-builder) depend on the throw; existing tests assert the false
+    // return. A sane boolean is a candidate cleanup for a future major.
+    async Ed25519Verify(pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer): Promise<boolean> {
+        const valid = await WebCryptoCurve.ed25519Verify(pubKey, msg, sig);
+        if (valid) {
+            return false;
+        }
+        throw new Error('Invalid signature');
     }
 }
 

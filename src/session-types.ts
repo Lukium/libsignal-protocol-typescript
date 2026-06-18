@@ -64,7 +64,8 @@ export interface EncryptionResult {
 }
 
 export interface DeviceType<T = ArrayBuffer> {
-    identityKey: T;
+    identityKey: T; // X25519 DH identity public key (33-byte DJB form)
+    identitySigningKey: T; // Ed25519 identity signing public key (32-byte) — verifies the signed prekey
     signedPreKey: SignedPublicPreKeyType<T>;
     preKey?: PreKeyType<T>;
     registrationId?: number;

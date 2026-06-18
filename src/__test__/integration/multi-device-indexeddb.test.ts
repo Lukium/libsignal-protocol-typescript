@@ -15,13 +15,13 @@ import {
     type IndexedDBSignalProtocolStore,
 } from '../../../examples/storage-adapters/indexeddb-adapter';
 import type { DeviceType } from '../../session-types';
-import type { KeyPairType, SignedPreKeyPairType, PreKeyPairType } from '../../types';
+import type { IdentityKeyPairType, SignedPreKeyPairType, PreKeyPairType } from '../../types';
 import { Direction } from '../../types';
 
 interface DeviceContext {
     store: IndexedDBSignalProtocolStore;
     dbName: string;
-    identityKey: KeyPairType;
+    identityKey: IdentityKeyPairType;
     registrationId: number;
 }
 
@@ -35,7 +35,7 @@ const dbNamesToDestroy = new Set<string>();
 
 async function createDevice(
     label: string,
-    options: { identity?: KeyPairType; registrationId?: number } = {}
+    options: { identity?: IdentityKeyPairType; registrationId?: number } = {}
 ): Promise<DeviceContext> {
     const dbName = randomDbName(label);
     const store = await createIndexedDBSignalProtocolStore({ dbName });
@@ -73,6 +73,7 @@ async function publishPreKeyBundle(
 
     return {
         identityKey: device.identityKey.pubKey,
+        identitySigningKey: device.identityKey.signingPubKey,
         registrationId: device.registrationId,
         preKey: {
             keyId: preKey.keyId,

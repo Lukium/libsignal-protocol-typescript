@@ -86,6 +86,7 @@ describe('basic prekey v3', function () {
         await expect(async () => {
             await builder.processPreKey({
                 identityKey: newIdentity.pubKey,
+                identitySigningKey: newIdentity.signingPubKey,
                 registrationId: 12356,
                 signedPreKey: {
                     keyId: 2,
@@ -173,6 +174,7 @@ describe('basic v3 NO PREKEY', function () {
         await expect(async () => {
             await builder.processPreKey({
                 identityKey: newIdentity.pubKey,
+                identitySigningKey: newIdentity.signingPubKey,
                 registrationId: 12356,
                 signedPreKey: {
                     keyId: 2,

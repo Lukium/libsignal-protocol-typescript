@@ -25,6 +25,20 @@ export interface KeyPairType<T = ArrayBuffer> {
     privKey: T;
 }
 
+/**
+ * The long-term identity key. As of the WebCrypto backend, an identity is TWO
+ * keys (see README "Cryptographic Backend"): an X25519 key for X3DH Diffie-
+ * Hellman (`pubKey`/`privKey`, same role and 33-byte DJB form as before) and an
+ * Ed25519 key for signing signed-prekeys (`signingPubKey`/`signingPrivKey`,
+ * raw 32-byte). This replaces the single-key XEdDSA identity.
+ */
+export interface IdentityKeyPairType<T = ArrayBuffer> {
+    pubKey: T; // X25519 DH public (33-byte, 0x05-prefixed)
+    privKey: T; // X25519 DH private (32-byte)
+    signingPubKey: T; // Ed25519 public (32-byte)
+    signingPrivKey: T; // Ed25519 private (32-byte)
+}
+
 export interface PreKeyPairType<T = ArrayBuffer> {
     keyId: number;
     keyPair: KeyPairType<T>;
@@ -55,7 +69,7 @@ export enum Direction {
  * resolve once the operation is complete.
  */
 export interface StorageType {
-    getIdentityKeyPair: () => Promise<KeyPairType | undefined>;
+    getIdentityKeyPair: () => Promise<IdentityKeyPairType | undefined>;
     getLocalRegistrationId: () => Promise<number | undefined>;
 
     isTrustedIdentity: (identifier: string, identityKey: ArrayBuffer, direction: Direction) => Promise<boolean>;

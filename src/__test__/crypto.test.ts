@@ -37,11 +37,14 @@ describe('New Crypto Tests 2020', function () {
         const secret = await Internal.crypto.ECDHE(alice_pub, bob_priv);
         assertEqualArrayBuffers(shared_sec, secret);
     });
+    // Ed25519 vectors (regenerated for the WebCrypto two-key backend): `priv`
+    // is treated as an Ed25519 seed; `pub` is its raw 32-byte Ed25519 public key
+    // (no 0x05 prefix); `sig` is the standard Ed25519 signature over `msg`.
     const priv = hexToArrayBuffer('48a8892cc4e49124b7b57d94fa15becfce071830d6449004685e387c62409973');
-    const pub = hexToArrayBuffer('0555f1bfede27b6a03e0dd389478ffb01462e5c52dbbac32cf870f00af1ed9af3a');
+    const pub = hexToArrayBuffer('fdcc7234334f05e7833fd81503d97bcb49e923761fbcb3dea1eaea654c3f0ea1');
     const msg = hexToArrayBuffer('617364666173646661736466');
     const sig = hexToArrayBuffer(
-        '2bc06c745acb8bae10fbc607ee306084d0c28e2b3bb819133392473431291fd0dfa9c7f11479996cf520730d2901267387e08d85bbf2af941590e3035a545285'
+        'cbbb67db2736d8278feb8be4400d5acb5555b38bd796371b71564c3fbb613201fb2653a9d585f2c63a61cc2f877d15267f02d128f73bdc152bddf1b0212e4c07'
     );
 
     test(`Ed25519Sign works`, async () => {

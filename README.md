@@ -9,16 +9,119 @@
 
 # Signal Protocol TypeScript Library
 
-> Modernized fork of the legacy `libsignal-protocol-javascript`, maintained for browser and PWA deployments. The modernization effort is stewarded by @Lukium with heavy assistance from AI tooling (OpenAI’s Codex and Anthropic’s Claude) to accelerate implementation and documentation updates.
+> Modernized fork of the legacy `libsignal-protocol-javascript`, maintained for browser and PWA deployments.
+
+> ### 🤖 AI-assisted development disclaimer
+>
+> This modernization is **substantially developed with AI assistance** — including
+> but not limited to OpenAI's **Codex** and Anthropic's **Claude**, often used in
+> collaboration — under the direction and review of [@Lukium](https://github.com/Lukium).
+> AI tooling contributed heavily to implementation, the WebCrypto migration,
+> tests, and documentation. Treat this as you would any dependency handling
+> cryptography: **review the source and run your own validation** before relying
+> on it in production. The project has **not** undergone an independent
+> third-party security audit.
+
+> ## ⚠️ Upcoming breaking change — WebCrypto curve migration
+>
+> | | |
+> | --- | --- |
+> | **Current / latest stable** | **`0.1.0-beta.2`** — canonical Signal identity (single Curve25519 key, **XEdDSA**) on the bundled asm.js curve. Universal browser support. |
+> | **Next release line (`0.2.0-beta.x`+, in progress)** | Native **WebCrypto** `X25519` + `Ed25519`. Adopts a **two-key, Olm-style identity** (separate Ed25519 signing + X25519 DH keys). **Breaking**: identity key format and `KeyHelper` API change; requires Chrome 137+ / Firefox 130+ / Safari 17+. |
+>
+> **Want the current behavior? Pin to `0.1.0-beta.2`** — it will not receive the breaking change:
+>
+> ```bash
+> npm install @lukium/libsignal-protocol-typescript@0.1.0-beta.2
+> # or
+> yarn add @lukium/libsignal-protocol-typescript@0.1.0-beta.2
+> ```
+> ```jsonc
+> // package.json — exact pin (no caret), stays on the canonical single-key build
+> "@lukium/libsignal-protocol-typescript": "0.1.0-beta.2"
+> ```
+>
+> The `0.2.0-beta.x` line and later will **not** interoperate with `0.1.x` peers
+> (different identity-key format) nor with the real Signal network. See
+> [Cryptographic Backend (Curve25519)](#cryptographic-backend-curve25519) for the
+> full rationale, comparison chart, and migration notes.
 
 ## Modernization Status
 
 - **Phase 1 (Foundation) — Completed.** Jest, TypeScript, and dual CJS/ESM builds are repaired and emitting declarations.
 - **Phase 2 (Modernization) — Completed.** Browser-first tooling, IndexedDB adapters, Playwright smoke tests, and logging hooks shipped in `@lukium/libsignal-protocol-typescript@0.1.0-beta.1`.
-- **Phase 3 (Enhancement) — Planned.** PQXDH support, regenerated protobufs, and additional example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
+- **Phase 3 (Enhancement) — Planned.** the **WebCrypto curve-backend migration** (see [Cryptographic Backend](#cryptographic-backend-curve25519)) is underway. PQXDH support, regenerated protobufs, and additional example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
 - **Browser-first focus.** WebCrypto-backed crypto with IndexedDB guidance remains the default; see [`docs/browser-compatibility.md`](docs/browser-compatibility.md) for supported environments.
 
 For a complete overview, visit [`docs/README.md`](docs/README.md).
+
+## Cryptographic Backend (Curve25519)
+
+> **Status: migration in progress.** Today the elliptic-curve operations (X25519
+> key agreement and identity signatures) are provided by the bundled asm.js
+> [`@privacyresearch/curve25519-typescript`](https://www.npmjs.com/package/@privacyresearch/curve25519-typescript).
+> We are migrating these to **native WebCrypto** (`X25519` + `Ed25519` via
+> `SubtleCrypto`) behind the existing `setCurve()` seam. A feasibility spike
+> (`spikes/webcrypto-curve-x3dh.mjs`) has validated that a WebCrypto X3DH
+> handshake agrees on both sides and that Ed25519 signed-prekey verification
+> works. The symmetric layer (AES-CBC + HMAC-SHA256) is unchanged.
+
+### Why WebCrypto
+
+The asm.js curve is the single unmaintained dependency carrying the most
+security-critical math (the actual Diffie-Hellman and signatures). Moving to
+browser-native primitives is the highest-value modernization for downstream
+adopters:
+
+| Dimension | asm.js `curve25519-typescript` (current) | WebCrypto native `X25519` + `Ed25519` (target) |
+| --- | --- | --- |
+| **Performance** | Pure JS/asm.js, single-threaded (~5x slower than native) | Hardware-accelerated, async, near-native |
+| **Bundle size** | Ships the asm.js curve as a dependency | Browser built-in -> drops the dependency |
+| **Maintenance** | `@0.0.12`, effectively unmaintained | Maintained by the Chrome/Firefox/Safari teams |
+| **Audit surface** | The DH/signing math is JS you ship and must audit | Primitive lives in the browser, outside your bundle |
+| **Constant-time / side-channel** | JS not guaranteed constant-time | Vendor implementations are constant-time / hardened |
+| **Private-key exposure** | Key bytes always live in JS memory (XSS surface) | Can use non-extractable handles (planned follow-on) |
+| **Browser support** | Universal (it is just JS) | `X25519`: Chrome/Edge 133+, Firefox 130+, Safari 17+ (~83%); `Ed25519`: Chrome 137+, Firefox 129+, Safari 17+ (~79%) |
+| **Identity model** | Canonical Signal: one key, XEdDSA | Two keys (Ed25519 sign + X25519 DH), Olm-style |
+| **Real Signal-network interop** | Possible | No (out of scope for this library) |
+
+Sources: [Secure Curves in the Web Cryptography API (WICG spec)](https://wicg.github.io/webcrypto-secure-curves/) ·
+[Ed25519 lands in Chrome (Igalia)](https://blogs.igalia.com/jfernandez/2025/08/25/ed25519-support-lands-in-chrome-what-it-means-for-developers-and-the-web/) ·
+[caniuse: X25519 `deriveBits`](https://caniuse.com/mdn-api_subtlecrypto_derivebits_x25519).
+
+### Architectural difference: two-key (Olm-style) identity
+
+WebCrypto cannot express XEdDSA — it provides `Ed25519` (signing) and `X25519`
+(key agreement) as **separate, non-interconvertible** key types. Canonical Signal
+uses a *single* Curve25519 identity key for both jobs via XEdDSA; that is
+impossible with pure WebCrypto. The migration therefore adopts a **two-key
+identity**:
+
+- **Ed25519 identity key** — signs signed-prekeys (replaces XEdDSA signatures).
+- **X25519 identity key** — performs the X3DH Diffie-Hellman exchanges.
+
+This is the same separation used by **Matrix's Olm/Megolm** (distinct Ed25519
+fingerprint/signing and Curve25519 identity keys). Consequences:
+
+- **Security:** equivalent — separating signing and DH keys is a sound,
+  well-precedented design.
+- **Interop:** this library no longer interoperates with the *real Signal
+  network* (which expects XEdDSA single-key identities). Two peers both using
+  this library interoperate normally; cross-network Signal interop was never a
+  goal here.
+- **Format:** an identity now carries **two** public keys, and signed-prekey
+  signatures are plain `Ed25519` (not XEdDSA). Existing XEdDSA signature test
+  vectors are regenerated; X25519 key-agreement and symmetric-ratchet vectors are
+  unaffected.
+
+### Planned follow-on: non-extractable keys
+
+The initial migration keeps the curve interface byte-in/byte-out (private keys
+are imported per call), so it captures the performance, audit-surface,
+maintenance, and constant-time wins but **not** non-extractability. A later
+follow-on will let consumers hold identity (and, where the ratchet allows, DH)
+keys as **non-extractable** `CryptoKey` handles so private key bytes never enter
+JS memory — a meaningful XSS-hardening step, tracked separately.
 
 ## Installation
 
@@ -27,6 +130,11 @@ yarn add @lukium/libsignal-protocol-typescript
 # or
 npm install @lukium/libsignal-protocol-typescript
 ```
+
+> **Heads up:** the `0.2.0-beta.x` line migrates to native WebCrypto with a
+> breaking identity-key format change. To stay on the current canonical-Signal
+> build, pin to `0.1.0-beta.2` — see the **Upcoming breaking change** notice at
+> the top of this README.
 
 ES module consumption is recommended:
 

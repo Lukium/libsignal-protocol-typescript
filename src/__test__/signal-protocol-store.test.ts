@@ -10,6 +10,8 @@ describe('SignalProtocolStore', function () {
     const identityKey = {
         pubKey: Internal.crypto.getRandomBytes(33),
         privKey: Internal.crypto.getRandomBytes(32),
+        signingPubKey: Internal.crypto.getRandomBytes(32),
+        signingPrivKey: Internal.crypto.getRandomBytes(32),
     };
     beforeAll(async () => {
         store.put('registrationId', registrationId);

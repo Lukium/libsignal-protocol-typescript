@@ -1,5 +1,4 @@
 import { Crypto, HKDF, calculateMAC, crypto as defaultCrypto, verifyMAC } from '../internal/crypto';
-import { AsyncCurve as AsyncCurveType } from '@privacyresearch/curve25519-typescript';
 import * as util from '../helpers';
 
 const toAB = (arr: number[]): ArrayBuffer => util.uint8ArrayToArrayBuffer(Uint8Array.from(arr));
@@ -60,15 +59,14 @@ describe('Internal crypto helpers', () => {
 
     test('createKeyPair generates random when no privKey provided', async () => {
         const instance = new Crypto(globalThis.crypto);
-        const backend = {
-            keyPair: jest.fn().mockResolvedValue({ pubKey: data, privKey: data }),
-            sharedSecret: jest.fn(),
-            sign: jest.fn(),
-            verify: jest.fn(),
-        } as unknown as AsyncCurveType;
-        instance.curve = backend;
+        // The WebCrypto backend derives the keypair itself; when no private key
+        // is supplied, createKeyPair sources a fresh 32-byte seed via getRandomBytes.
+        const spy = jest.spyOn(instance, 'getRandomBytes');
 
-        await instance.createKeyPair();
-        expect(backend.keyPair).toHaveBeenCalled();
+        const kp = await instance.createKeyPair();
+
+        expect(spy).toHaveBeenCalledWith(32);
+        expect(kp.pubKey.byteLength).toBe(33); // 0x05-prefixed X25519 public
+        expect(kp.privKey.byteLength).toBe(32);
     });
 });

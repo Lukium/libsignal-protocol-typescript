@@ -16,6 +16,7 @@ type DeviceType = {
 
 type KeyData = {
     identityKey?: ArrayBuffer;
+    identitySigningKey?: ArrayBuffer;
     devices?: Array<DeviceType>;
 };
 
@@ -55,6 +56,12 @@ export function TestVectors(): Array<Record<string, any>> {
                 registrationId: 10290,
                 getKeys: {
                     identityKey: hexToArrayBuffer('059c2197be51bae703ae2edd26b6ff2b03d589ef4851be33a3f8d923ad86a6b439'),
+                    // Ed25519 signing identity + signature regenerated for the
+                    // WebCrypto two-key backend (signature only verified; does
+                    // not affect the X25519-derived expectedCiphertext).
+                    identitySigningKey: hexToArrayBuffer(
+                        'd04ab232742bb4ab3a1368bd4615e4e6d0224ab71a016baf8520a332c9778737'
+                    ),
                     devices: [
                         {
                             deviceId: 1,
@@ -70,7 +77,7 @@ export function TestVectors(): Array<Record<string, any>> {
                                     '05a9ecf666ec55fc27988ecc417db0d62dd5e1fa751da1f7a2dd2eca0d14c8bd46'
                                 ),
                                 signature: hexToArrayBuffer(
-                                    '0b46fdb238f1e2df7b28a94ba575e58b0aa1d377bb843602cc8c2a7cd33770fdd741f65a240f7c3086f00f31dc4f3b8ceeab498356f8d5e4bfe6f2dd3eeca98f'
+                                    'd83c735fa2c6cb8a5f1f8d809c5b6126f4feeb8408341be9f32d3fff2eb537d265927257e8aad735836475792be7d556bab712db2cc8298f4b3a2cee5ca88607'
                                 ),
                             },
                             registrationId: 0xd00d,
@@ -511,6 +518,9 @@ export function TestVectors(): Array<Record<string, any>> {
                 registrationId: 4620,
                 getKeys: {
                     identityKey: hexToArrayBuffer('0503086f4fbae45fdfbcc3e9cc39e5851183b89ccc15e9216b9fda5ab5ce2adf35'),
+                    identitySigningKey: hexToArrayBuffer(
+                        'a09aa5f47a6759802ff955f8dc2d2a14a5c99d23be97f864127ff9383455a4f0'
+                    ),
                     devices: [
                         {
                             deviceId: 1,
@@ -526,7 +536,7 @@ export function TestVectors(): Array<Record<string, any>> {
                                     '05a7f5ea2bc830f546f03debdf57a9738aa8c65c3c2857240b786458dbfc58fe76'
                                 ),
                                 signature: hexToArrayBuffer(
-                                    '1a43ae36e17fefcb0d05b5618a79fda414ba5ae5ba3c3097a27b761a55810a2f6f1933e09a12e80f274cde4d39a837e3a1180b1c636c173f40190059ea09cc8e'
+                                    'ee33285cc6ffd7872040b7fc86da43be98a00026d8bdd5cf102589f212494a0861734963bbb8aba56083e1a4bbadeee818856c216801dea6676c9f03458b2304'
                                 ),
                             },
                             registrationId: 0xd00d,
@@ -566,6 +576,9 @@ export function TestVectors(): Array<Record<string, any>> {
                 registrationId: 4620,
                 getKeys: {
                     identityKey: hexToArrayBuffer('0503086f4fbae45fdfbcc3e9cc39e5851183b89ccc15e9216b9fda5ab5ce2adf35'),
+                    identitySigningKey: hexToArrayBuffer(
+                        'a09aa5f47a6759802ff955f8dc2d2a14a5c99d23be97f864127ff9383455a4f0'
+                    ),
                     devices: [
                         {
                             deviceId: 1,
@@ -581,7 +594,7 @@ export function TestVectors(): Array<Record<string, any>> {
                                     '05a7f5ea2bc830f546f03debdf57a9738aa8c65c3c2857240b786458dbfc58fe76'
                                 ),
                                 signature: hexToArrayBuffer(
-                                    '1a43ae36e17fefcb0d05b5618a79fda414ba5ae5ba3c3097a27b761a55810a2f6f1933e09a12e80f274cde4d39a837e3a1180b1c636c173f40190059ea09cc8e'
+                                    'ee33285cc6ffd7872040b7fc86da43be98a00026d8bdd5cf102589f212494a0861734963bbb8aba56083e1a4bbadeee818856c216801dea6676c9f03458b2304'
                                 ),
                             },
                             registrationId: 0xd00d,

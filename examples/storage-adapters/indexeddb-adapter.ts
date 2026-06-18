@@ -1,4 +1,4 @@
-import type { Direction, KeyPairType, StorageType } from '../../src/types';
+import type { Direction, IdentityKeyPairType, KeyPairType, StorageType } from '../../src/types';
 
 export interface IndexedDBStoreOptions {
     /**
@@ -12,7 +12,7 @@ export interface IndexedDBStoreOptions {
 }
 
 export interface IndexedDBSignalProtocolStore extends StorageType {
-    setIdentityKeyPair(keyPair: KeyPairType): Promise<void>;
+    setIdentityKeyPair(keyPair: IdentityKeyPairType): Promise<void>;
     setLocalRegistrationId(registrationId: number): Promise<void>;
     close(): void;
     clear(): Promise<void>;
@@ -130,6 +130,13 @@ const cloneKeyPair = (keyPair: KeyPairType): KeyPairType => ({
     privKey: cloneBuffer(keyPair.privKey),
 });
 
+const cloneIdentityKeyPair = (keyPair: IdentityKeyPairType): IdentityKeyPairType => ({
+    pubKey: cloneBuffer(keyPair.pubKey),
+    privKey: cloneBuffer(keyPair.privKey),
+    signingPubKey: cloneBuffer(keyPair.signingPubKey),
+    signingPrivKey: cloneBuffer(keyPair.signingPrivKey),
+});
+
 const buffersEqual = (a: ArrayBuffer, b: ArrayBuffer): boolean => {
     if (a.byteLength !== b.byteLength) {
         return false;
@@ -168,9 +175,9 @@ export async function createIndexedDBSignalProtocolStore(
         ).then(() => undefined);
 
     const storeAPI: IndexedDBSignalProtocolStore = {
-        async getIdentityKeyPair(): Promise<KeyPairType | undefined> {
-            const value = await readMetadata<KeyPairType>('identityKeyPair');
-            return value ? cloneKeyPair(value) : undefined;
+        async getIdentityKeyPair(): Promise<IdentityKeyPairType | undefined> {
+            const value = await readMetadata<IdentityKeyPairType>('identityKeyPair');
+            return value ? cloneIdentityKeyPair(value) : undefined;
         },
 
         async getLocalRegistrationId(): Promise<number | undefined> {
@@ -278,8 +285,8 @@ export async function createIndexedDBSignalProtocolStore(
             db.close();
         },
 
-        async setIdentityKeyPair(keyPair: KeyPairType): Promise<void> {
-            await writeMetadata({ id: 'identityKeyPair', value: cloneKeyPair(keyPair) });
+        async setIdentityKeyPair(keyPair: IdentityKeyPairType): Promise<void> {
+            await writeMetadata({ id: 'identityKeyPair', value: cloneIdentityKeyPair(keyPair) });
         },
 
         async setLocalRegistrationId(registrationId: number): Promise<void> {
@@ -295,12 +302,20 @@ function cloneMetadataValue<T>(value: T): T {
         return cloneBuffer(value) as unknown as T;
     }
     if (typeof value === 'object' && value !== null) {
+        if (isIdentityKeyPairType(value)) {
+            return cloneIdentityKeyPair(value) as unknown as T;
+        }
         if (isKeyPairType(value)) {
             return cloneKeyPair(value) as unknown as T;
         }
         return structuredClonePolyfill(value);
     }
     return value;
+}
+
+function isIdentityKeyPairType(value: unknown): value is IdentityKeyPairType {
+    const c = value as IdentityKeyPairType | undefined;
+    return !!c?.pubKey && !!c?.privKey && !!c?.signingPubKey && !!c?.signingPrivKey;
 }
 
 const structuredClonePolyfill = <T>(value: T): T => {

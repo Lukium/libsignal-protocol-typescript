@@ -6,7 +6,7 @@ import {
     createIndexedDBSignalProtocolStore,
     destroyIndexedDBDatabase,
 } from '../../examples/storage-adapters/indexeddb-adapter';
-import type { KeyPairType } from '../types';
+import type { IdentityKeyPairType, KeyPairType } from '../types';
 
 const dbName = () => `libsignal-test-${Date.now()}-${Math.random()}`;
 
@@ -15,13 +15,19 @@ const makeKeyPair = (prefix: number): KeyPairType => ({
     privKey: Uint8Array.from({ length: 3 }, (_, i) => prefix + i + 10).buffer,
 });
 
+const makeIdentityKeyPair = (prefix: number): IdentityKeyPairType => ({
+    ...makeKeyPair(prefix),
+    signingPubKey: Uint8Array.from({ length: 3 }, (_, i) => prefix + i + 20).buffer,
+    signingPrivKey: Uint8Array.from({ length: 3 }, (_, i) => prefix + i + 30).buffer,
+});
+
 const makeBuffer = (value: number): ArrayBuffer => Uint8Array.from([value, value + 1, value + 2]).buffer;
 
 describe('IndexedDB SignalProtocolStore adapter', () => {
     it('persists identity key pair and registration ID', async () => {
         const name = dbName();
         const store = await createIndexedDBSignalProtocolStore({ dbName: name });
-        const identity = makeKeyPair(5);
+        const identity = makeIdentityKeyPair(5);
         await store.setIdentityKeyPair(identity);
         await store.setLocalRegistrationId(1234);
 

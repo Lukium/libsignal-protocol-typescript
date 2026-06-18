@@ -9,7 +9,7 @@ import { SignalProtocolAddress } from '../signal-protocol-address';
 import { SessionRecord } from '../session-record';
 import { TestVectors } from './testvectors';
 import * as Internal from '../internal';
-import { KeyPairType } from '../types';
+import { KeyPairType, IdentityKeyPairType } from '../types';
 import * as utils from '../helpers';
 import { PreKeyWhisperMessage, WhisperMessage } from '../protobuf/wire';
 import {
@@ -99,7 +99,7 @@ async function setupReceiveStep(
         return Promise.resolve();
     }
 
-    const keyPair = await Internal.crypto.createKeyPair(data.ourIdentityKey);
+    const keyPair = await buildIdentityFromSeed(data.ourIdentityKey);
     store.put('identityKey', keyPair);
     const signedKeyPair = await Internal.crypto.createKeyPair(data.ourSignedPreKey);
     await store.storeSignedPreKey(data.signedPreKeyId, signedKeyPair);
@@ -139,6 +139,20 @@ function unpad(paddedPlaintext: Uint8Array): Uint8Array {
         }
     }
     throw new Error('Invalid data: input empty or all 0x00s');
+}
+
+// Build a two-key identity from a single seed: X25519 DH keys from the seed,
+// plus a deterministic Ed25519 signing key (unused by these vectors beyond
+// satisfying getIdentityKeyPair, since the signing key never enters a message).
+async function buildIdentityFromSeed(seed: ArrayBuffer): Promise<IdentityKeyPairType> {
+    const dh = await Internal.crypto.createKeyPair(seed);
+    const signing = await Internal.crypto.createSigningKeyPair(seed);
+    return {
+        pubKey: dh.pubKey,
+        privKey: dh.privKey,
+        signingPubKey: signing.pubKey,
+        signingPrivKey: signing.privKey,
+    };
 }
 
 async function doReceiveStep(
@@ -194,7 +208,7 @@ async function setupSendStep(
 
     if (data.ourIdentityKey !== undefined) {
         try {
-            const keyPair: KeyPairType = await Internal.crypto.createKeyPair(data.ourIdentityKey);
+            const keyPair = await buildIdentityFromSeed(data.ourIdentityKey);
             store.put('identityKey', keyPair);
         } catch (e) {
             console.error({ e });
@@ -215,6 +229,7 @@ async function doSendStep(
             const deviceObject = {
                 encodedNumber: address.toString(),
                 identityKey: data.getKeys.identityKey,
+                identitySigningKey: data.getKeys.identitySigningKey,
                 preKey: data.getKeys.devices[0].preKey,
                 signedPreKey: data.getKeys.devices[0].signedPreKey,
                 registrationId: data.getKeys.devices[0].registrationId,

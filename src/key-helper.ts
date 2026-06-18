@@ -1,15 +1,23 @@
 import * as Internal from './internal';
-import { KeyPairType, SignedPreKeyPairType, PreKeyPairType } from './types';
+import { IdentityKeyPairType, SignedPreKeyPairType, PreKeyPairType } from './types';
 
 /**
  * Utility methods for generating identity keys, registration IDs, and pre-keys.
  */
 export class KeyHelper {
     /**
-     * Derives a new identity key pair using the configured crypto backend.
+     * Derives a new two-key identity (X25519 DH + Ed25519 signing). See
+     * IdentityKeyPairType and the README "Cryptographic Backend" section.
      */
-    static generateIdentityKeyPair(): Promise<KeyPairType> {
-        return Internal.crypto.createKeyPair();
+    static async generateIdentityKeyPair(): Promise<IdentityKeyPairType> {
+        const dh = await Internal.crypto.createKeyPair();
+        const signing = await Internal.crypto.createSigningKeyPair();
+        return {
+            pubKey: dh.pubKey,
+            privKey: dh.privKey,
+            signingPubKey: signing.pubKey,
+            signingPrivKey: signing.privKey,
+        };
     }
 
     /**
@@ -24,14 +32,18 @@ export class KeyHelper {
      * Produces a signed pre-key pair and signature for the supplied identity key.
      */
     static async generateSignedPreKey(
-        identityKeyPair: KeyPairType,
+        identityKeyPair: IdentityKeyPairType,
         signedKeyId: number
     ): Promise<SignedPreKeyPairType> {
         if (
             !(identityKeyPair.privKey instanceof ArrayBuffer) ||
             identityKeyPair.privKey.byteLength !== 32 ||
             !(identityKeyPair.pubKey instanceof ArrayBuffer) ||
-            identityKeyPair.pubKey.byteLength !== 33
+            identityKeyPair.pubKey.byteLength !== 33 ||
+            !(identityKeyPair.signingPrivKey instanceof ArrayBuffer) ||
+            identityKeyPair.signingPrivKey.byteLength !== 32 ||
+            !(identityKeyPair.signingPubKey instanceof ArrayBuffer) ||
+            identityKeyPair.signingPubKey.byteLength !== 32
         ) {
             throw new TypeError('Invalid argument for identityKeyPair');
         }
@@ -39,7 +51,8 @@ export class KeyHelper {
             throw new TypeError('Invalid argument for signedKeyId: ' + signedKeyId);
         }
         const keyPair = await Internal.crypto.createKeyPair();
-        const sig = await Internal.crypto.Ed25519Sign(identityKeyPair.privKey, keyPair.pubKey);
+        // Sign the X25519 signed-prekey public with the Ed25519 identity key.
+        const sig = await Internal.crypto.Ed25519Sign(identityKeyPair.signingPrivKey, keyPair.pubKey);
         return {
             keyId: signedKeyId,
             keyPair: keyPair,

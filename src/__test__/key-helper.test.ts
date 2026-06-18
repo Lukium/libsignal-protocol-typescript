@@ -50,8 +50,9 @@ describe('KeyHelper', function () {
             const spk = await KeyHelper.generateSignedPreKey(identityKey, 1337);
             validateKeyPair(spk.keyPair);
             expect(spk.keyId).toStrictEqual(1337);
+            // Verify with the Ed25519 identity SIGNING key (two-key identity).
             await expect(
-                Internal.crypto.Ed25519Verify(identityKey.pubKey, spk.keyPair.pubKey, spk.signature)
+                Internal.crypto.Ed25519Verify(identityKey.signingPubKey, spk.keyPair.pubKey, spk.signature)
             ).resolves.toBe(false);
         });
 

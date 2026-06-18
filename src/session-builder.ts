@@ -40,9 +40,10 @@ export class SessionBuilder {
             throw new Error('Identity key changed');
         }
 
-        // This will throw if invalid
+        // This will throw if invalid. Verification uses the Ed25519 identity
+        // SIGNING key (two-key identity), not the X25519 DH identity key.
         await Internal.crypto.Ed25519Verify(
-            device.identityKey,
+            device.identitySigningKey,
             device.signedPreKey.publicKey,
             device.signedPreKey.signature
         );

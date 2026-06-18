@@ -57,6 +57,8 @@ export async function generatePreKeyBundle(
             return {
                 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
                 identityKey: identity!.pubKey,
+                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+                identitySigningKey: identity!.signingPubKey,
                 registrationId: registrationId,
                 preKey: {
                     keyId: preKeyId,
