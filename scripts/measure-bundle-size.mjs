@@ -11,7 +11,9 @@ try {
     console.error('Failed to clean dist directory', err);
 }
 
-const buildLib = spawnSync('yarn', ['build'], {
+// Pass the command as a single string: with shell:true, Node 22+ deprecates an
+// args array (DEP0190). Args here are constants, so there is no injection risk.
+const buildLib = spawnSync('yarn build', {
     stdio: 'inherit',
     shell: true, // Windows: resolve the yarn.CMD shim (shell:false skips PATHEXT)
 });
@@ -20,7 +22,7 @@ if (buildLib.status !== 0) {
     process.exit(buildLib.status ?? 1);
 }
 
-const buildDemo = spawnSync('yarn', ['build:pwa-vite'], {
+const buildDemo = spawnSync('yarn build:pwa-vite', {
     stdio: 'inherit',
     shell: true, // Windows: resolve the yarn.CMD shim (shell:false skips PATHEXT)
 });

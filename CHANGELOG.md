@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0-beta.2 (2026-06-18)
+
+- **Fix (packaging):** the package no longer runs `husky` on install. The
+  `postinstall: husky install` script ran on every downstream install and failed
+  (husky is a dev dependency, absent in a consumer's tree), breaking
+  `npm`/`pnpm install` of the package. Husky setup moved to `prepare`, which
+  registry-tarball installs do not run — so consumers install cleanly while local
+  and git-dependency installs still get the git hooks.
+- **Fix (tooling):** `scripts/measure-bundle-size.mjs` no longer triggers Node's
+  DEP0190 deprecation — it passes the command as a single string with `shell:true`
+  instead of an args array (args are constants, no injection risk).
+
 ## 0.2.0-beta.1 (2026-06-18)
 
 - **Security:** `SessionCipher.doDecryptWhisperMessage` now advances the ratchet and consumes message keys on a private clone of the session, committing the new state back only after the MAC verifies. A forged or invalid message can no longer damage a session's ratchet state — previously a concern on the `decryptWithSessionList` by-reference path where a sibling session could be persisted with corrupted state.
