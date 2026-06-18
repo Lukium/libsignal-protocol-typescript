@@ -55,16 +55,16 @@ describe('NumericFingerprint', function () {
         expect(a).not.toBe(b);
     });
 
-    test('inject alternate crypto', async () => {
+    test('inject alternate crypto via setWebCrypto', async () => {
         jest.setTimeout(20000);
         const oldcrypto = Internal.crypto.webcrypto;
+        // Inject Node's native WebCrypto as an explicit alternate (the asm.js
+        // msrcrypto fallback was removed in 0.2.0).
         // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const newcrypto = require('../../lib/msrcrypto');
-        Internal.setWebCrypto(newcrypto);
-        const t = Date.now();
+        const { webcrypto } = require('node:crypto');
+        Internal.setWebCrypto(webcrypto);
         const generator = new FingerprintGenerator(5200);
         const f = await generator.createFor(alice.identifier, alice.key, bob.identifier, bob.key);
-        console.log(`injected crypto time:`, { time: Date.now() - t });
         expect(f).toBe(FINGERPRINT);
         Internal.setWebCrypto(oldcrypto);
     });

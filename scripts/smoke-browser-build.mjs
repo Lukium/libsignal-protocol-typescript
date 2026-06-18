@@ -25,13 +25,7 @@ async function main() {
             target: ['es2020'],
             outfile,
             logLevel: 'silent',
-            external: [
-                'path',
-                'fs',
-                '@lukium/libsignal-protocol-typescript/lib/msrcrypto.js',
-                '../lib/msrcrypto',
-                '../../lib/msrcrypto',
-            ],
+            external: ['path', 'fs'],
         });
 
         const content = readFileSync(outfile, 'utf8');

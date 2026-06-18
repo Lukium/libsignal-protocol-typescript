@@ -1,6 +1,4 @@
-import path from 'path';
-
-const msrcryptoPath = path.resolve(__dirname, '../../lib/msrcrypto');
+export {}; // ensure this file is a module (isolated scope)
 
 const originalCryptoDescriptor = Object.getOwnPropertyDescriptor(globalThis, 'crypto');
 const originalMsCrypto = (globalThis as Record<string, unknown>).msCrypto;
@@ -31,7 +29,6 @@ const unsetCrypto = () => {
 
 afterEach(() => {
     jest.resetModules();
-    jest.unmock(msrcryptoPath);
     restore();
     jest.restoreAllMocks();
 });
@@ -61,36 +58,13 @@ describe('internal crypto environment detection', () => {
         expect(random.byteLength).toBe(4);
     });
 
-    test('loads msrcrypto fallback when available via require', async () => {
-        const subtle = {
-            importKey: jest.fn().mockResolvedValue({}),
-            encrypt: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
-            decrypt: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
-            sign: jest.fn().mockResolvedValue(new ArrayBuffer(0)),
-            digest: jest.fn().mockResolvedValue(new ArrayBuffer(64)),
-        };
-        const getRandomValues = jest.fn((buffer: Uint8Array) => buffer);
+    test('throws when no native WebCrypto is available', async () => {
+        // The asm.js msrcrypto fallback was removed in 0.2.0; without a native
+        // WebCrypto (no globalThis.crypto, no msCrypto), resolution must throw.
         unsetCrypto();
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete (globalThis as Record<string, unknown>).msCrypto;
-        jest.doMock(msrcryptoPath, () => ({
-            getRandomValues,
-            subtle,
-        }));
 
-        const module = await import('../internal/crypto');
-        await module.crypto.hash(new ArrayBuffer(0));
-        expect(subtle.digest).toHaveBeenCalled();
-    });
-
-    test('throws when no WebCrypto implementation can be resolved', async () => {
-        unsetCrypto();
-        // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
-        delete (globalThis as Record<string, unknown>).msCrypto;
-        jest.doMock(msrcryptoPath, () => {
-            throw new Error('missing fallback');
-        });
-
-        await expect(import('../internal/crypto')).rejects.toThrow('missing fallback');
+        await expect(import('../internal/crypto')).rejects.toThrow('No WebCrypto implementation found');
     });
 });

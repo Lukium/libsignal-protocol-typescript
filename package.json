@@ -18,7 +18,7 @@
     "typecheck": "tsc --noEmit",
     "dev:pwa-vite": "vite --config examples/pwa-vite/vite.config.ts",
     "prepare": "yarn run build",
-    "clean": "node -e \"const fs=require('fs');const path=require('path');for (const dir of ['lib/cjs','lib/esm']) { try { fs.rmSync(dir,{recursive:true,force:true}); } catch (err) { if (err.code !== 'ENOENT') throw err; } } try { for (const entry of fs.readdirSync('lib',{withFileTypes:true})) { if (entry.isDirectory()) continue; if (entry.name === 'msrcrypto.js') continue; fs.rmSync(path.join('lib', entry.name), { force: true }); } } catch (err) { if (err.code !== 'ENOENT') throw err; }\"",
+    "clean": "node -e \"const fs=require('fs');const path=require('path');for (const dir of ['lib/cjs','lib/esm']) { try { fs.rmSync(dir,{recursive:true,force:true}); } catch (err) { if (err.code !== 'ENOENT') throw err; } } try { for (const entry of fs.readdirSync('lib',{withFileTypes:true})) { if (entry.isDirectory()) continue; fs.rmSync(path.join('lib', entry.name), { force: true }); } } catch (err) { if (err.code !== 'ENOENT') throw err; }\"",
     "build": "yarn clean && yarn build:cjs && yarn build:esm",
     "build:cjs": "tsc -p tsconfig.cjs.json",
     "build:esm": "tsc -p tsconfig.esm.json",
@@ -70,7 +70,6 @@
     "ws": "^8.18.3"
   },
   "dependencies": {
-    "@privacyresearch/curve25519-typescript": "^0.0.12",
     "base64-js": "^1.5.1",
     "protobufjs": "^7.5.4"
   },
@@ -144,12 +143,9 @@
   "files": [
     "lib/cjs/**/*",
     "lib/esm/**/*",
-    "lib/*.d.ts",
-    "lib/msrcrypto.js"
+    "lib/*.d.ts"
   ],
-  "sideEffects": [
-    "lib/msrcrypto.js"
-  ],
+  "sideEffects": false,
   "engines": {
     "node": ">=20"
   },

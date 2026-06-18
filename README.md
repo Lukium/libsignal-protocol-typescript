@@ -63,21 +63,25 @@
 
 - **Phase 1 (Foundation) — Completed.** Jest, TypeScript, and dual CJS/ESM builds are repaired and emitting declarations.
 - **Phase 2 (Modernization) — Completed.** Browser-first tooling, IndexedDB adapters, Playwright smoke tests, and logging hooks shipped in `@lukium/libsignal-protocol-typescript@0.1.0-beta.1`.
-- **Phase 3 (Enhancement) — Planned.** the **WebCrypto curve-backend migration** (see [Cryptographic Backend](#cryptographic-backend-curve25519)) is underway. PQXDH support, regenerated protobufs, and additional example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
+- **Phase 3 (Enhancement) — Planned.** the **WebCrypto curve-backend migration** shipped in `0.2.0-beta.0` — the asm.js curve dependency and `msrcrypto` fallback are removed (see [Cryptographic Backend](#cryptographic-backend-curve25519)). PQXDH support, regenerated protobufs, and additional example applications are tracked in [`docs/modernization-plan.md`](docs/modernization-plan.md).
 - **Browser-first focus.** WebCrypto-backed crypto with IndexedDB guidance remains the default; see [`docs/browser-compatibility.md`](docs/browser-compatibility.md) for supported environments.
 
 For a complete overview, visit [`docs/README.md`](docs/README.md).
 
 ## Cryptographic Backend (Curve25519)
 
-> **Status: migration in progress.** Today the elliptic-curve operations (X25519
-> key agreement and identity signatures) are provided by the bundled asm.js
-> [`@privacyresearch/curve25519-typescript`](https://www.npmjs.com/package/@privacyresearch/curve25519-typescript).
-> We are migrating these to **native WebCrypto** (`X25519` + `Ed25519` via
-> `SubtleCrypto`) behind the existing `setCurve()` seam. A feasibility spike
-> (`spikes/webcrypto-curve-x3dh.mjs`) has validated that a WebCrypto X3DH
-> handshake agrees on both sides and that Ed25519 signed-prekey verification
-> works. The symmetric layer (AES-CBC + HMAC-SHA256) is unchanged.
+> **Status: shipped in `0.2.0-beta.0`.** The elliptic-curve operations (X25519
+> key agreement and Ed25519 signatures) now use **native WebCrypto** via
+> `SubtleCrypto`. The asm.js `@privacyresearch/curve25519-typescript` dependency
+> **and the bundled `msrcrypto` fallback have been removed entirely** — cutting
+> the demo bundle from ~108 KiB to ~37 KiB gzipped. The symmetric layer
+> (AES-CBC + HMAC-SHA256) is unchanged.
+>
+> **Removed in this migration** (breaking): the asm.js-backed public `Curve` /
+> `AsyncCurve` facade, the `setCurve()` injection seam, and the legacy default
+> export. Use `KeyHelper` for identity/prekeys; inject a custom `SubtleCrypto`
+> (e.g. in a Worker) via the new `setWebCryptoSubtle()`. Requires native
+> WebCrypto: modern browsers (see support row below) or **Node ≥ 20**.
 
 ### Why WebCrypto
 
@@ -86,10 +90,10 @@ security-critical math (the actual Diffie-Hellman and signatures). Moving to
 browser-native primitives is the highest-value modernization for downstream
 adopters:
 
-| Dimension | asm.js `curve25519-typescript` (current) | WebCrypto native `X25519` + `Ed25519` (target) |
+| Dimension | asm.js `curve25519-typescript` (`0.1.x`) | WebCrypto native `X25519` + `Ed25519` (`0.2.x`, shipped) |
 | --- | --- | --- |
 | **Performance** | Pure JS/asm.js, single-threaded (~5x slower than native) | Hardware-accelerated, async, near-native |
-| **Bundle size** | Ships the asm.js curve as a dependency | Browser built-in -> drops the dependency |
+| **Bundle size** | Ships the asm.js curve + `msrcrypto` (~108 KiB gzipped demo) | Browser built-in — dependency removed (**~37 KiB** gzipped demo) |
 | **Maintenance** | `@0.0.12`, effectively unmaintained | Maintained by the Chrome/Firefox/Safari teams |
 | **Audit surface** | The DH/signing math is JS you ship and must audit | Primitive lives in the browser, outside your bundle |
 | **Constant-time / side-channel** | JS not guaranteed constant-time | Vendor implementations are constant-time / hardened |
@@ -386,33 +390,31 @@ const secretMessage = new TextDecoder().decode(new Uint8Array(plaintext));
 
 ## Injecting Dependencies
 
-This library uses [WebCrypto]() for symmetric key cryptography and random number generation. It uses an implemenation of the [AsyncCurve](https://github.com/privacyresearchgroup/curve25519-typescript/blob/master/src/types.ts#L21) interface in [`curve25519-typescript`](https://github.com/privacyresearchgroup/curve25519-typescript) for public key operations.
+As of `0.2.0` this library uses **native WebCrypto** (`SubtleCrypto`) for all
+cryptography: AES-CBC + HMAC-SHA256 for the symmetric layer, and native `X25519`
+(key agreement) + `Ed25519` (signatures) for public-key operations. There is
+**no asm.js fallback** — a native WebCrypto is required (modern browsers, or
+Node ≥ 20).
 
-Functional defaults are provided for each but you may want to provide your own, either for performance or security reasons.
+### WebCrypto injection
 
-### WebCrypto defaults and injection
-
-By default this library will use `window.crypto` if it is present. Otherwise it uses [`msrcrypto`](https://www.npmjs.com/package/msrcrypto). If you are falling back to `msrcrypto` you will want to consider providing a substitute.
-
-To replace the WebCrypto component with your own, simply call `setWebCrypto` as follows:
-
-```ts
-setWebCrypto(myCryptImplementation);
-```
-
-Your WebCrypto imlementation does not need to support the entire interface, but does need to implement:
-
-- AES-CBC
-- HMAC SHA-256
-- `getRandomValues`
-
-### Elliptic curve crypto defaults and injection
-
-By default this library uses the curve X25519 implementation in [`curve25519-typescript`](https://github.com/privacyresearchgroup/curve25519-typescript). This is a javascript implementation, compiled into [asm.js](http://asmjs.org/) from C with [emscripten](https://emscripten.org/). You may want to provide a native implementation or even use a different curve, like X448. To do this, wrap your implementation into a an object that implements the [AsyncCurve](https://github.com/privacyresearchgroup/curve25519-typescript/blob/master/src/types.ts#L21) interface and set it as follows:
+By default the library uses `globalThis.crypto` (falling back to
+`globalThis.msCrypto` if present). To supply a specific implementation — for
+example a Worker's `SubtleCrypto`, or a substitute for testing — use:
 
 ```ts
-setCurve(myCurve);
+import { setWebCrypto, setWebCryptoSubtle } from '@lukium/libsignal-protocol-typescript';
+
+setWebCrypto(myCryptoLike); // a Crypto-like object (subtle + getRandomValues)
+setWebCryptoSubtle(mySubtleCrypto); // just the SubtleCrypto used by the curve backend
 ```
+
+The implementation must provide `AES-CBC`, `HMAC SHA-256`, `getRandomValues`, and
+the `X25519` / `Ed25519` `SubtleCrypto` operations.
+
+> **Removed in `0.2.0`:** the `setCurve()` seam and the pluggable asm.js
+> `curve25519-typescript` backend. Curve operations are now native WebCrypto;
+> inject an alternate `SubtleCrypto` via `setWebCryptoSubtle()` instead.
 
 ## License
 

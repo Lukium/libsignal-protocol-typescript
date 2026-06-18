@@ -23,20 +23,6 @@ async function build() {
         target: ['chrome90', 'firefox90', 'safari15', 'edge90'],
         minify: false, // Keep readable for demo
         sourcemap: true,
-        // Handle the Node.js require() fallback for msrcrypto
-        plugins: [{
-            name: 'ignore-msrcrypto',
-            setup(build) {
-                // Ignore the msrcrypto import - browsers have native WebCrypto
-                build.onResolve({ filter: /msrcrypto/ }, () => ({
-                    path: 'msrcrypto',
-                    namespace: 'ignore',
-                }));
-                build.onLoad({ filter: /.*/, namespace: 'ignore' }, () => ({
-                    contents: 'export default {}',
-                }));
-            },
-        }],
     });
 
     console.log('Bundle created: examples/cross-browser-chat/bundle.js');

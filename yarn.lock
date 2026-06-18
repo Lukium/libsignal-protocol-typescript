@@ -1217,7 +1217,6 @@ __metadata:
     "@commitlint/cli": "npm:^20.1.0"
     "@commitlint/config-conventional": "npm:^20.0.0"
     "@playwright/test": "npm:^1.49.1"
-    "@privacyresearch/curve25519-typescript": "npm:^0.0.12"
     "@types/base64-js": "npm:^1.3.2"
     "@types/jest": "npm:^29.5.14"
     "@types/ws": "npm:^8"
@@ -1316,13 +1315,6 @@ __metadata:
   bin:
     playwright: cli.js
   checksum: 10c0/2b5b0e1f2e6a18f6e5ce6897c7440ca78f64e0b004834e9808e93ad2b78b96366b562ae4366602669cf8ad793a43d85481b58541e74be71e905e732d833dd691
-  languageName: node
-  linkType: hard
-
-"@privacyresearch/curve25519-typescript@npm:^0.0.12":
-  version: 0.0.12
-  resolution: "@privacyresearch/curve25519-typescript@npm:0.0.12"
-  checksum: 10c0/ca201234696a478f078784c863b38920f5489a264cf0010d0374845f0fdeec0b53129304313f9ef57a7b833f289763f96d3ab6afd34c1a06d326ed81fe275d2e
   languageName: node
   linkType: hard
 

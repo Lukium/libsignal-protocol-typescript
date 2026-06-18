@@ -9,9 +9,6 @@ export default defineConfig({
     root: __dirname,
     worker: {
         format: 'es',
-        rollupOptions: {
-            external: ['@lukium/libsignal-protocol-typescript/lib/msrcrypto.js'],
-        },
     },
     build: {
         // The demo (like the WebCrypto backend it showcases) targets modern

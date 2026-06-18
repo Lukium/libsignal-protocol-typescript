@@ -12,16 +12,9 @@ const resolveSubtle = (): SubtleCrypto => {
         return maybeMsCrypto.subtle as unknown as SubtleCrypto;
     }
 
-    if (typeof require === 'function') {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        const fallback = require('../lib/msrcrypto');
-        if (fallback?.subtle) {
-            return fallback.subtle;
-        }
-    }
-
     throw new Error(
-        'No SubtleCrypto implementation found. Provide one via globalThis.crypto or assign a fallback before using FingerprintGenerator.'
+        'No SubtleCrypto implementation found. This library requires a native WebCrypto ' +
+            '(browsers, or Node >= 20). Provide one via globalThis.crypto before using FingerprintGenerator.'
     );
 };
 

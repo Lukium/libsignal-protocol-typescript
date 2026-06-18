@@ -88,19 +88,7 @@ export interface StorageType {
     removeSignedPreKey: (keyId: number | string) => Promise<void>;
 }
 
-export interface CurveType {
-    generateKeyPair: () => Promise<KeyPairType>;
-    createKeyPair: (privKey: ArrayBuffer) => Promise<KeyPairType>;
-    calculateAgreement: (pubKey: ArrayBuffer, privKey: ArrayBuffer) => Promise<ArrayBuffer>;
-    verifySignature: (pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer) => Promise<void>;
-    calculateSignature: (privKey: ArrayBuffer, message: ArrayBuffer) => ArrayBuffer | Promise<ArrayBuffer>;
-    validatePubKeyFormat: (buffer: ArrayBuffer) => ArrayBuffer;
-}
-
-export interface AsyncCurveType {
-    generateKeyPair: () => Promise<KeyPairType>;
-    createKeyPair: (privKey: ArrayBuffer) => Promise<KeyPairType>;
-    calculateAgreement: (pubKey: ArrayBuffer, privKey: ArrayBuffer) => Promise<ArrayBuffer>;
-    verifySignature: (pubKey: ArrayBuffer, msg: ArrayBuffer, sig: ArrayBuffer) => Promise<boolean>;
-    calculateSignature: (privKey: ArrayBuffer, message: ArrayBuffer) => Promise<ArrayBuffer>;
-}
+// NOTE: the `CurveType` / `AsyncCurveType` facade interfaces and the `Curve`
+// classes they described were removed in 0.2.0 along with the asm.js curve
+// backend. Use `KeyHelper` (identity/prekeys) and the WebCrypto-native backend
+// directly; inject a SubtleCrypto via `setWebCryptoSubtle` if needed.

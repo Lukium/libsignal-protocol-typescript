@@ -1,7 +1,6 @@
-import * as Internal from '.';
 import * as util from '../helpers';
+import * as Internal from '.';
 import { KeyPairType } from '../types';
-import { AsyncCurve as AsyncCurveType } from '@privacyresearch/curve25519-typescript';
 import * as WebCryptoCurve from './webcrypto-curve';
 
 // X25519 public keys are carried in the legacy 33-byte "DJB" form (0x05 prefix);
@@ -36,32 +35,23 @@ const resolveWebCrypto = (): globalThis.Crypto => {
         return maybeMsCrypto as unknown as globalThis.Crypto;
     }
 
-    if (typeof require === 'function') {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        return require('../../lib/msrcrypto');
-    }
-
     throw new Error(
-        'No WebCrypto implementation found. Provide one via setWebCrypto() before using libsignal-protocol-typescript.'
+        'No WebCrypto implementation found. This library requires a native WebCrypto (browsers, or Node >= 20). ' +
+            'Provide one via setWebCrypto() before using libsignal-protocol-typescript.'
     );
 };
 
 const webcrypto = resolveWebCrypto();
 
 export class Crypto {
-    private _curve: Internal.AsyncCurve;
     private _webcrypto: globalThis.Crypto;
 
     constructor(crypto?: globalThis.Crypto) {
-        this._curve = new Internal.AsyncCurve();
         this._webcrypto = crypto || webcrypto;
     }
 
     set webcrypto(wc: globalThis.Crypto) {
         this._webcrypto = wc;
-    }
-    set curve(c: AsyncCurveType) {
-        this._curve.curve = c;
     }
 
     getRandomBytes(n: number): ArrayBuffer {
@@ -160,10 +150,10 @@ export const crypto = new Crypto();
 
 export function setWebCrypto(webcrypto: globalThis.Crypto): void {
     crypto.webcrypto = webcrypto;
-}
-
-export function setCurve(curve: AsyncCurveType): void {
-    crypto.curve = curve;
+    // Keep the native curve backend (X25519/Ed25519) on the same WebCrypto.
+    if (webcrypto?.subtle) {
+        WebCryptoCurve.setWebCryptoSubtle(webcrypto.subtle);
+    }
 }
 
 // HKDF for TextSecure has a bit of additional handling - salts always end up being 32 bytes
