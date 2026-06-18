@@ -301,7 +301,7 @@ export class SessionBuilder {
             throw new Error('PreKeySignalMessage missing identity or base key');
         }
 
-        const trusted = this.storage.isTrustedIdentity(
+        const trusted = await this.storage.isTrustedIdentity(
             this.remoteAddress.name,
             uint8ArrayToArrayBuffer(message.identityKey),
             Direction.RECEIVING

@@ -1,4 +1,4 @@
-import { Root, Type, Writer } from 'protobufjs/light';
+import { Root, Type, Writer } from 'protobufjs/light.js';
 import type { INamespace } from 'protobufjs';
 import { fromByteArray as base64FromUint8Array, toByteArray as base64ToUint8Array } from 'base64-js';
 import pushJson from './push_messages.json';

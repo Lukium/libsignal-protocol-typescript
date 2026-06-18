@@ -58,13 +58,15 @@ describe('internal crypto environment detection', () => {
         expect(random.byteLength).toBe(4);
     });
 
-    test('throws when no native WebCrypto is available', async () => {
-        // The asm.js msrcrypto fallback was removed in 0.2.0; without a native
-        // WebCrypto (no globalThis.crypto, no msCrypto), resolution must throw.
+    test('throws on first use when no native WebCrypto is available', async () => {
+        // The asm.js msrcrypto fallback was removed in 0.2.0. Resolution is lazy
+        // (so a host can inject via setWebCrypto after import), so importing
+        // succeeds but the first crypto USE throws when none is available.
         unsetCrypto();
         // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
         delete (globalThis as Record<string, unknown>).msCrypto;
 
-        await expect(import('../internal/crypto')).rejects.toThrow('No WebCrypto implementation found');
+        const module = await import('../internal/crypto');
+        expect(() => module.crypto.getRandomBytes(4)).toThrow('No WebCrypto implementation found');
     });
 });

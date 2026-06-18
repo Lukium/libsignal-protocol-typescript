@@ -41,54 +41,61 @@ const resolveWebCrypto = (): globalThis.Crypto => {
     );
 };
 
-const webcrypto = resolveWebCrypto();
-
 export class Crypto {
-    private _webcrypto: globalThis.Crypto;
+    private _webcrypto?: globalThis.Crypto;
 
     constructor(crypto?: globalThis.Crypto) {
-        this._webcrypto = crypto || webcrypto;
+        this._webcrypto = crypto;
     }
 
+    // Resolve WebCrypto lazily (on first use) so that simply importing the
+    // package never throws in a host that supplies WebCrypto via setWebCrypto()
+    // after import rather than on globalThis.
+    private get wc(): globalThis.Crypto {
+        if (!this._webcrypto) {
+            this._webcrypto = resolveWebCrypto();
+        }
+        return this._webcrypto;
+    }
+
+    get webcrypto(): globalThis.Crypto {
+        return this.wc;
+    }
     set webcrypto(wc: globalThis.Crypto) {
         this._webcrypto = wc;
     }
 
     getRandomBytes(n: number): ArrayBuffer {
         const array = new Uint8Array(n);
-        this._webcrypto.getRandomValues(array);
+        this.wc.getRandomValues(array);
         return util.uint8ArrayToArrayBuffer(array);
     }
 
     async encrypt(key: ArrayBuffer, data: ArrayBuffer, iv: ArrayBuffer): Promise<ArrayBuffer> {
-        const impkey = await this._webcrypto.subtle.importKey('raw', key, { name: 'AES-CBC' }, false, ['encrypt']);
+        const impkey = await this.wc.subtle.importKey('raw', key, { name: 'AES-CBC' }, false, ['encrypt']);
 
-        return this._webcrypto.subtle.encrypt({ name: 'AES-CBC', iv: new Uint8Array(iv) }, impkey, data);
+        return this.wc.subtle.encrypt({ name: 'AES-CBC', iv: new Uint8Array(iv) }, impkey, data);
     }
 
     async decrypt(key: ArrayBuffer, data: ArrayBuffer, iv: ArrayBuffer): Promise<ArrayBuffer> {
-        const impkey = await this._webcrypto.subtle.importKey('raw', key, { name: 'AES-CBC' }, false, ['decrypt']);
+        const impkey = await this.wc.subtle.importKey('raw', key, { name: 'AES-CBC' }, false, ['decrypt']);
 
-        return this._webcrypto.subtle.decrypt({ name: 'AES-CBC', iv: new Uint8Array(iv) }, impkey, data);
+        return this.wc.subtle.decrypt({ name: 'AES-CBC', iv: new Uint8Array(iv) }, impkey, data);
     }
     async sign(key: ArrayBuffer, data: ArrayBuffer): Promise<ArrayBuffer> {
-        const impkey = await this._webcrypto.subtle.importKey(
-            'raw',
-            key,
-            { name: 'HMAC', hash: { name: 'SHA-256' } },
-            false,
-            ['sign']
-        );
+        const impkey = await this.wc.subtle.importKey('raw', key, { name: 'HMAC', hash: { name: 'SHA-256' } }, false, [
+            'sign',
+        ]);
 
         try {
-            return this._webcrypto.subtle.sign({ name: 'HMAC', hash: 'SHA-256' }, impkey, data);
+            return this.wc.subtle.sign({ name: 'HMAC', hash: 'SHA-256' }, impkey, data);
         } catch (e) {
             // console.log({ e, data, impkey })
             throw e;
         }
     }
     async hash(data: ArrayBuffer): Promise<ArrayBuffer> {
-        return this._webcrypto.subtle.digest({ name: 'SHA-512' }, data);
+        return this.wc.subtle.digest({ name: 'SHA-512' }, data);
     }
 
     async HKDF(input: ArrayBuffer, salt: ArrayBuffer, info: ArrayBuffer): Promise<ArrayBuffer[]> {

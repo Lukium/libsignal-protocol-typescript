@@ -12,11 +12,15 @@ export class SignalProtocolAddress implements SignalProtocolAddressType {
      * @param s Canonical string representation.
      */
     static fromString(s: string): SignalProtocolAddress {
-        if (!s.match(/.*\.\d+/)) {
+        // Split on the LAST dot so names may contain dots, and require a
+        // non-empty name plus an all-digits device id. An unanchored match
+        // would otherwise accept `alice.1.extra` and mangle dotted names.
+        const idx = s.lastIndexOf('.');
+        const deviceId = idx >= 0 ? s.slice(idx + 1) : '';
+        if (idx <= 0 || !/^\d+$/.test(deviceId)) {
             throw new Error(`Invalid SignalProtocolAddress string: ${s}`);
         }
-        const parts = s.split('.');
-        return new SignalProtocolAddress(parts[0], parseInt(parts[1]));
+        return new SignalProtocolAddress(s.slice(0, idx), parseInt(deviceId, 10));
     }
 
     private _name: string;

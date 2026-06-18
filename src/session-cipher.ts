@@ -359,6 +359,14 @@ export class SessionCipher {
      * Internal helper that performs the actual Double Ratchet decrypt logic for a
      * given session state.
      */
+    // SECURITY / KNOWN LIMITATION (tracked for a follow-up): this advances the
+    // ratchet and consumes a message key (maybeStepRatchet / fillMessageKeys /
+    // delete chain.messageKeys) BEFORE verifyMAC. On the single-session path a
+    // MAC failure is harmless (the mutated record is not persisted), but
+    // decryptWithSessionList() tries sessions by reference, so a forged message
+    // can damage one session's state before a later session decrypts and the
+    // record is stored. The safe shape is to derive candidate state on a cloned
+    // session, verify the MAC, then commit. See docs/limitations.md.
     async doDecryptWhisperMessage(messageBytes: ArrayBuffer, session: SessionType): Promise<ArrayBuffer> {
         const version = new Uint8Array(messageBytes)[0];
         if ((version & 0xf) > 3 || version >> 4 < 3) {

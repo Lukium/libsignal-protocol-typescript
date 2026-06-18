@@ -225,4 +225,24 @@ describe('SessionBuilder defensive paths', () => {
             'Missing Signed PreKey for PreKeyWhisperMessage'
         );
     });
+
+    test('processV3 rejects an untrusted inbound identity key', async () => {
+        // Regression: isTrustedIdentity() must be awaited. A non-awaited Promise
+        // is always truthy, which would silently bypass receive-side identity
+        // verification and accept a changed/forged identity key.
+        const builder = new SessionBuilder(
+            createStorage({ isTrustedIdentity: jest.fn().mockResolvedValue(false) }),
+            address
+        );
+        const record = new SessionRecord();
+        const message = {
+            identityKey: createUint8(7, 32),
+            baseKey: createUint8(8, 32),
+            message: createUint8(9, 8),
+            signedPreKeyId: 3,
+            registrationId: 4,
+        } as unknown as PreKeyWhisperMessage;
+
+        await expect(builder.processV3(record, message)).rejects.toThrow('Unknown identity key');
+    });
 });

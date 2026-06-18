@@ -1,5 +1,5 @@
 /* istanbul ignore file */
-import { Root, Type, Writer } from 'protobufjs/light';
+import { Root, Type, Writer } from 'protobufjs/light.js';
 import type { INamespace } from 'protobufjs';
 import wireJson from './wire.json';
 
