@@ -5,7 +5,14 @@
 // (e.g. the KMS enclave worker) blocks at runtime — the worker throws EvalError and
 // dies. Reader/Writer from protobufjs/minimal contain no codegen. Field numbers and
 // wire types below mirror wire.json exactly.
-import { Reader, Writer } from 'protobufjs/minimal.js';
+//
+// protobufjs/minimal is CommonJS, so use a DEFAULT import (its module.exports) and
+// destructure — `import { Reader, Writer } from '.../minimal.js'` throws under native
+// ESM (e.g. vitest), where Node's CJS interop cannot statically detect those named
+// exports. The Writer *type* still comes from the 'protobufjs' type package.
+import protobuf from 'protobufjs/minimal.js';
+import type { Writer } from 'protobufjs';
+const { Reader, Writer: WriterImpl } = protobuf;
 
 const hasToNumber = (value: unknown): value is { toNumber: () => number } =>
     typeof value === 'object' &&
@@ -127,7 +134,7 @@ const base64FromBytes = (bytes: Uint8Array | undefined): string | undefined => {
 // is written only when present (!= null), matching protobufjs's generated encoders.
 
 function encodeSignalMessage(message: SignalMessage): Writer {
-    const w = Writer.create();
+    const w = WriterImpl.create();
     if (message.ratchetKey != null) w.uint32(10).bytes(message.ratchetKey); // 1: bytes
     if (message.counter != null) w.uint32(16).uint32(message.counter); // 2: uint32
     if (message.previousCounter != null) w.uint32(24).uint32(message.previousCounter); // 3: uint32
@@ -166,7 +173,7 @@ function decodeSignalMessageRaw(input: Uint8Array): Record<string, unknown> {
 }
 
 function encodePreKeySignalMessage(message: PreKeySignalMessage): Writer {
-    const w = Writer.create();
+    const w = WriterImpl.create();
     if (message.preKeyId != null) w.uint32(8).uint32(message.preKeyId); // 1: uint32
     if (message.baseKey != null) w.uint32(18).bytes(message.baseKey); // 2: bytes
     if (message.identityKey != null) w.uint32(26).bytes(message.identityKey); // 3: bytes

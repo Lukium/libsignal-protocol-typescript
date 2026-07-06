@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0-beta.4 (2026-07-05)
+
+- **Fix (ESM interop):** import `protobufjs/minimal` via a default import +
+  destructure (`import protobuf from 'protobufjs/minimal.js'; const { Reader, Writer }
+  = protobuf`) instead of named imports. The named form added in beta.3
+  (`import { Reader, Writer } from 'protobufjs/minimal.js'`) throws
+  `SyntaxError: does not provide an export named 'Reader'` under **native ESM**
+  (e.g. vitest / Node ESM), because `protobufjs/minimal` is CommonJS and Node's CJS
+  interop can't statically detect those named exports. Bundlers (esbuild) and CJS
+  interop (jest) tolerated it, so it only broke native-ESM consumers. No runtime or
+  wire-format change from beta.3 — supersedes beta.3, which is broken under native ESM.
+
 ## 0.2.0-beta.3 (2026-07-05)
 
 - **Fix (CSP compatibility):** the wire-message protobuf codecs
