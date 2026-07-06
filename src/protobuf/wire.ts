@@ -1,11 +1,11 @@
 /* istanbul ignore file */
-import { Root, Type, Writer } from 'protobufjs/light.js';
-import type { INamespace } from 'protobufjs';
-import wireJson from './wire.json';
-
-const root = Root.fromJSON(wireJson as INamespace);
-const signalMessageType = root.lookupType('signal.proto.wire.SignalMessage') as Type;
-const preKeySignalMessageType = root.lookupType('signal.proto.wire.PreKeySignalMessage') as Type;
+// CSP-safe protobuf: these two wire messages are encoded/decoded by hand with the
+// minimal (codegen-free) Writer/Reader. protobufjs/light builds its encode/decode
+// via `new Function`, which a strict `script-src 'self'` CSP without 'unsafe-eval'
+// (e.g. the KMS enclave worker) blocks at runtime — the worker throws EvalError and
+// dies. Reader/Writer from protobufjs/minimal contain no codegen. Field numbers and
+// wire types below mirror wire.json exactly.
+import { Reader, Writer } from 'protobufjs/minimal.js';
 
 const hasToNumber = (value: unknown): value is { toNumber: () => number } =>
     typeof value === 'object' &&
@@ -122,17 +122,110 @@ const base64FromBytes = (bytes: Uint8Array | undefined): string | undefined => {
     return Buffer.from(bytes).toString('base64');
 };
 
+// --- CSP-safe wire codecs (manual protobuf, no runtime codegen) ------------------
+// Field numbers / wire types mirror wire.json. proto2-optional semantics: a field
+// is written only when present (!= null), matching protobufjs's generated encoders.
+
+function encodeSignalMessage(message: SignalMessage): Writer {
+    const w = Writer.create();
+    if (message.ratchetKey != null) w.uint32(10).bytes(message.ratchetKey); // 1: bytes
+    if (message.counter != null) w.uint32(16).uint32(message.counter); // 2: uint32
+    if (message.previousCounter != null) w.uint32(24).uint32(message.previousCounter); // 3: uint32
+    if (message.ciphertext != null) w.uint32(34).bytes(message.ciphertext); // 4: bytes
+    if (message.pqRatchet != null) w.uint32(42).bytes(message.pqRatchet); // 5: bytes
+    return w;
+}
+
+function decodeSignalMessageRaw(input: Uint8Array): Record<string, unknown> {
+    const r = Reader.create(input);
+    const out: Record<string, unknown> = {};
+    while (r.pos < r.len) {
+        const tag = r.uint32();
+        switch (tag >>> 3) {
+            case 1:
+                out.ratchetKey = r.bytes();
+                break;
+            case 2:
+                out.counter = r.uint32();
+                break;
+            case 3:
+                out.previousCounter = r.uint32();
+                break;
+            case 4:
+                out.ciphertext = r.bytes();
+                break;
+            case 5:
+                out.pqRatchet = r.bytes();
+                break;
+            default:
+                r.skipType(tag & 7);
+                break;
+        }
+    }
+    return out;
+}
+
+function encodePreKeySignalMessage(message: PreKeySignalMessage): Writer {
+    const w = Writer.create();
+    if (message.preKeyId != null) w.uint32(8).uint32(message.preKeyId); // 1: uint32
+    if (message.baseKey != null) w.uint32(18).bytes(message.baseKey); // 2: bytes
+    if (message.identityKey != null) w.uint32(26).bytes(message.identityKey); // 3: bytes
+    if (message.message != null) w.uint32(34).bytes(message.message); // 4: bytes
+    if (message.registrationId != null) w.uint32(40).uint32(message.registrationId); // 5: uint32
+    if (message.signedPreKeyId != null) w.uint32(48).uint32(message.signedPreKeyId); // 6: uint32
+    if (message.kyberPreKeyId != null) w.uint32(56).uint32(message.kyberPreKeyId); // 7: uint32
+    if (message.kyberCiphertext != null) w.uint32(66).bytes(message.kyberCiphertext); // 8: bytes
+    return w;
+}
+
+function decodePreKeySignalMessageRaw(input: Uint8Array): Record<string, unknown> {
+    const r = Reader.create(input);
+    const out: Record<string, unknown> = {};
+    while (r.pos < r.len) {
+        const tag = r.uint32();
+        switch (tag >>> 3) {
+            case 1:
+                out.preKeyId = r.uint32();
+                break;
+            case 2:
+                out.baseKey = r.bytes();
+                break;
+            case 3:
+                out.identityKey = r.bytes();
+                break;
+            case 4:
+                out.message = r.bytes();
+                break;
+            case 5:
+                out.registrationId = r.uint32();
+                break;
+            case 6:
+                out.signedPreKeyId = r.uint32();
+                break;
+            case 7:
+                out.kyberPreKeyId = r.uint32();
+                break;
+            case 8:
+                out.kyberCiphertext = r.bytes();
+                break;
+            default:
+                r.skipType(tag & 7);
+                break;
+        }
+    }
+    return out;
+}
+
 export const SignalMessageCodec: Codec<SignalMessage> = {
     create(base?: Partial<SignalMessage>): SignalMessage {
         return { ...defaultSignalMessage(), ...base };
     },
     encode(message: SignalMessage): Writer {
-        return signalMessageType.encode(signalMessageType.create(message));
+        return encodeSignalMessage(message);
     },
     decode(input: Uint8Array | ArrayBuffer): SignalMessage {
         const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
-        const decoded = signalMessageType.decode(buffer) as unknown as SignalMessage;
-        return SignalMessageCodec.fromObject(decoded as Record<string, unknown>);
+        return SignalMessageCodec.fromObject(decodeSignalMessageRaw(buffer));
     },
     fromObject(object: Record<string, unknown>): SignalMessage {
         const message = defaultSignalMessage();
@@ -190,12 +283,11 @@ export const PreKeySignalMessageCodec: Codec<PreKeySignalMessage> = {
         return { ...defaultPreKeySignalMessage(), ...base };
     },
     encode(message: PreKeySignalMessage): Writer {
-        return preKeySignalMessageType.encode(preKeySignalMessageType.create(message));
+        return encodePreKeySignalMessage(message);
     },
     decode(input: Uint8Array | ArrayBuffer): PreKeySignalMessage {
         const buffer = input instanceof Uint8Array ? input : new Uint8Array(input);
-        const decoded = preKeySignalMessageType.decode(buffer) as unknown as PreKeySignalMessage;
-        return PreKeySignalMessageCodec.fromObject(decoded as Record<string, unknown>);
+        return PreKeySignalMessageCodec.fromObject(decodePreKeySignalMessageRaw(buffer));
     },
     fromObject(object: Record<string, unknown>): PreKeySignalMessage {
         const message = defaultPreKeySignalMessage();

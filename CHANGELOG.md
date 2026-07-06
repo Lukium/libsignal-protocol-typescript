@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## 0.2.0-beta.3 (2026-07-05)
+
+- **Fix (CSP compatibility):** the wire-message protobuf codecs
+  (`src/protobuf/wire.ts`) no longer use protobufjs's `light` reflection, which
+  builds its encode/decode functions with `new Function` and throws `EvalError`
+  under a strict `script-src 'self'` CSP without `unsafe-eval` (e.g. a sandboxed
+  KMS enclave worker — the worker crashed at startup). `SignalMessage` and
+  `PreKeySignalMessage` are now encoded/decoded by hand using the codegen-free
+  `protobufjs/minimal` `Writer`/`Reader`, with field numbers/wire types mirroring
+  `wire.json`. No wire-format or public-API change; full suite (279 tests),
+  typecheck, and lint green.
+
 ## 0.2.0-beta.2 (2026-06-18)
 
 - **Fix (packaging):** the package no longer runs `husky` on install. The
